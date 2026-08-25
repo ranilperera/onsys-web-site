@@ -1,0 +1,64 @@
+services:
+  postgres:
+    # pgvector image — the plain postgres image lacks the extension the
+    # chatbot's retrieval depends on.
+    image: pgvector/pgvector:pg16
+    # Not "onsys-postgres" — that name is already claimed by the
+    # onsys-cms-scaffold project on dev machines.
+    container_name: onsys-platform-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-onsys}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-onsys}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      # Bound to localhost only — never expose Postgres to the internet.
+      # Host port 5433: 5432 is taken by a native Postgres install on dev
+      # machines. Containers still reach each other on 5432 over the compose
+      # network, so this only affects psql/Prisma running on the host.
+      - '127.0.0.1:${POSTGRES_HOST_PORT:-5433}:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-onsys} -d ${POSTGRES_DB:-onsys}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.api
+    container_name: onsys-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-onsys}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-onsys}?schema=public
+    ports:
+      - '127.0.0.1:4000:4000'
+    healthcheck:
+      test: ['CMD', 'node', '-e', "require('http').get('http://localhost:4000/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  web:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.web
+      args:
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    container_name: onsys-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    env_file: .env
+    ports:
+      - '127.0.0.1:3000:3000'
+
+volumes:
+  postgres_data:

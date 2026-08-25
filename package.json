@@ -1,0 +1,35 @@
+{
+  "name": "onsys-platform",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Onsys Technologies website platform — Next.js frontend, Express API, PostgreSQL",
+  "workspaces": ["apps/*", "packages/*"],
+  "engines": { "node": ">=20.0.0" },
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,green \"npm:dev:api\" \"npm:dev:web\"",
+    "dev:web": "npm run dev -w @onsys/web",
+    "dev:api": "npm run dev -w @onsys/api",
+    "build": "npm run build -w @onsys/shared && npm run build -w @onsys/api && npm run build -w @onsys/web",
+    "start": "concurrently -n api,web -c blue,green \"npm:start:api\" \"npm:start:web\"",
+    "start:web": "npm run start -w @onsys/web",
+    "start:api": "npm run start -w @onsys/api",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "test:e2e": "playwright test",
+    "db:generate": "prisma generate --schema apps/api/prisma/schema.prisma",
+    "db:migrate": "prisma migrate dev --schema apps/api/prisma/schema.prisma",
+    "db:deploy": "prisma migrate deploy --schema apps/api/prisma/schema.prisma",
+    "db:seed": "npm run seed -w @onsys/api",
+    "db:studio": "prisma studio --schema apps/api/prisma/schema.prisma",
+    "create:admin": "npm run create:admin -w @onsys/api --",
+    "import:wp": "npm run import:wp -w @onsys/api --",
+    "embeddings:build": "npm run embeddings:build -w @onsys/api --"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "concurrently": "^9.1.0",
+    "prisma": "^6.1.0",
+    "typescript": "^5.7.2"
+  }
+}

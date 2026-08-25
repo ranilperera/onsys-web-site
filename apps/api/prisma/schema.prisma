@@ -1,0 +1,311 @@
+// Onsys Technologies platform — data model
+// PostgreSQL + pgvector (for chatbot RAG retrieval)
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pgvector(map: "vector")]
+}
+
+// ---------------------------------------------------------------
+// Content
+// ---------------------------------------------------------------
+
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+/// Marketing pages (home, about, expertise, pricing, contact, service pages).
+/// Body is stored as structured JSON blocks so the admin can reorder sections
+/// without touching code.
+model Page {
+  id          String        @id @default(cuid())
+  slug        String        @unique
+  title       String
+  status      ContentStatus @default(DRAFT)
+
+  // Hero
+  eyebrow     String?
+  heading     String
+  lede        String?       @db.Text
+
+  /// Ordered array of section blocks. See packages/shared/src/blocks.ts
+  blocks      Json          @default("[]")
+
+  // SEO / AEO
+  seoTitle       String?
+  seoDescription String?  @db.Text
+  ogImage        String?
+  canonicalUrl   String?
+  noindex        Boolean  @default(false)
+  /// Extra JSON-LD injected verbatim (e.g. Service or FAQPage schema)
+  structuredData Json?
+  /// Q&A pairs surfaced as FAQPage schema + answer-engine friendly markup
+  faqs           Faq[]
+
+  navOrder    Int?
+  publishedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  chunks      ContentChunk[]
+
+  @@index([status, slug])
+  @@map("pages")
+}
+
+model Category {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  name        String
+  description String? @db.Text
+  /// Hex colour used for the card cover in the blog grid
+  color       String  @default("#0E336A")
+  posts       Post[]
+
+  @@map("categories")
+}
+
+model Post {
+  id         String        @id @default(cuid())
+  slug       String        @unique
+  title      String
+  excerpt    String?       @db.Text
+  /// Rendered HTML (sanitised on write). Markdown source kept in `bodyMarkdown`.
+  bodyHtml   String        @db.Text
+  bodyMarkdown String?     @db.Text
+  status     ContentStatus @default(DRAFT)
+
+  categoryId String?
+  category   Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  authorName String        @default("Onsys Technologies")
+  readMinutes Int          @default(5)
+  coverImage String?
+
+  // SEO / AEO
+  seoTitle       String?
+  seoDescription String?  @db.Text
+  ogImage        String?
+  canonicalUrl   String?
+  noindex        Boolean  @default(false)
+  structuredData Json?
+  faqs           Faq[]
+
+  /// Original WordPress URL/ID, used to build 301s and avoid duplicate imports
+  legacyUrl  String?       @unique
+  legacyId   Int?
+
+  publishedAt DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  chunks     ContentChunk[]
+
+  @@index([status, publishedAt])
+  @@index([categoryId])
+  @@map("posts")
+}
+
+/// FAQ entries power both on-page accordions and FAQPage JSON-LD (AEO).
+model Faq {
+  id       String  @id @default(cuid())
+  question String  @db.Text
+  answer   String  @db.Text
+  order    Int     @default(0)
+
+  pageId   String?
+  page     Page?   @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  postId   String?
+  post     Post?   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([pageId])
+  @@index([postId])
+  @@map("faqs")
+}
+
+/// 301 map so WordPress URLs keep their link equity after cutover.
+model Redirect {
+  id        String   @id @default(cuid())
+  fromPath  String   @unique
+  toPath    String
+  statusCode Int     @default(301)
+  hits      Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@map("redirects")
+}
+
+// ---------------------------------------------------------------
+// Chatbot (hybrid RAG + Teams escalation)
+// ---------------------------------------------------------------
+
+/// Vector-indexed chunks of page/post content for retrieval.
+/// The `embedding` column is added by migration as vector(1536) — Prisma has no
+/// native vector type, so it is declared Unsupported and queried via $queryRaw.
+model ContentChunk {
+  id        String  @id @default(cuid())
+  content   String  @db.Text
+  tokens    Int     @default(0)
+  /// Human-readable source label shown as a citation in the chat widget
+  sourceUrl String
+  sourceTitle String
+
+  pageId    String?
+  page      Page?   @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  postId    String?
+  post      Post?   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  embedding Unsupported("vector(1536)")?
+
+  createdAt DateTime @default(now())
+
+  @@index([pageId])
+  @@index([postId])
+  @@map("content_chunks")
+}
+
+enum ChatStatus {
+  /// AI is handling the conversation
+  BOT
+  /// Escalated — waiting for a human in Teams to pick it up
+  WAITING_HUMAN
+  /// A human in Teams is actively replying
+  HUMAN
+  CLOSED
+}
+
+model ChatSession {
+  id            String     @id @default(cuid())
+  status        ChatStatus @default(BOT)
+
+  visitorName   String?
+  visitorEmail  String?
+  /// Page the widget was opened on — useful context for the human agent
+  entryUrl      String?
+  userAgent     String?
+  ipHash        String?
+
+  /// Teams conversation/message id used to thread replies back to this session
+  teamsThreadId String?
+  escalatedAt   DateTime?
+  closedAt      DateTime?
+
+  messages      ChatMessage[]
+  lead          Lead?
+
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@index([status, updatedAt])
+  @@index([teamsThreadId])
+  @@map("chat_sessions")
+}
+
+enum ChatRole {
+  VISITOR
+  ASSISTANT
+  AGENT
+  SYSTEM
+}
+
+model ChatMessage {
+  id        String      @id @default(cuid())
+  sessionId String
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  role      ChatRole
+  content   String      @db.Text
+  /// Agent display name when role = AGENT
+  authorName String?
+  /// Retrieval citations backing an ASSISTANT answer
+  citations Json?
+
+  createdAt DateTime    @default(now())
+
+  @@index([sessionId, createdAt])
+  @@map("chat_messages")
+}
+
+// ---------------------------------------------------------------
+// Leads & users
+// ---------------------------------------------------------------
+
+enum LeadSource {
+  CONTACT_FORM
+  CHAT
+  NEWSLETTER
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  CLOSED
+}
+
+model Lead {
+  id        String     @id @default(cuid())
+  name      String
+  email     String
+  company   String?
+  phone     String?
+  service   String?
+  message   String?    @db.Text
+
+  status    LeadStatus @default(NEW)
+  channel   LeadSource @default(CONTACT_FORM)
+
+  /// Set when the lead came out of a chat conversation
+  sessionId String?      @unique
+  session   ChatSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  /// Marketing attribution
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  referrer    String?
+
+  emailSentAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([channel, createdAt])
+  @@map("leads")
+}
+
+enum Role {
+  ADMIN
+  EDITOR
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         Role     @default(EDITOR)
+  lastLoginAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("users")
+}
+
+/// Server-side sessions for the admin CMS (httpOnly cookie holds the id).
+model AdminSession {
+  id        String   @id @default(cuid())
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("admin_sessions")
+}
