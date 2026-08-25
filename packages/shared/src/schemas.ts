@@ -51,3 +51,68 @@ export interface ChatReply {
   status: 'BOT' | 'WAITING_HUMAN' | 'HUMAN' | 'CLOSED';
   escalated: boolean;
 }
+
+// --- Booking ---------------------------------------------------------------
+
+/** Query for the slot grid: an inclusive local-date range, YYYY-MM-DD. */
+export const availabilityQuerySchema = z.object({
+  from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Expected YYYY-MM-DD').optional(),
+  days: z.coerce.number().int().min(1).max(31).default(14),
+});
+
+export const bookingInputSchema = z.object({
+  name: z.string().min(2, 'Please enter your name').max(120),
+  email: z.string().email('Please enter a valid email address').max(200),
+  company: z.string().max(160).optional().or(z.literal('')),
+  phone: z.string().max(40).optional().or(z.literal('')),
+  topic: z.string().max(120).optional().or(z.literal('')),
+  message: z.string().max(2000).optional().or(z.literal('')),
+  /// ISO-8601 UTC instant of the slot start, exactly as the availability
+  /// response returned it. The server re-validates it against live free/busy —
+  /// a client is never trusted to have picked a slot that is still open.
+  startsAt: z.string().datetime({ message: 'Please choose a time' }),
+  // Anti-spam: must be empty. Real users never see this field.
+  website: z.string().max(0).optional(),
+  captchaToken: z.string().optional(),
+  utmSource: z.string().max(120).optional(),
+  utmMedium: z.string().max(120).optional(),
+  utmCampaign: z.string().max(120).optional(),
+  referrer: z.string().max(500).optional(),
+});
+export type BookingInput = z.infer<typeof bookingInputSchema>;
+
+export interface AvailabilitySlot {
+  /// UTC instant, ISO-8601. The value posted back when booking.
+  startsAt: string;
+  endsAt: string;
+  /// Pre-formatted for display, e.g. "9:30 am", in the booking timezone.
+  label: string;
+}
+
+export interface AvailabilityDay {
+  /// Local calendar date in the booking timezone, YYYY-MM-DD.
+  date: string;
+  /// e.g. "Tue 26 Aug".
+  label: string;
+  slots: AvailabilitySlot[];
+}
+
+export interface AvailabilityResponse {
+  enabled: boolean;
+  timezone: string;
+  slotMinutes: number;
+  consultantName: string;
+  days: AvailabilityDay[];
+}
+
+export interface BookingConfirmation {
+  reference: string;
+  startsAt: string;
+  endsAt: string;
+  timezone: string;
+  /// Formatted in the booking timezone, e.g. "Tuesday 26 August, 9:30 am".
+  when: string;
+  joinUrl: string | null;
+  consultantName: string;
+  cancelUrl: string;
+}

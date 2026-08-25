@@ -17,7 +17,14 @@ async function main(): Promise<void> {
   const role = (get('role') || 'ADMIN').toUpperCase() as 'ADMIN' | 'EDITOR';
 
   if (!email) {
-    console.error('Usage: npm run create:admin -- --email=you@onsys.com.au --name="Your Name"');
+    console.error(`Usage:
+  npm run create:admin -- --email=you@onsys.com.au --name="Your Name" [--role=ADMIN]
+
+On Windows PowerShell npm eats the flags before the script sees them
+("Unknown cli config"). Run the script directly instead:
+  npx tsx src/scripts/create-admin.ts --email=you@onsys.com.au --name="Your Name" --role=ADMIN
+
+Omit --password to be prompted, which keeps it out of your shell history.`);
     process.exit(1);
   }
 

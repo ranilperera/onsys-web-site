@@ -24,7 +24,7 @@ const homeBlocks: Block[] = [
     heading: 'Expert IT services',
     highlight: 'you can trust.',
     body: 'Smart, affordable solutions designed to accelerate your business — remote DBA cover, managed IT, cloud migration, AI and custom software, delivered by one accountable team around the clock.',
-    videoUrl: 'https://www.youtube-nocookie.com/embed/HqalUFAJFgE',
+    backgroundImage: '/images/hero-home.jpg',
     ctas: [
       { label: 'Schedule a Meeting', href: '/contact' },
       { label: 'Discover Onsys IT Services', href: '/expertise' },
@@ -34,11 +34,11 @@ const homeBlocks: Block[] = [
     type: 'quicklinks',
     items: [
       { label: 'Remote DBA', href: '/managed-database-services', icon: '#s-managed', color: '#EAF1FB' },
-      { label: 'Managed IT', href: '/expertise', icon: '#s-consult', color: '#E7F5EC' },
-      { label: 'Cloud & Migration', href: '/expertise', icon: '#s-cloud', color: '#FFF1E0' },
+      { label: 'Managed IT', href: '/managed-it-services', icon: '#s-consult', color: '#E7F5EC' },
+      { label: 'Cloud & Migration', href: '/cloud-migrations', icon: '#s-cloud', color: '#FFF1E0' },
       { label: 'Fixed-Price Projects', href: '/pricing-and-plans', icon: '#s-ha', color: '#EAF1FB' },
-      { label: 'Software & AI', href: '/expertise', icon: '#s-code', color: '#E7F5EC' },
-      { label: 'Cyber Security', href: '/expertise', icon: '#s-shield', color: '#FFF1E0' },
+      { label: 'Software & AI', href: '/custom-software-development', icon: '#s-code', color: '#E7F5EC' },
+      { label: 'Cyber Security', href: '/managed-security-services', icon: '#s-shield', color: '#FFF1E0' },
     ],
   },
   {
@@ -221,93 +221,145 @@ const homeBlocks: Block[] = [
   },
 ];
 
+/**
+ * Managed database services — the flagship service page.
+ *
+ * Rewritten with the real published plan pricing (the previous version carried
+ * a placeholder note saying the figures still needed validating) and linked
+ * across to the pages that now cover on-call, emergency and project work.
+ */
 const mdsBlocks: Block[] = [
   {
+    type: 'cardGrid',
+    anchor: 'what-you-get',
+    eyebrow: 'What you get',
+    heading: 'Your databases, watched by people who run them for a living',
+    body: 'Most database outages are predictable a week before they happen — if somebody is looking. That is what you are buying: someone always looking, and the authority to act before it becomes an incident.',
+    centered: true,
+    altBackground: true,
+    columns: 3,
+    cards: [
+      { title: '24/7 proactive monitoring', body: 'Alerting on the things that actually precede an outage — space, blocking, failed jobs, replication lag — not a dashboard nobody opens.', icon: '#s-managed', coverColor: '#EAF1FB', tag: 'Always watching' },
+      { title: 'Guaranteed response SLA', body: 'One hour on Plans B and C, two hours on Plan A, around the clock. The clock starts when the alert fires, not when someone notices.', icon: '#s-emergency', coverColor: '#FFF1E0', tag: '1–2 hour SLA' },
+      { title: 'Included service hours', body: 'From 10 to 50 professional hours a month for the improvement work that otherwise never gets scheduled.', icon: '#s-consult', coverColor: '#E7F5EC', tag: '10–50 hrs/month' },
+      { title: 'Health-check reporting', body: 'Monthly on Plans A and B, daily on Plan C — with findings and recommendations, not just green ticks.', icon: '#s-etl', coverColor: '#F3F2F1', tag: 'Reported, not assumed' },
+      { title: 'Patching & upgrades', body: 'Service packs, cumulative updates and CPU/PSU applied on a schedule, tested first, so you are not running unsupported versions by accident.', icon: '#s-ha', coverColor: '#EAF1FB', tag: 'On a schedule', link: { label: 'Upgrade paths', href: '/database-upgrades-migrations-dr' } },
+      { title: 'Certified senior DBAs', body: 'Oracle Certified Professionals and Azure Database Administrators — the same people who deliver our consultancy, not a first-line queue.', icon: '#s-shield', coverColor: '#FFF1E0', tag: 'No triage layer', link: { label: 'See certifications', href: '/expertise#certifications' } },
+    ],
+  },
+  {
     type: 'checkList',
-    eyebrow: 'Overview',
-    heading: "What's included",
-    body: 'Every managed plan is built around proactive monitoring and a guaranteed response time, so problems are caught before they become outages.',
+    anchor: 'included',
+    eyebrow: 'Every plan includes',
+    heading: 'No asterisks on the things that matter',
+    body: 'Delivered against an ITIL-aligned service model, by a follow-the-sun team across Melbourne and Colombo.',
     items: [
-      '24/7 proactive monitoring & alerting',
-      '2-hour guaranteed incident response SLA',
+      '24/7/365 proactive monitoring and alerting',
+      'Guaranteed incident response SLA, day or night',
       'Secured remote access to your environment',
-      'Monthly database health checks',
-      'ITIL-aligned service delivery model',
-      'Dedicated professional hours every month',
-      'Certified senior DBA expertise',
-      'Platform patching & upgrade support',
-      'Service desk access',
-      'Ad-hoc work billed in 30-minute increments',
+      'Regular database health checks with written findings',
+      'Platform patching and upgrade support',
+      'Service desk access at no additional cost',
+      'Automated alerts and notifications configured for you',
+      'Additional hours at $140/hr, agreed with you before the work starts',
     ],
     sidebar: {
       title: 'At a glance',
       rows: [
-        { label: 'Response SLA', value: '2 hours' },
+        { label: 'Plans from', value: '$1,500 / month' },
+        { label: 'Response SLA', value: '1–2 hours' },
         { label: 'Coverage', value: '24 / 7 / 365' },
         { label: 'Delivery model', value: 'ITIL-aligned' },
-        { label: 'Platforms', value: 'SQL Server · Oracle · PostgreSQL · EDB' },
-        { label: 'Ad-hoc rate', value: '$140/hr (30-min increments)' },
-        { label: 'Regions', value: 'Melbourne + Colombo follow-the-sun' },
+        { label: 'Overage rate', value: '$140 / hour' },
+        { label: 'Prices shown', value: 'GST exclusive' },
       ],
     },
+  },
+  {
+    type: 'platformChips',
+    anchor: 'platforms',
+    eyebrow: 'Platforms',
+    heading: 'What we manage',
+    body: 'One supplier across the whole estate — so nobody argues about whose problem the outage is.',
+    groups: [
+      {
+        title: 'Database platforms',
+        chips: [
+          { label: 'Microsoft SQL Server', color: '#CC2927' },
+          { label: 'Oracle Database', color: '#C74634' },
+          { label: 'PostgreSQL & EDB', color: '#336791' },
+          { label: 'MySQL & MariaDB', color: '#00758F' },
+          { label: 'MongoDB', color: '#13AA52' },
+          { label: 'Azure SQL & Managed Instance', color: '#0078D4' },
+        ],
+      },
+      {
+        title: 'Where they run',
+        chips: [
+          { label: 'On-premises', color: '#605E5C' },
+          { label: 'Microsoft Azure', color: '#0078D4' },
+          { label: 'AWS', color: '#FF9900' },
+          { label: 'Oracle Cloud (OCI)', color: '#C74634' },
+          { label: 'VMware & Hyper-V', color: '#607078' },
+        ],
+      },
+      {
+        title: 'High availability',
+        chips: [
+          { label: 'AlwaysOn availability groups', color: '#CC2927' },
+          { label: 'Failover clustering', color: '#A4373A' },
+          { label: 'Oracle RAC & Data Guard', color: '#C74634' },
+          { label: 'Replication & log shipping', color: '#605E5C' },
+        ],
+      },
+    ],
   },
   {
     type: 'steps',
     eyebrow: 'How it works',
     heading: 'From first call to full coverage',
+    body: 'Most clients are monitored within two weeks. There is no lengthy mobilisation phase.',
     steps: [
-      { title: 'Free consultation', body: 'A senior consultant assesses your current environment and risk areas — no obligation.' },
-      { title: 'Onboarding & health check', body: 'We baseline every instance and flag anything that needs attention before go-live.' },
-      { title: '24/7 coverage begins', body: 'Monitoring, alerting and your SLA response clock start from day one.' },
-      { title: 'Monthly reporting', body: 'You get a clear report on health, incidents, hours used and recommended improvements.' },
+      { title: 'Free consultation', body: 'A senior consultant reviews your environment and risk areas — no obligation, and we will tell you if you do not need us.' },
+      { title: 'Onboarding & health check', body: 'We baseline every instance and flag what needs attention before go-live, so day one is not a surprise.' },
+      { title: '24/7 coverage begins', body: 'Monitoring, alerting and your SLA response clock start. Escalation paths and your service desk access are live.' },
+      { title: 'Monthly reporting', body: 'A clear report on health, incidents, hours used and what we recommend fixing next.' },
     ],
   },
   {
-    type: 'pricing',
+    type: 'cardGrid',
+    anchor: 'plans',
     eyebrow: 'Plans',
-    heading: 'Managed service tiers',
-    body: 'Two starting tiers, scoped to your instance count and data footprint — every plan is tailored after the free consultation.',
+    heading: 'Three tiers, priced on your estate',
+    body: 'Priced against instance count, data volume and the response time you need. Full inclusions for each tier are published on our pricing page.',
+    centered: true,
     altBackground: true,
-    columns: 2,
-    note: 'Plan structure reflects the tiers currently published on onsys.com.au. Exact monthly pricing is quoted after the free environment assessment — final tier names and inclusions should be validated with the Onsys team before this goes live.',
-    plans: [
-      {
-        name: 'Essentials',
-        price: 'Custom quote · scoped to your environment',
-        featured: false,
-        features: [
-          'Up to 10 SQL Server / database instances',
-          'Up to 5TB managed data',
-          '24/7 monitoring & support',
-          '2-hour response SLA',
-          '10 professional hours / month',
-          'Monthly health check',
-          'Ad-hoc work at $140/hr (30-min increments)',
-        ],
-        cta: { label: 'Request this plan', href: '/contact' },
-      },
-      {
-        name: 'Enterprise',
-        price: 'Custom quote · larger & multi-platform estates',
-        featured: true,
-        badge: 'Most flexible',
-        features: [
-          'Instance count & data volume scoped to you',
-          '24/7 monitoring & priority support',
-          'Faster response SLA available',
-          'Expanded professional hours',
-          'Multi-platform (SQL Server, Oracle, PostgreSQL, EDB)',
-          'Dedicated account contact',
-          'Quarterly optimisation review',
-        ],
-        cta: { label: 'Talk to sales', href: '/contact' },
-      },
+    columns: 3,
+    cards: [
+      { title: '24/7 DBA Plan A', body: 'Up to 10 SQL Server instances and 5 TB. Two-hour response SLA, 10 service hours a month, monthly health check.', tag: '$1,500/mo', link: { label: 'Full inclusions', href: '/pricing-and-plans#database-plans' } },
+      { title: '24/7 DBA Plan B', body: 'Adds 4 MySQL/PostgreSQL instances and 20 TB. One-hour SLA, 20 service hours, automated alerting configured.', tag: '$3,000/mo', link: { label: 'Full inclusions', href: '/pricing-and-plans#database-plans' } },
+      { title: '24/7 DBA Plan C', body: '25 SQL Server, 4 MySQL/PostgreSQL and 6 Oracle instances, 50 TB. One-hour SLA, 50 service hours, daily health checks.', tag: '$7,500/mo', link: { label: 'Full inclusions', href: '/pricing-and-plans#database-plans' } },
+    ],
+  },
+  {
+    type: 'cardGrid',
+    anchor: 'alternatives',
+    eyebrow: 'Not sure this is the right fit?',
+    heading: 'Three lighter ways to get the same people',
+    body: 'A full managed plan is not right for everyone. These cover the same team on different commercial terms.',
+    centered: true,
+    altBackground: false,
+    columns: 3,
+    cards: [
+      { title: 'On-call / ad-hoc DBA', body: 'You run the databases day to day and want a safety net. $100 per instance per month holds the cover; calls are $150/hr.', tag: 'From $100/instance', link: { label: 'How on-call works', href: '/on-call-dba-services' } },
+      { title: 'Emergency support', body: 'Something is broken right now and you have no agreement in place. We will still take the call.', tag: 'Answered 24/7', link: { label: 'Outage response', href: '/emergency-database-support' } },
+      { title: 'Fixed-price projects', body: 'A migration, upgrade or HA build with a defined scope, quoted as one price with milestone payments.', tag: 'Milestone-based', link: { label: 'Project delivery', href: '/database-upgrades-migrations-dr' } },
     ],
   },
   {
     type: 'ctaBand',
-    heading: 'Talk to a senior database consultant — free',
-    body: "30 minutes, no obligation. We'll assess your environment and outline where you're exposed.",
+    heading: 'What would an outage cost you tonight?',
+    body: 'If you cannot answer that, book a free 30-minute consultation. A senior DBA will assess your environment and tell you where you are exposed — no obligation.',
     cta: { label: 'Book Your Free Consultation', href: '/contact' },
   },
 ];
@@ -641,6 +693,37 @@ const pricingBlocks: Block[] = [
       { label: 'Managed IT (SMB)', href: '#managed-it-plans', icon: '#s-cloud', color: '#FFF1E0' },
       { label: 'Hourly Consultancy', href: '#consultancy-rates', icon: '#s-consult', color: '#E7F5EC' },
       { label: 'Engagement Options', href: '#engagement-options', icon: '#s-etl', color: '#F3F2F1' },
+    ],
+  },
+  {
+    // Answers the three objections a buyer arrives with before they read a
+    // single figure: am I trapped, will the number move, and can I try you out.
+    type: 'cardGrid',
+    centered: true,
+    altBackground: false,
+    columns: 3,
+    eyebrow: 'Why our pricing looks like this',
+    heading: 'Priced in the open, on purpose',
+    body: 'Most providers make you sit through a discovery call before they will name a number. We would rather you arrived already knowing whether we fit your budget.',
+    cards: [
+      {
+        title: 'No lock-in contracts',
+        body: 'Monthly plans run on a rolling basis. Stay because the service is worth it, not because a 36-month term says you have to.',
+        icon: '#s-shield',
+        coverColor: '#EAF1FB',
+      },
+      {
+        title: 'The quoted price is the price',
+        body: 'Every plan states its instance count, data volume and included hours. Work beyond the allocation is agreed with you before it starts — never discovered on the invoice.',
+        icon: '#s-managed',
+        coverColor: '#FFF1E0',
+      },
+      {
+        title: 'Free 30-minute review first',
+        body: 'A senior consultant looks at your environment and gives you an honest read — including telling you when you do not need us yet.',
+        icon: '#s-consult',
+        coverColor: '#E7F5EC',
+      },
     ],
   },
   {
@@ -3569,7 +3652,69 @@ const grcBlocks: Block[] = [
 ];
 
 const contactBlocks: Block[] = [
-  { type: 'contactForm', heading: 'Send us a message', body: 'We typically respond within one business day.' },
+  {
+    // Three different people land here — someone comparing providers, an
+    // existing client, and someone whose production is already down. Sending
+    // all three through the same form makes the urgent case wait.
+    type: 'cardGrid',
+    centered: true,
+    altBackground: false,
+    columns: 3,
+    eyebrow: 'Pick the fastest route',
+    heading: 'How would you like to reach us?',
+    body: 'Every enquiry reaches a consultant either way — but if something is already broken, do not use the form.',
+    cards: [
+      {
+        title: 'Scoping something new',
+        body: 'Comparing providers, planning a migration, or just after a realistic number? Book a free 30-minute call and we will give you an honest read on your environment.',
+        icon: '#s-consult',
+        coverColor: '#EAF1FB',
+        link: { label: 'Book a free call', href: org.bookingUrl },
+      },
+      {
+        title: 'Already a client',
+        body: 'Raise it with the service desk and we will route it to an engineer who already knows your environment. Plan customers get 24/7 coverage and the response SLA set out in their agreement.',
+        icon: '#s-managed',
+        coverColor: '#FFF1E0',
+        link: { label: `Call ${org.phone}`, href: `tel:${org.phoneE164}` },
+      },
+      {
+        title: 'Production is down',
+        body: 'A database or business system is offline right now. Do not wait on email — call us and we will start triage on the phone, whether or not you are on a plan.',
+        icon: '#s-emergency',
+        coverColor: '#FDECEC',
+        link: { label: 'Emergency support', href: '/emergency-database-support' },
+      },
+    ],
+  },
+  {
+    type: 'checkList',
+    eyebrow: 'No black box',
+    heading: 'What happens after you send it',
+    body: 'Enquiries do not sit in a shared inbox waiting for someone to triage them. Here is the actual sequence.',
+    items: [
+      'A senior consultant reads your message — it does not go into a ticket queue first.',
+      'We reply within one business day, usually the same day, even if the answer is that we are not the right fit.',
+      'If it looks like a fit, we book a free 30-minute review of your environment at a time that suits you.',
+      'You get a written scope with a fixed price or a clear rate — before any work starts.',
+      'Nothing is charged, and nothing is committed, until you say yes in writing.',
+    ],
+    sidebar: {
+      title: 'How quickly we come back to you',
+      rows: [
+        { label: 'New enquiry', value: 'Within 1 business day' },
+        { label: 'Free scoping review', value: '30 minutes, no charge' },
+        { label: 'Written scope & price', value: 'Before any work starts' },
+        { label: 'Plan customers', value: '24/7, SLA per agreement' },
+        { label: 'Production down', value: 'Call — triage starts on the phone' },
+      ],
+    },
+  },
+  {
+    type: 'contactForm',
+    heading: 'Send us a message',
+    body: 'The more you can tell us about your environment — platforms, versions, what is going wrong — the more useful our first reply will be.',
+  },
 ];
 
 export interface SeedPage {
@@ -3578,6 +3723,9 @@ export interface SeedPage {
   heading: string;
   eyebrow?: string;
   lede?: string;
+  /** Full-bleed header photo under /public, e.g. /images/hero-mds.jpg. */
+  heroImage?: string;
+  heroCtas?: Array<{ label: string; href: string }>;
   seoTitle: string;
   seoDescription: string;
   navOrder?: number;
@@ -3620,10 +3768,15 @@ export const pages: SeedPage[] = [
   {
     slug: 'expertise',
     title: 'Expertise',
-    heading: 'Deep, hands-on expertise across the platforms your business runs on',
+    heading: 'Deep, hands-on expertise',
     eyebrow: 'Platforms & capability',
-    lede: 'Our experienced, certified team designs, builds and manages your database, cloud and on-premises infrastructure projects — staffed by senior specialists holding credentials across Oracle, Microsoft, Red Hat, VMware and Fortinet.',
+    lede: 'Across the platforms your business actually runs on. Our experienced, certified team designs, builds and manages your database, cloud and on-premises infrastructure projects — staffed by senior specialists holding credentials across Oracle, Microsoft, Red Hat, VMware and Fortinet.',
     // No brand suffix — the root layout's title template appends it.
+    heroImage: '/images/hero-expertise.jpg',
+    heroCtas: [
+      { label: 'Book a Free Consultation', href: org.bookingUrl },
+      { label: 'Talk to an Engineer', href: `tel:${org.phoneE164}` },
+    ],
     seoTitle: 'Our Expertise | Database, Cloud, Software & Security',
     seoDescription:
       "Onsys Technologies' platform expertise across SQL Server, Oracle, PostgreSQL, EDB, Azure, AWS, Oracle Cloud, software development, AI and cyber security.",
@@ -3637,12 +3790,18 @@ export const pages: SeedPage[] = [
   {
     slug: 'managed-database-services',
     title: 'Managed Database Services',
-    heading: 'Managed Database Services',
+    heading: 'Managed database services',
     eyebrow: 'Database · Ongoing Support',
-    lede: '24/7 monitoring, incident management and ITIL-aligned support so your SQL Server, Oracle, PostgreSQL and EDB platforms stay healthy, secure and available around the clock — without hiring a full in-house team.',
-    seoTitle: 'Managed Database Services | 24/7 DBA Support | Onsys Technologies',
+    lede: 'Senior DBAs watching your estate around the clock, with a guaranteed response SLA and a block of improvement hours every month — from $1,500, and without hiring a single person.',
+    heroImage: '/images/hero-mds.jpg',
+    heroCtas: [
+      { label: 'Book a Free Consultation', href: org.bookingUrl },
+      { label: 'See DBA plans', href: '/pricing-and-plans#database-plans' },
+    ],
+    // No brand suffix — the root layout's title template appends it.
+    seoTitle: 'Managed Database Services | 24/7 DBA Support from $1,500/month',
     seoDescription:
-      '24/7 managed database services — monitoring, incident response and ITIL-aligned support for SQL Server, Oracle, PostgreSQL and EDB, with a 2-hour response SLA.',
+      'Managed database services from Onsys — 24/7 proactive monitoring, a guaranteed 1–2 hour response SLA, included service hours and health-check reporting across SQL Server, Oracle, PostgreSQL, EDB, MySQL and Azure SQL. Plans from $1,500/month.',
     blocks: mdsBlocks,
     faqs: [
       { question: 'What counts as an "incident" under the SLA?', answer: 'Any unplanned event that degrades or interrupts database availability or performance — outages, failed jobs, replication breaks, or critical alert thresholds being breached.' },
@@ -3657,6 +3816,11 @@ export const pages: SeedPage[] = [
     heading: 'About Onsys Technologies',
     eyebrow: 'Melbourne-based · globally delivered',
     lede: 'A Melbourne technology company helping businesses in Australia and worldwide innovate, digitalise and save money through tailored IT solutions — combining onshore presence with an offshore expert team.',
+    heroImage: '/images/hero-about.jpg',
+    heroCtas: [
+      { label: 'Book a Free Consultation', href: org.bookingUrl },
+      { label: 'Our expertise', href: '/expertise' },
+    ],
     seoTitle: 'About Onsys Technologies | Melbourne IT & Database Company',
     seoDescription:
       `${org.name} is a ${org.address.locality}-based IT company delivering database, cloud, managed IT, cyber security and software services. Onshore and offshore specialists, 24/7 coverage, ABN ${org.abn}.`,
@@ -3674,9 +3838,14 @@ export const pages: SeedPage[] = [
   {
     slug: 'pricing-and-plans',
     title: 'Pricing & Plans',
-    heading: 'Pricing and support plans',
-    eyebrow: 'Remote IT consultancy & support',
-    lede: 'Published pricing for remote database support, managed IT and hourly consultancy — with no lock-in contracts. Monthly plans start at $1,500 and consultancy is billed at a flat $150/hr, GST exclusive.',
+    heading: 'Know what it costs before you call',
+    eyebrow: 'Transparent pricing · No lock-in contracts',
+    lede: 'Every rate we charge is published on this page. 24/7 database cover from $1,500 a month, managed IT from $4,500, senior consultants at a flat $150 an hour. No lock-in contracts, no surprise line items — and a free 30-minute review before you commit to anything.',
+    heroImage: '/images/hero-pricing.jpg',
+    heroCtas: [
+      { label: 'Compare the plans', href: '#database-plans' },
+      { label: 'Book a Free Review', href: '/contact' },
+    ],
     // The root layout appends "| Onsys Technologies" via a title template —
     // repeating it here would double it up in the browser tab.
     seoTitle: 'Pricing and Support Plans | Remote IT Consultancy & Support',
@@ -3700,6 +3869,11 @@ export const pages: SeedPage[] = [
     heading: 'On-call and ad-hoc DBA support',
     eyebrow: 'Subscription cover · pay per call',
     lede: 'Australian-based consultants on standby 24/7 for your SQL Server estate. $100 per instance per month holds the cover, support calls are $150 per hour — so a quiet month costs you almost nothing.',
+    heroImage: '/images/hero-dba-oncall.jpg',
+    heroCtas: [
+      { label: 'Book a Free Consultation', href: org.bookingUrl },
+      { label: 'See DBA plans', href: '/pricing-and-plans#database-plans' },
+    ],
     seoTitle: 'On-Call & Ad-hoc DBA Support | 24/7 SQL Server Cover from $100/instance',
     seoDescription:
       'On-call SQL Server DBA support from Onsys — $100 per instance per month for 24/7 standby cover with a 2-hour response SLA, plus $150/hr support calls. Australian-based certified DBAs, onboarding within 24 hours.',
@@ -3722,6 +3896,11 @@ export const pages: SeedPage[] = [
     heading: 'Emergency database support',
     eyebrow: 'Outage response · answered 24/7',
     lede: `Production down, data at risk, or a restore that will not complete? Call ${org.phone} and speak to an Australian-based senior DBA — any hour, any day, with or without an existing agreement.`,
+    heroImage: '/images/hero-db-emergency.jpg',
+    heroCtas: [
+      { label: `Call ${org.phone}`, href: `tel:${org.phoneE164}` },
+      { label: 'Book a Consultation', href: org.bookingUrl },
+    ],
     seoTitle: 'Emergency Database Support Australia | 24/7 Outage Response',
     seoDescription:
       `Emergency database support from Onsys — 24/7 outage response for SQL Server, Oracle, PostgreSQL, MySQL and MongoDB. Australian-based certified DBAs, $150/hour, no existing contract required. Call ${org.phone}.`,
@@ -3745,6 +3924,11 @@ export const pages: SeedPage[] = [
     heading: 'Database consultancy',
     eyebrow: 'Project & advisory services',
     lede: 'Need an experienced database consultant for your next project? Onsys designs, migrates and modernises database environments — optimising licence usage, exploiting virtualisation and cutting total cost of ownership along the way.',
+    heroImage: '/images/hero-db-consultancy.jpg',
+    heroCtas: [
+      { label: 'Book a Free Consultation', href: org.bookingUrl },
+      { label: 'See consultancy rates', href: '/pricing-and-plans#consultancy-rates' },
+    ],
     seoTitle: 'Database Consultancy Australia | SQL Server, Oracle & PostgreSQL Consultants',
     seoDescription:
       'Database consultancy from Onsys — architecture, migrations to Azure, AWS and OCI, high availability and DR, upgrades, BI and licence optimisation. Certified SQL Server, Oracle, PostgreSQL and EDB consultants at $150/hour or fixed price.',
@@ -3768,6 +3952,11 @@ export const pages: SeedPage[] = [
     eyebrow: 'Platforms & partner products',
     lede: 'Secure data sharing, national-scale digital identity and gold-standard Oracle disaster recovery — built or backed by the same engineers who run our clients’ production systems.',
     // No brand suffix — the root layout's title template appends it.
+    heroImage: '/images/hero-products.jpg',
+    heroCtas: [
+      { label: 'Book a Free Consultation', href: org.bookingUrl },
+      { label: 'Talk to an Engineer', href: `tel:${org.phoneE164}` },
+    ],
     seoTitle: 'Products | Data Sharing, Digital ID & Oracle DR Software',
     seoDescription:
       'Onsys software products — OnsysConnect secure data sharing platform, Onsys IDMS open-source biometric digital identity, and Dbvisit StandbyMP disaster recovery for Oracle Standard Edition. Request a free demo.',
@@ -3790,9 +3979,14 @@ export const pages: SeedPage[] = [
     // on one URL rather than splitting across two thin ones.
     slug: 'database-upgrades-migrations-dr',
     title: 'Upgrades, Migrations & DR',
-    heading: 'Database upgrades, migrations and disaster recovery',
+    heading: 'Upgrades, migrations and DR',
     eyebrow: 'Project delivery · ITIL change management',
     lede: 'Get off unsupported versions, move platforms without a bad weekend, and put disaster recovery in place that has actually been failover-tested. Fixed price where the scope is defined.',
+    heroImage: '/images/hero-db-upgrades.jpg',
+    heroCtas: [
+      { label: 'Book a Free Consultation', href: org.bookingUrl },
+      { label: 'Fixed-price projects', href: '/pricing-and-plans#engagement-options' },
+    ],
     seoTitle: 'Database Upgrades, Migrations & Disaster Recovery | SQL Server & Oracle',
     seoDescription:
       'Database upgrade, migration and DR projects from Onsys — SQL Server 2000–2019 upgrade paths, Oracle 12c/18c/19c, Oracle to EDB, cloud migration to Azure, AWS and OCI, AlwaysOn, RAC and Data Guard. Fixed-price with milestone payments.',
@@ -3815,6 +4009,10 @@ export const pages: SeedPage[] = [
     heading: 'Privacy Policy',
     eyebrow: 'Legal',
     lede: 'How Onsys Technologies collects, holds, uses and discloses personal information — and how we comply with the Privacy Act 1988 (Cth) and the Australian Privacy Principles.',
+    heroImage: '/images/hero-legal-privacy.jpg',
+    heroCtas: [
+      { label: 'Contact Us', href: '/contact' },
+    ],
     seoTitle: 'Privacy Policy',
     seoDescription:
       'Onsys Technologies privacy policy — what we collect, how we use it, who we disclose it to including overseas recipients, cookies and analytics, your access and correction rights, and how to make a complaint.',
@@ -3827,6 +4025,10 @@ export const pages: SeedPage[] = [
     heading: 'Terms of Use',
     eyebrow: 'Legal',
     lede: 'The terms governing your access to and use of onsys.com.au. These terms cover the website only — services are supplied under a separate signed agreement.',
+    heroImage: '/images/hero-legal-terms.jpg',
+    heroCtas: [
+      { label: 'Contact Us', href: '/contact' },
+    ],
     seoTitle: 'Terms of Use',
     seoDescription:
       'Terms of Use for onsys.com.au — permitted use, prohibited conduct, intellectual property, the chat assistant, disclaimers and liability, and governing law.',
@@ -3839,6 +4041,10 @@ export const pages: SeedPage[] = [
     heading: 'Disclaimer',
     eyebrow: 'Legal',
     lede: 'The content on this website is general information only. This page explains the limits of what you should rely on it for — particularly the technical guides and commands we publish.',
+    heroImage: '/images/hero-legal-disclaimer.jpg',
+    heroCtas: [
+      { label: 'Contact Us', href: '/contact' },
+    ],
     seoTitle: 'Disclaimer',
     seoDescription:
       'Onsys Technologies website disclaimer — general information only, technical content and code samples, AI-generated chat responses, limitation of liability, external links, copyright and trademarks.',
@@ -3852,6 +4058,11 @@ export const pages: SeedPage[] = [
     heading: 'Managed IT services',
     eyebrow: 'Your outsourced IT department',
     lede: 'A seamless, secure and efficient IT platform is critical to your business. We run all of it — network, servers, endpoints, backup, Microsoft 365 and a 24/7 service desk — for a fixed monthly fee from $4,500.',
+    heroImage: '/images/hero-managed-it.jpg',
+    heroCtas: [
+      { label: 'Book a Free Consultation', href: org.bookingUrl },
+      { label: 'See managed IT pricing', href: '/pricing-and-plans#managed-it-plans' },
+    ],
     seoTitle: 'Managed IT Services Australia | Outsourced IT Support from $4,500/month',
     seoDescription:
       'Managed IT services from Onsys — network and server management, endpoint security, backup and recovery, Microsoft 365, IT consultancy and a 24/7 helpdesk. SMB plans from $4,500/month covering up to 30, 100 or 200 users.',
@@ -3874,6 +4085,11 @@ export const pages: SeedPage[] = [
     heading: 'Cloud consultancy and support',
     eyebrow: 'Strategy · architecture · FinOps · support',
     lede: 'Decide well, build it right, then run it economically. Vendor-neutral advice across Azure, AWS and Oracle Cloud from consultants certified on all three — at $150 per hour or under a managed plan.',
+    heroImage: '/images/hero-cloud-consult.jpg',
+    heroCtas: [
+      { label: 'Book a Free Consultation', href: org.bookingUrl },
+      { label: 'See consultancy rates', href: '/pricing-and-plans#consultancy-rates' },
+    ],
     seoTitle: 'Cloud Consultancy & Support | Azure, AWS & Oracle Cloud Consultants',
     seoDescription:
       'Cloud consultancy from Onsys — cloud strategy and roadmap, cost modelling and FinOps, landing zone and identity design, DevOps automation and 24/7 ongoing support across Microsoft Azure, AWS and Oracle Cloud at $150/hour.',
@@ -3896,6 +4112,11 @@ export const pages: SeedPage[] = [
     heading: 'Cloud migrations',
     eyebrow: 'Azure · AWS · Oracle Cloud',
     lede: 'Move workloads to the cloud without the bad weekend. Dependencies mapped, waves prioritised, cutover rehearsed with a tested rollback — delivered on a fixed price with milestone payments.',
+    heroImage: '/images/hero-cloud-migration.jpg',
+    heroCtas: [
+      { label: 'Book a Free Consultation', href: org.bookingUrl },
+      { label: 'Talk to an Engineer', href: `tel:${org.phoneE164}` },
+    ],
     seoTitle: 'Cloud Migration Services | Azure, AWS & Oracle Cloud Migrations',
     seoDescription:
       'Cloud migration services from Onsys — SQL Server to Azure SQL and Managed Instance, Oracle to EDB, on-premises to Azure, AWS or OCI, and JD Edwards to Oracle Cloud. Dependency analysis, rehearsed cutover and tested rollback, fixed price.',
@@ -3919,6 +4140,11 @@ export const pages: SeedPage[] = [
     heading: 'System administration services',
     eyebrow: 'Windows · Linux · Microsoft 365 · identity',
     lede: 'The work nobody notices until it stops happening. We administer your Windows and Linux servers, Microsoft 365 tenancy and identity platform so your team can focus on the business.',
+    heroImage: '/images/hero-sysadmin.jpg',
+    heroCtas: [
+      { label: 'Book a Free Consultation', href: org.bookingUrl },
+      { label: 'See managed IT pricing', href: '/pricing-and-plans#managed-it-plans' },
+    ],
     seoTitle: 'System Administration Services | Windows, Linux & Microsoft 365',
     seoDescription:
       'System administration from Onsys — Windows Server and Active Directory, Linux configuration and hardening, Microsoft 365 administration and licence management, RBAC and account provisioning. $150/hour or within a managed IT plan.',
@@ -3941,6 +4167,11 @@ export const pages: SeedPage[] = [
     heading: 'Network and firewall services',
     eyebrow: 'Design · defend · monitor',
     lede: 'Network architecture built around your business, firewalls that are actively managed rather than installed and forgotten, and round-the-clock monitoring so stability does not depend on someone noticing.',
+    heroImage: '/images/hero-network.jpg',
+    heroCtas: [
+      { label: 'Book a Free Consultation', href: org.bookingUrl },
+      { label: 'Talk to an Engineer', href: `tel:${org.phoneE164}` },
+    ],
     seoTitle: 'Network & Firewall Services | Cisco, Fortinet & Palo Alto Support',
     seoDescription:
       'Network and firewall services from Onsys — network design and optimisation, firewall configuration and management, intrusion detection, VPN and remote access, and 24/7 monitoring across Cisco, Fortinet, Palo Alto, Juniper, Check Point and Sophos.',
@@ -3963,6 +4194,11 @@ export const pages: SeedPage[] = [
     heading: 'Virtualisation and storage',
     eyebrow: 'VMware · Hyper-V · KVM · SAN & NAS',
     lede: 'Consolidate infrastructure and cut the complexity and cost of hardware-based environments — with the storage underneath administered as deliberately as the hypervisor above it.',
+    heroImage: '/images/hero-virtualisation.jpg',
+    heroCtas: [
+      { label: 'Book a Free Consultation', href: org.bookingUrl },
+      { label: 'Talk to an Engineer', href: `tel:${org.phoneE164}` },
+    ],
     seoTitle: 'Virtualisation & Storage Services | VMware, Hyper-V, KVM, SAN & NAS',
     seoDescription:
       'Virtualisation and storage services from Onsys — VMware, Hyper-V and Oracle Linux KVM architecture, migration, upgrades, health checks and support, plus storage administration across NetApp, Dell EMC, HPE, Hitachi, IBM, Veeam and Commvault.',
@@ -3985,6 +4221,11 @@ export const pages: SeedPage[] = [
     heading: 'Custom software development',
     eyebrow: 'Offshore engineering · Melbourne accountability',
     lede: 'Built fast, built secure, built to scale. Web applications, APIs, modernisation and AI-enabled features — delivered by an offshore engineering team under experienced Melbourne project management.',
+    heroImage: '/images/hero-software-dev.jpg',
+    heroCtas: [
+      { label: 'Book a Free Consultation', href: org.bookingUrl },
+      { label: 'See engagement options', href: '/pricing-and-plans#engagement-options' },
+    ],
     seoTitle: 'Custom Software Development Australia | Offshore Teams, Local Accountability',
     seoDescription:
       'Custom software development from Onsys — web applications, SaaS platforms, backend and APIs, application modernisation and AI-enabled features. Offshore engineering with Melbourne project management, on fixed-cost, milestone or dedicated-team engagements.',
@@ -4007,6 +4248,11 @@ export const pages: SeedPage[] = [
     heading: 'Mobile app development',
     eyebrow: 'iOS · Android · Flutter · React Native',
     lede: 'High-performance apps for iOS and Android, cross-platform where it saves money and native where it matters — from ideation through design, build, QA, store launch and ongoing support.',
+    heroImage: '/images/hero-mobile-app.jpg',
+    heroCtas: [
+      { label: 'Book a Free Consultation', href: org.bookingUrl },
+      { label: 'See engagement options', href: '/pricing-and-plans#engagement-options' },
+    ],
     seoTitle: 'Mobile App Development | iOS, Android, Flutter & React Native',
     seoDescription:
       'Mobile app development from Onsys — native iOS and Android, plus Flutter and React Native cross-platform builds. UI/UX design, agile delivery, enterprise-grade security, App Store and Play Store launch, and ongoing support.',
@@ -4029,6 +4275,11 @@ export const pages: SeedPage[] = [
     heading: 'Integration and ETL services',
     eyebrow: 'APIs · ETL · data pipelines',
     lede: 'Your data is already there — it is just stranded in systems that were never designed to talk to each other. We build the integrations and pipelines that connect them reliably.',
+    heroImage: '/images/hero-integration.jpg',
+    heroCtas: [
+      { label: 'Book a Free Consultation', href: org.bookingUrl },
+      { label: 'See consultancy rates', href: '/pricing-and-plans#consultancy-rates' },
+    ],
     seoTitle: 'Integration & ETL Services | APIs, SSIS & Azure Data Factory',
     seoDescription:
       'Integration and ETL services from Onsys — system integration, SSIS and Azure Data Factory pipelines, API development, data migration, event-driven exchange and Power BI reporting feeds. Fixed price or $150/hour.',
@@ -4052,6 +4303,11 @@ export const pages: SeedPage[] = [
     heading: 'AI development and solutions',
     eyebrow: 'Strategy → proof of concept → scale',
     lede: 'Production-ready AI, not demos. Chatbots, autonomous agents, computer vision and generative AI — starting with a two to six week proof of concept that tells you whether it is worth scaling.',
+    heroImage: '/images/hero-ai.jpg',
+    heroCtas: [
+      { label: 'Book a Free Consultation', href: org.bookingUrl },
+      { label: 'See engagement options', href: '/pricing-and-plans#engagement-options' },
+    ],
     seoTitle: 'AI Development & Solutions | Chatbots, Agents & Generative AI',
     seoDescription:
       'AI development from Onsys — AI chatbots with verifiable citations, autonomous agents, generative AI, computer vision and audio intelligence. Two to six week proof of concept, then fixed price or dedicated team. Deployed on Azure, AWS and OCI.',
@@ -4074,6 +4330,11 @@ export const pages: SeedPage[] = [
     heading: 'Managed security services',
     eyebrow: 'SIEM · SOC · threat hunting · EDR',
     lede: 'An enterprise security capability without an enterprise security team. A 24/7 SOC, managed SIEM and threat hunting form the detection layer of a four-part security practice covering all twelve security domains.',
+    heroImage: '/images/hero-security-managed.jpg',
+    heroCtas: [
+      { label: 'Book a Free Consultation', href: org.bookingUrl },
+      { label: 'Talk to an Engineer', href: `tel:${org.phoneE164}` },
+    ],
     seoTitle: 'Managed Security Services | 24/7 SOC, SIEM & Threat Hunting',
     seoDescription:
       'Managed security services from Onsys — managed SIEM, a 24/7 Security Operations Centre, proactive threat hunting, managed EDR, vulnerability management and cloud security across AWS, Azure and Google Cloud. Book a free security posture review.',
@@ -4097,6 +4358,11 @@ export const pages: SeedPage[] = [
     heading: 'Managed endpoint detection and response',
     eyebrow: 'SentinelOne · behavioural AI · rollback',
     lede: 'Prevent, detect and reverse cyber attacks on your endpoints. Behavioural AI catches what signatures miss, automated remediation contains the threat in seconds, and rollback returns a ransomed machine to its pre-attack state.',
+    heroImage: '/images/hero-security-edr.jpg',
+    heroCtas: [
+      { label: 'Book a Free Consultation', href: org.bookingUrl },
+      { label: 'Talk to an Engineer', href: `tel:${org.phoneE164}` },
+    ],
     seoTitle: 'Managed EDR | SentinelOne Endpoint Detection & Response Australia',
     seoDescription:
       'Managed EDR from Onsys, built on SentinelOne — behavioural and static AI detection, automated containment and remediation, ransomware rollback, and 24/7 SOC monitoring. See why anti-virus is no longer enough. Request a free demo.',
@@ -4119,6 +4385,11 @@ export const pages: SeedPage[] = [
     heading: 'Data and application security',
     eyebrow: 'Classify · control · secure the code',
     lede: 'Find the sensitive data you did not know you held, control who can reach it, and secure the software that touches it — with the registers, matrices and logs to prove it.',
+    heroImage: '/images/hero-security-data.jpg',
+    heroCtas: [
+      { label: 'Book a Free Consultation', href: org.bookingUrl },
+      { label: 'Talk to an Engineer', href: `tel:${org.phoneE164}` },
+    ],
     seoTitle: 'Data & Application Security | Classification, DLP & Secure Code',
     seoDescription:
       'Data and application security from Onsys — sensitive data mapping and classification, DLP, encryption key management, access rights review, static code analysis, secure coding standards, patch tracking and mobile app testing.',
@@ -4141,6 +4412,11 @@ export const pages: SeedPage[] = [
     heading: 'Governance, risk and compliance',
     eyebrow: 'Map · remediate · evidence',
     lede: 'Security controls you cannot evidence do not count. We map your controls to the framework you are measured against, close the gaps, and hand over the registers and matrices your auditor will accept.',
+    heroImage: '/images/hero-security-grc.jpg',
+    heroCtas: [
+      { label: 'Book a Free Consultation', href: org.bookingUrl },
+      { label: 'Talk to an Engineer', href: `tel:${org.phoneE164}` },
+    ],
     seoTitle: 'GRC & Compliance Services | ISO 27001, Essential Eight & SOC 2 Readiness',
     seoDescription:
       'Governance, risk and compliance from Onsys — control framework mapping against ISO 27001, ACSC Essential Eight, NIST CSF, SOC 2 and APRA CPS 234, audit findings remediation, policy suites, incident and problem management, and business continuity planning.',
@@ -4160,9 +4436,14 @@ export const pages: SeedPage[] = [
   {
     slug: 'contact',
     title: 'Contact Us',
-    heading: 'Contact us',
-    eyebrow: 'Get in touch',
-    lede: "Tell us about your environment and a senior consultant will get back to you — or book a free 30-minute call directly if you'd rather skip the form.",
+    heading: 'Start with a conversation',
+    eyebrow: 'Talk to a senior consultant',
+    lede: `Tell us what you are running and what is going wrong. A senior consultant reads every enquiry and replies within one business day — with a straight answer on whether we can help and what it would cost. No obligation, and no lock-in contracts if you go ahead.`,
+    heroImage: '/images/hero-contact.jpg',
+    heroCtas: [
+      { label: 'Book a Free 30-Minute Call', href: org.bookingUrl },
+      { label: `Call ${org.phone}`, href: `tel:${org.phoneE164}` },
+    ],
     seoTitle: 'Contact Onsys Technologies | Melbourne IT & Database Consultants',
     seoDescription:
       `Get in touch with ${org.name} — ${org.postalAddress}, ${org.phone}, ${org.email}.`,

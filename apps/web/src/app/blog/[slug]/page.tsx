@@ -11,6 +11,7 @@ import {
   extractSteps,
 } from '@/lib/seo';
 import { Breadcrumb } from '@/components/Breadcrumb';
+import { PageHeroImage } from '@/components/PageHeroImage';
 import { FaqAccordion } from '@/components/blocks/FaqAccordion';
 import { JsonLd } from '@/components/JsonLd';
 
@@ -80,7 +81,12 @@ export default async function BlogPost({ params }: Props) {
       <JsonLd data={schemas} />
 
       <article>
-        <section className="page-hero">
+        {/* One image for every article rather than per-post covers: only 2 of
+            50 posts have one, and both point at remote WordPress URLs that the
+            CSP blocks. The picture is abstract so it does not fight 50
+            different subjects. */}
+        <section className="page-hero page-hero-dark">
+          <PageHeroImage src="/images/hero-article.jpg" />
           <div className="wrap article-wrap">
             <Breadcrumb
               items={[{ label: 'Home', href: '/' }, { label: 'Blog', href: '/blog' }, { label: post.title }]}

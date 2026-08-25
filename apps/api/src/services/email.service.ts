@@ -49,6 +49,8 @@ export interface SendEmailOptions {
   html: string;
   replyTo?: string;
   cc?: string[];
+  /// Optional file attachments, e.g. the .ics for a confirmed booking.
+  attachments?: Array<{ name: string; contentType: string; content: string }>;
 }
 
 export async function sendEmail(opts: SendEmailOptions): Promise<{ sent: boolean; reason?: string }> {
@@ -76,6 +78,14 @@ export async function sendEmail(opts: SendEmailOptions): Promise<{ sent: boolean
   }
   if (opts.replyTo) {
     message.replyTo = [{ emailAddress: { address: opts.replyTo } }];
+  }
+  if (opts.attachments?.length) {
+    message.attachments = opts.attachments.map((a) => ({
+      '@odata.type': '#microsoft.graph.fileAttachment',
+      name: a.name,
+      contentType: a.contentType,
+      contentBytes: Buffer.from(a.content, 'utf8').toString('base64'),
+    }));
   }
 
   try {
@@ -199,4 +209,126 @@ export function renderChatTranscript(
     .join('');
 
   return wrapEmail('Your chat transcript', rows || '<p>No messages.</p>');
+}
+
+// --- Booking ---------------------------------------------------------------
+
+export interface BookingEmailData {
+  reference: string;
+  name: string;
+  email: string;
+  company?: string | null;
+  phone?: string | null;
+  topic?: string | null;
+  message?: string | null;
+  /// Already formatted in the booking timezone, e.g. "Tuesday 26 August, 9:30 am".
+  when: string;
+  timezone: string;
+  durationMinutes: number;
+  joinUrl: string | null;
+  consultantName: string;
+  cancelUrl: string;
+}
+
+/**
+ * RFC 5545 calendar entry for the visitor.
+ *
+ * They are not a Graph attendee — see booking.service.ts — so this is how the
+ * meeting reaches their own calendar. ORGANIZER carries the generic address and
+ * the consultant's display name, never the mailbox the event actually lives in.
+ */
+export function renderBookingIcs(data: BookingEmailData, startsAt: Date, endsAt: Date): string {
+  const stamp = (d: Date) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  // Escape order matters: backslashes first, or the escapes get double-escaped.
+  const esc = (v: string) =>
+    v.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+
+  const description = [
+    `Your ${data.durationMinutes}-minute consultation with ${data.consultantName}.`,
+    data.joinUrl ? `\nJoin on Microsoft Teams: ${data.joinUrl}` : '',
+    `\nBooking reference: ${data.reference}`,
+    `\nNeed to cancel? ${data.cancelUrl}`,
+  ].join('');
+
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    `PRODID:-//${org.name}//Booking//EN`,
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    'BEGIN:VEVENT',
+    `UID:${data.reference}@onsys.com.au`,
+    `DTSTAMP:${stamp(new Date())}`,
+    `DTSTART:${stamp(startsAt)}`,
+    `DTEND:${stamp(endsAt)}`,
+    `SUMMARY:${esc(`${org.name} consultation`)}`,
+    `DESCRIPTION:${esc(description)}`,
+    data.joinUrl ? `LOCATION:${esc('Microsoft Teams meeting')}` : 'LOCATION:Online',
+    data.joinUrl ? `URL:${data.joinUrl}` : '',
+    `ORGANIZER;CN=${esc(data.consultantName)}:mailto:${org.email}`,
+    'STATUS:CONFIRMED',
+    'BEGIN:VALARM',
+    'TRIGGER:-PT15M',
+    'ACTION:DISPLAY',
+    'DESCRIPTION:Reminder',
+    'END:VALARM',
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].filter(Boolean);
+
+  // RFC 5545 requires CRLF.
+  return lines.join('\r\n');
+}
+
+/** Sent to the visitor. Carries the Teams link; never names the mailbox. */
+export function renderBookingConfirmation(data: BookingEmailData): string {
+  const join = data.joinUrl
+    ? `<p style="margin:24px 0">
+         <a href="${escapeHtml(data.joinUrl)}"
+            style="background:${BRAND_ORANGE};color:#fff;text-decoration:none;padding:14px 26px;border-radius:8px;font-weight:700;display:inline-block">
+           Join the Teams meeting
+         </a>
+       </p>
+       <p style="font-size:13px;color:#667">The same link is in the calendar invitation attached to this email. You do not need a Teams account — the link opens in a browser.</p>`
+    : `<p style="color:#667">We will send the Microsoft Teams joining link separately, shortly.</p>`;
+
+  return wrapEmail(
+    'Your consultation is confirmed',
+    `
+    <p>Hi ${escapeHtml(data.name.split(' ')[0])},</p>
+    <p>Your ${data.durationMinutes}-minute consultation with ${escapeHtml(data.consultantName)} is booked. Here are the details.</p>
+    <table style="width:100%;border-collapse:collapse;margin:18px 0">
+      ${row('When', `${data.when} (${data.timezone.replace('_', ' ')})`)}
+      ${row('Duration', `${data.durationMinutes} minutes`)}
+      ${row('With', data.consultantName)}
+      ${row('Reference', data.reference)}
+      ${row('Topic', data.topic)}
+    </table>
+    ${join}
+    <p style="font-size:13px;color:#667">
+      Need to change or cancel? <a href="${escapeHtml(data.cancelUrl)}" style="color:${BRAND_NAVY}">Cancel this booking</a>
+      or reply to this email and we will rearrange it.
+    </p>
+  `,
+  );
+}
+
+/** Internal heads-up. The calendar entry is the real notification. */
+export function renderBookingNotification(data: BookingEmailData): string {
+  return wrapEmail(
+    'New consultation booked from the website',
+    `
+    <table style="width:100%;border-collapse:collapse">
+      ${row('When', `${data.when} (${data.timezone.replace('_', ' ')})`)}
+      ${row('Reference', data.reference)}
+      ${row('Name', data.name)}
+      ${row('Email', data.email)}
+      ${row('Company', data.company)}
+      ${row('Phone', data.phone)}
+      ${row('Topic', data.topic)}
+    </table>
+    ${data.message ? `<p style="margin-top:14px"><strong>What they said</strong><br>${escapeHtml(data.message).replace(/\n/g, '<br>')}</p>` : ''}
+    <p style="font-size:13px;color:#667;margin-top:18px">The meeting is already in the consultant's calendar with the Teams link attached.</p>
+  `,
+  );
 }

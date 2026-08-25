@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import type { Block } from '@onsys/shared';
 import { FaqAccordion } from './FaqAccordion';
 import { ContactForm } from '../ContactForm';
@@ -69,8 +70,24 @@ function BlockSwitch({ block, index }: { block: Block; index: number }) {
   switch (block.type) {
     case 'hero':
       return (
-        <section className="hero">
-          <div className="wrap hero-grid">
+        <section className={`hero${block.backgroundImage ? ' hero-dark' : ''}${block.videoUrl ? '' : ' hero-single'}`}>
+          {block.backgroundImage && (
+            <>
+              {/* next/image gives responsive AVIF/WebP variants of the photo;
+                  priority because this is the LCP element. */}
+              <Image
+                className="hero-bg"
+                src={block.backgroundImage}
+                alt=""
+                fill
+                priority
+                sizes="100vw"
+                quality={80}
+              />
+              <div className="hero-scrim" aria-hidden="true" />
+            </>
+          )}
+          <div className={`wrap hero-grid${block.videoUrl ? '' : ' single'}`}>
             <div>
               {block.eyebrow && (
                 <span className="eyebrow-pill">

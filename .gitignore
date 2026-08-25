@@ -22,3 +22,13 @@ dist-seed/
 !.env.example
 *.bak
 *.orig
+
+# Unprocessed hero photography (heroN.jpg, ~157MB). Every page references a
+# derived hero-*.jpg instead, which IS committed. Git keeps blobs forever, so
+# these masters belong in blob storage / OneDrive, not in history.
+# Remove these two lines if you decide the repo should carry the originals.
+apps/web/public/images/hero[0-9].jpg
+apps/web/public/images/hero[0-9][0-9].jpg
+
+# Incremental TypeScript build state — machine-specific, causes noisy diffs.
+*.tsbuildinfo

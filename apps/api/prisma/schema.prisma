@@ -39,6 +39,14 @@ model Page {
   /// Ordered array of section blocks. See packages/shared/src/blocks.ts
   blocks      Json          @default("[]")
 
+  /// Optional full-bleed hero photograph for the page header. When set the
+  /// header switches to its dark treatment (navy scrim + white type).
+  heroImage   String?
+
+  /// Optional call-to-action buttons rendered in the page header, shaped as
+  /// [{ label, href }]. The first is styled as the primary action.
+  heroCtas    Json?
+
   // SEO / AEO
   seoTitle       String?
   seoDescription String?  @db.Text
@@ -308,4 +316,58 @@ model AdminSession {
 
   @@index([userId])
   @@map("admin_sessions")
+}
+
+/// A consultation slot a visitor reserved on the public site.
+model Booking {
+  id        String        @id @default(cuid())
+  /// Short human-quotable code, e.g. ONS-7QK2M4. What support asks for.
+  reference String        @unique
+
+  name      String
+  email     String
+  company   String?
+  phone     String?
+  topic     String?
+  message   String?       @db.Text
+
+  /// Always stored UTC. `timezone` records the zone the visitor booked in so a
+  /// later reschedule can be shown back to them in their own wall-clock time.
+  startsAt  DateTime
+  endsAt    DateTime
+  timezone  String
+
+  status    BookingStatus @default(PENDING)
+
+  /// Graph identifiers for the calendar event we created on the consultant's
+  /// mailbox. Null while PENDING, and after the event has been deleted.
+  graphEventId String?
+  /// Teams meeting the visitor joins. Never exposed to anyone but them.
+  joinUrl      String?    @db.Text
+
+  /// Unguessable token backing the self-service cancellation link.
+  cancelToken String     @unique
+  cancelledAt DateTime?
+
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  referrer    String?
+
+  confirmationSentAt DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([startsAt, status])
+  @@index([email, createdAt])
+  @@map("bookings")
+}
+
+enum BookingStatus {
+  /// Persisted, but the calendar event has not been written yet.
+  PENDING
+  CONFIRMED
+  CANCELLED
+  /// Graph rejected the event. Kept so staff can follow up by hand.
+  FAILED
 }

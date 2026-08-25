@@ -6,6 +6,7 @@ import { BlockRenderer } from '@/components/blocks/BlockRenderer';
 import { FaqAccordion } from '@/components/blocks/FaqAccordion';
 import { Breadcrumb } from '@/components/Breadcrumb';
 import { JsonLd } from '@/components/JsonLd';
+import { PageHeroImage } from '@/components/PageHeroImage';
 
 export const revalidate = 300;
 export const dynamicParams = true;
@@ -86,7 +87,8 @@ export default async function DynamicPage({ params }: Props) {
     <>
       <JsonLd data={schemas} />
 
-      <section className="page-hero">
+      <section className={`page-hero${page.heroImage ? ' page-hero-dark' : ''}`}>
+        {page.heroImage && <PageHeroImage src={page.heroImage} />}
         <div className="wrap">
           <Breadcrumb items={crumbs} />
           {page.eyebrow && (
@@ -97,6 +99,15 @@ export default async function DynamicPage({ params }: Props) {
           )}
           <h1>{page.heading}</h1>
           {page.lede && <p className="lede">{page.lede}</p>}
+          {page.heroCtas && page.heroCtas.length > 0 && (
+            <div className="page-hero-cta">
+              {page.heroCtas.map((cta, i) => (
+                <a key={cta.href} href={cta.href} className={`btn ${i === 0 ? 'btn-primary' : 'btn-outline'}`}>
+                  {cta.label}
+                </a>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

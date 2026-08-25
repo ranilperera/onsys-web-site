@@ -355,4 +355,59 @@ tests/e2e/                 Playwright specs
 
 ### Content model
 
+cd C:\DEV2026\onsys-platform\onsys-platform\apps\api
+npx tsx src/scripts/create-admin.ts --email=ranil@onsys.com.au --name="Ranil Perera" --role=ADMIN
+
+
+
+
 Pages are composed from **blocks** (`packages/shared/src/blocks.ts`) — `hero`, `cardGrid`, `pricing`, `faq`, `steps`, `platformChips`, `ctaBand`, and so on. Each block type maps to one renderer in `components/blocks/BlockRenderer.tsx`. Adding a section type means adding a Zod variant and a case in the renderer; editors can then reorder and reuse it without touching code.
+
+
+npm run create:admin --% -- --email=ranil@onsys.com.au --name="Ranil Perera" --role=ADMIN
+
+
+
+On Windows PowerShell npm eats the flags before the script sees them
+("Unknown cli config"). Run the script directly instead:
+  npx tsx src/scripts/create-admin.ts --email=... --name="..." --role=ADMIN
+
+
+==============================
+
+
+How it works
+GET /api/bookings/availability → calendar/getSchedule on the target mailbox, intersected with slots already taken through the site. POST /api/bookings → POST /events with isOnlineMeeting: true, which makes Exchange mint the Teams link. Both are app-only; nobody signs in.
+
+The privacy requirement drove a real design decision
+The visitor is not added as a Graph attendee. Doing that would make Exchange send the invitation from the consultant's own mailbox — publishing exactly the address the site is meant to keep private. Instead:
+
+The event lands on the consultant's calendar with the visitor's details in the body.
+The visitor gets our own branded confirmation carrying the Teams link, plus an .ics attachment so it still reaches their calendar. Its ORGANIZER is CN=Onsys Consultant with the generic ORG_EMAIL.
+BOOKING_CONSULTANT_NAME ("Onsys Consultant") is what appears in the UI, the email, and the calendar file. The mailbox address exists only in .env.
+That meant adding attachment support to the email sender, which it didn't have.
+
+Things worth knowing
+Double-booking is prevented in the database, not just the app. Filtering taken slots out of the availability response and inserting the booking aren't atomic, so the migration adds a partial unique index on startsAt WHERE status IN ('PENDING','CONFIRMED'). A losing race gets a 409, and the widget reloads the grid while keeping the visitor's typed details. Cancelled/failed rows are excluded, so a released slot is immediately rebookable.
+
+Times are DST-correct. No date library was installed, so timezone.ts does the Intl two-pass offset resolution. Tests cover both Melbourne offsets and assert that 01:30 → 03:30 on the spring-forward day is one UTC hour apart, not two. One of my own tests was wrong at first — it sliced the UTC date off the ISO string, but a 09:00 Melbourne slot falls on the previous UTC day.
+
+The posted time is never trusted. The server regenerates the day's legitimate slots and rejects anything off-grid, plus re-checks live free/busy for that specific window.
+
+If Graph fails after persistence, the row is marked FAILED rather than deleted — staff keep the request, and the slot frees up.
+
+I verified the full UI (slot grid → details → confirmation, the 409 path, mobile) by stubbing the API through Playwright, since there's no tenant configured yet.
+
+Two things you need to do
+1. Restart the web dev server. NEXT_PUBLIC_ORG_BOOKING_URL is inlined at startup, so the topbar "Book a call" button still serves the old WordPress URL. The footer link and seeded page links already point to /book.
+
+2. Grant the Graph permission. .env.example has the full block; the app registration needs Calendars.ReadWrite (Application) with admin consent. I'd strongly suggest scoping it to just that mailbox — otherwise the credential can read and write every calendar in the tenant:
+
+
+New-ApplicationAccessPolicy -AppId <client-id> `
+  -PolicyScopeGroupId <booking-mailbox-upn> `
+  -AccessRight RestrictAccess -Description "Onsys web booking"
+
+
+
+

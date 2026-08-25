@@ -23,6 +23,10 @@ export const blockSchema = z.discriminatedUnion('type', [
     heading: z.string(),
     highlight: z.string().optional(),
     body: z.string().optional(),
+    /// Full-bleed background photo, e.g. /images/hero-home.jpg. When set the
+    /// hero switches to its dark treatment: a navy scrim over the image and
+    /// white type, because navy-on-photo is unreadable.
+    backgroundImage: z.string().optional(),
     videoUrl: z.string().optional(),
     ctas: z.array(linkSchema).default([]),
   }),

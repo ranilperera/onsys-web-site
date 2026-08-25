@@ -27,7 +27,7 @@ export const siteConfig = {
   email: process.env.NEXT_PUBLIC_ORG_EMAIL || 'sales@onsys.com.au',
   phone: process.env.NEXT_PUBLIC_ORG_PHONE || '1800 431 416',
   phoneE164: process.env.NEXT_PUBLIC_ORG_PHONE_E164 || '+611800431416',
-  bookingUrl: process.env.NEXT_PUBLIC_ORG_BOOKING_URL || 'https://onsys.com.au/appointment/',
+  bookingUrl: process.env.NEXT_PUBLIC_ORG_BOOKING_URL || '/book',
   logo: process.env.NEXT_PUBLIC_ORG_LOGO || '/logo.png',
   address: {
     street: process.env.NEXT_PUBLIC_ORG_STREET || 'Level 1, 530 Little Collins Street',
@@ -128,6 +128,7 @@ export const navigation = {
       { label: 'Careers', href: '/contact' },
     ],
     Support: [
+      { label: 'Book a Consultation', href: '/book' },
       { label: 'Emergency Database Support', href: '/emergency-database-support' },
       { label: 'Pricing & Plans', href: '/pricing-and-plans' },
       { label: 'Contact Us', href: '/contact' },

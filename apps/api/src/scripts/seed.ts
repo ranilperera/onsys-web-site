@@ -23,6 +23,7 @@ async function main(): Promise<void> {
       create: {
         ...pageData,
         blocks: pageData.blocks as unknown as object,
+        heroCtas: (pageData.heroCtas ?? undefined) as unknown as object | undefined,
         status: 'PUBLISHED',
         publishedAt: new Date(),
         faqs: { create: faqs.map((f, i) => ({ ...f, order: i })) },
@@ -30,6 +31,7 @@ async function main(): Promise<void> {
       update: {
         ...pageData,
         blocks: pageData.blocks as unknown as object,
+        heroCtas: (pageData.heroCtas ?? undefined) as unknown as object | undefined,
         status: 'PUBLISHED',
         faqs: { create: faqs.map((f, i) => ({ ...f, order: i })) },
       },

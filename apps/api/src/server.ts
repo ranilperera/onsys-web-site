@@ -12,6 +12,7 @@ import { globalLimiter } from './middleware/security';
 import { errorHandler, notFound } from './middleware/error';
 import { contentRouter } from './routes/content.routes';
 import { leadRouter } from './routes/lead.routes';
+import { bookingRouter } from './routes/booking.routes';
 import { chatRouter } from './routes/chat.routes';
 import { authRouter } from './routes/auth.routes';
 import { adminRouter } from './routes/admin.routes';
@@ -65,6 +66,7 @@ app.get('/health', async (_req, res) => {
 
 app.use('/api/content', contentRouter);
 app.use('/api/leads', leadRouter);
+app.use('/api/bookings', bookingRouter);
 app.use('/api/chat', chatRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/admin', adminRouter);

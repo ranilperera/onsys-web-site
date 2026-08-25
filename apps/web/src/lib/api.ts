@@ -23,6 +23,9 @@ export interface PageRecord {
   eyebrow: string | null;
   lede: string | null;
   blocks: Block[];
+  /** Full-bleed header photo; switches the page header to its dark treatment. */
+  heroImage: string | null;
+  heroCtas: Array<{ label: string; href: string }> | null;
   seoTitle: string | null;
   seoDescription: string | null;
   ogImage: string | null;

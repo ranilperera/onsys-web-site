@@ -67,6 +67,28 @@ const envSchema = z.object({
   /// Shared secret validating inbound replies from a Teams bot/Power Automate flow.
   TEAMS_INBOUND_SECRET: z.string().optional(),
 
+  // --- Booking / appointments ---
+  // Free/busy is read from, and the meeting is written to, this one mailbox.
+  // Requires Application permission Calendars.ReadWrite, admin-consented, and
+  // ideally an Application Access Policy scoping the app to just this mailbox.
+  BOOKING_CALENDAR_UPN: z.string().email().optional(),
+  /// Public-facing identity of whoever takes the call. The requirement is that
+  /// a visitor never sees the consultant's real mailbox address.
+  BOOKING_CONSULTANT_NAME: z.string().default('Onsys Consultant'),
+  /// IANA zone the published slots are expressed in.
+  BOOKING_TIMEZONE: z.string().default('Australia/Melbourne'),
+  BOOKING_SLOT_MINUTES: z.coerce.number().int().min(15).max(120).default(30),
+  /// Local wall-clock bounds of a bookable day, HH:mm.
+  BOOKING_DAY_START: z.string().regex(/^\d{2}:\d{2}$/).default('09:00'),
+  BOOKING_DAY_END: z.string().regex(/^\d{2}:\d{2}$/).default('17:00'),
+  /// ISO weekdays that accept bookings — 1 = Monday.
+  BOOKING_WORK_DAYS: z.string().default('1,2,3,4,5'),
+  /// Nobody can book a slot starting sooner than this.
+  BOOKING_MIN_NOTICE_HOURS: z.coerce.number().int().min(0).max(168).default(4),
+  BOOKING_MAX_DAYS_AHEAD: z.coerce.number().int().min(1).max(120).default(21),
+  /// Keeps a slot clear of an adjacent meeting by this many minutes.
+  BOOKING_BUFFER_MINUTES: z.coerce.number().int().min(0).max(60).default(10),
+
   // --- Chatbot ---
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_CHAT_MODEL: z.string().default('gpt-4o-mini'),
@@ -88,7 +110,7 @@ const envSchema = z.object({
   ORG_REGION: z.string().default('VIC'),
   ORG_POSTCODE: z.string().default('3000'),
   ORG_COUNTRY: z.string().default('AU'),
-  ORG_BOOKING_URL: z.string().default('https://onsys.com.au/appointment/'),
+  ORG_BOOKING_URL: z.string().default('/book'),
 
   // --- Security ---
   SESSION_SECRET: z.string().min(16).default('change-me-in-production-please!!'),
@@ -116,6 +138,30 @@ export const graphConfigured = Boolean(
 );
 
 export const teamsConfigured = Boolean(env.TEAMS_WEBHOOK_URL || (env.TEAMS_TEAM_ID && env.TEAMS_CHANNEL_ID));
+
+/**
+ * Booking needs the same app registration as Graph email plus a target
+ * mailbox. Without it the API still answers, but reports itself as disabled so
+ * the web app can fall back to the contact form instead of showing dead slots.
+ */
+export const bookingConfigured = Boolean(
+  env.GRAPH_TENANT_ID && env.GRAPH_CLIENT_ID && env.GRAPH_CLIENT_SECRET && env.BOOKING_CALENDAR_UPN,
+);
+
+export const booking = {
+  calendarUpn: env.BOOKING_CALENDAR_UPN,
+  consultantName: env.BOOKING_CONSULTANT_NAME,
+  timezone: env.BOOKING_TIMEZONE,
+  slotMinutes: env.BOOKING_SLOT_MINUTES,
+  dayStart: env.BOOKING_DAY_START,
+  dayEnd: env.BOOKING_DAY_END,
+  workDays: env.BOOKING_WORK_DAYS.split(',')
+    .map((d) => Number.parseInt(d.trim(), 10))
+    .filter((d) => Number.isInteger(d) && d >= 1 && d <= 7),
+  minNoticeHours: env.BOOKING_MIN_NOTICE_HOURS,
+  maxDaysAhead: env.BOOKING_MAX_DAYS_AHEAD,
+  bufferMinutes: env.BOOKING_BUFFER_MINUTES,
+} as const;
 
 export const aiConfigured = Boolean(env.OPENAI_API_KEY);
 

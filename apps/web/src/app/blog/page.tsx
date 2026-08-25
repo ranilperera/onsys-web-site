@@ -4,6 +4,7 @@ import { getPosts, getCategories } from '@/lib/api';
 import { buildMetadata, breadcrumbSchema } from '@/lib/seo';
 import { siteConfig } from '@/lib/config';
 import { Breadcrumb } from '@/components/Breadcrumb';
+import { PageHeroImage } from '@/components/PageHeroImage';
 import { JsonLd } from '@/components/JsonLd';
 
 export const revalidate = 300;
@@ -46,7 +47,8 @@ export default async function BlogIndex({ searchParams }: Props) {
     <>
       <JsonLd data={[breadcrumbSchema([{ name: 'Home', url: '/' }, { name: 'Blog' }]), listSchema]} />
 
-      <section className="page-hero">
+      <section className="page-hero page-hero-dark">
+        <PageHeroImage src="/images/hero-blog.jpg" />
         <div className="wrap">
           <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Blog' }]} />
           <span className="eyebrow-pill">
