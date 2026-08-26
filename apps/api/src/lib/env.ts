@@ -99,6 +99,8 @@ const envSchema = z.object({
   // --- Organisation details ---
   // Authored once in .env and consumed by emails, seeded page copy and schema.
   ORG_NAME: z.string().default('Onsys Technologies'),
+  /// Short brand used to close <title> tags, which must stay under ~60 chars.
+  ORG_SHORT_NAME: z.string().default('Onsys'),
   ORG_LEGAL_NAME: z.string().default('Onsys Technologies Pty Ltd'),
   ORG_ABN: z.string().default('49 602 081 005'),
   ORG_ACN: z.string().default('602 081 005'),

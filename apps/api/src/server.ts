@@ -19,8 +19,15 @@ import { adminRouter } from './routes/admin.routes';
 
 const app = express();
 
-// Behind Nginx on the Azure VM — needed for correct client IPs in rate limiting.
-app.set('trust proxy', 1);
+// Number of reverse proxies in front of this process. Express walks back that
+// many hops through X-Forwarded-For to find the real client IP, and getting it
+// wrong is silent: too low and every visitor shares the proxy's IP, so one
+// person's traffic rate-limits everybody; too high and a client can spoof its
+// own address by sending an X-Forwarded-For header.
+//
+//   1 = a single proxy          (nginx or HAProxy alone)
+//   2 = HAProxy -> nginx edge   (the Docker topology in DOCKER-DEPLOYMENT.md)
+app.set('trust proxy', Number(process.env.TRUST_PROXY_HOPS ?? 1));
 
 app.use(
   helmet({

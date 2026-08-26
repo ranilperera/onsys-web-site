@@ -20,10 +20,10 @@ import { org } from '../lib/env';
 const homeBlocks: Block[] = [
   {
     type: 'hero',
-    eyebrow: '24/7 IT & database support · Melbourne & Colombo',
-    heading: 'Expert IT services',
-    highlight: 'you can trust.',
-    body: 'Smart, affordable solutions designed to accelerate your business — remote DBA cover, managed IT, cloud migration, AI and custom software, delivered by one accountable team around the clock.',
+    eyebrow: '24/7 database & IT support · Melbourne & Colombo',
+    heading: 'Remote DBA services',
+    highlight: 'in Australia.',
+    body: 'Remote database administration is the practice of having an external team of certified DBAs monitor, patch, tune and recover your databases over a secure connection, instead of employing a full-time in-house DBA. Onsys delivers it to Australian organisations running SQL Server, Oracle, PostgreSQL and MySQL — from $1,500 a month, with 24/7 cover and response from one hour — alongside managed IT, cloud, security and software.',
     backgroundImage: '/images/hero-home.jpg',
     ctas: [
       { label: 'Schedule a Meeting', href: '/contact' },
@@ -3733,6 +3733,178 @@ export interface SeedPage {
   faqs?: Array<{ question: string; answer: string }>;
 }
 
+/**
+ * The 20 checks in the free SQL Server health check.
+ *
+ * The August 2026 SEO audit found /free-20-point-sql-server-health-check/ was
+ * the site's single best-performing page — #1 for "sql server health check
+ * australia" — while the "20 points" existed only as a claim. A model asked
+ * "what does a SQL Server health check include?" cannot cite a page that never
+ * lists the items, so they are enumerated here as one extractable fact each.
+ */
+const healthCheckBlocks: Block[] = [
+  {
+    type: 'steps',
+    anchor: 'the-20-points',
+    eyebrow: 'What we check',
+    heading: 'The 20 points, in full',
+    body: 'Every check below runs against a live instance using read-only access. You get the findings whether or not you engage us afterwards.',
+    steps: [
+      { title: 'Backup coverage', body: 'Every database is checked for a current full backup, and for log backups where the recovery model requires them. Databases with no backup at all are the single most common finding.' },
+      { title: 'Restore verification', body: 'We look for evidence that a restore has actually been tested. An untested backup is a hypothesis, not a recovery plan.' },
+      { title: 'Recovery model vs stated RPO', body: 'Simple recovery caps your worst-case data loss at the last full backup. We check the model matches the loss you have actually agreed to tolerate.' },
+      { title: 'Corruption checks', body: 'When DBCC CHECKDB last ran cleanly on each database, and whether it is scheduled. Corruption found late is often corruption already inside every backup you hold.' },
+      { title: 'Version and patch level', body: 'Build number against the Microsoft support lifecycle, so you know which instances are past end of support or missing security updates.' },
+      { title: 'Instance memory configuration', body: 'Max server memory against physical RAM. Left at the default, SQL Server will contend with the operating system for memory.' },
+      { title: 'Parallelism settings', body: 'MAXDOP and cost threshold for parallelism against your core count and workload type — still at defaults on most estates we review.' },
+      { title: 'tempdb configuration', body: 'File count, equal sizing and autogrowth. Misconfigured tempdb is one of the cheapest large performance wins available.' },
+      { title: 'Data and log file growth', body: 'Autogrowth increments, percentage-based growth and unconstrained log files that can fill a volume without warning.' },
+      { title: 'Index health', body: 'Fragmentation levels, duplicate and unused indexes, and the write cost they impose on every insert.' },
+      { title: 'Missing index pressure', body: 'What the optimiser has been asking for, weighted by impact — treated as evidence to review, never applied blindly.' },
+      { title: 'Statistics currency', body: 'How stale the statistics are and whether auto-update is keeping pace with the volume of change on the largest tables.' },
+      { title: 'Wait statistics', body: 'The instance top waits, which tell you what the server is actually spending its time waiting for rather than what you assume it is.' },
+      { title: 'Blocking and long-running queries', body: 'Current blocking chains and the queries with the worst cumulative duration, reads and CPU.' },
+      { title: 'Deadlock frequency', body: 'Deadlocks recorded in the system health session, with the pattern behind the repeat offenders.' },
+      { title: 'Storage latency', body: 'Read and write stall figures per file, which separate a slow query problem from a slow disk problem.' },
+      { title: 'SQL Agent job health', body: 'Failed and long-running jobs, jobs with no failure notification configured, and jobs still owned by departed staff accounts.' },
+      { title: 'Privileged access review', body: 'Who holds sysadmin, which logins are orphaned, and which accounts have privileges nobody can now justify.' },
+      { title: 'Authentication and encryption', body: 'Authentication mode, the state of the sa account, and whether TDE and connection encryption are in place where the data classification calls for it.' },
+      { title: 'High availability readiness', body: 'Always On, failover clustering, mirroring or log shipping configuration — and whether a failover has ever been tested.' },
+    ],
+  },
+  {
+    type: 'checkList',
+    anchor: 'what-you-get',
+    eyebrow: 'The deliverable',
+    heading: 'What you receive',
+    body: 'A written report you own, whether or not you become a client.',
+    items: [
+      'A findings report rating each of the 20 points, with the evidence behind every rating.',
+      'A prioritised remediation list separating what is urgent from what is merely untidy.',
+      'An estimate of effort for each remediation item so you can budget or schedule it internally.',
+      'A 30-minute walkthrough call with the senior DBA who ran the check.',
+      'The raw query output, so your own team can reproduce every finding.',
+      'No obligation to engage Onsys for the remediation — plenty of clients do it themselves.',
+    ],
+    sidebar: {
+      title: 'At a glance',
+      rows: [
+        { label: 'Cost', value: 'Free, one instance' },
+        { label: 'Time to run', value: 'About 2 hours' },
+        { label: 'Report delivered', value: 'Within 3 business days' },
+        { label: 'Access needed', value: 'Read-only, no data leaves site' },
+        { label: 'Production impact', value: 'None — read-only queries' },
+        { label: 'Obligation', value: 'None' },
+      ],
+    },
+  },
+  {
+    type: 'steps',
+    anchor: 'how-it-works',
+    eyebrow: 'How it works',
+    heading: 'How we work with you',
+    steps: [
+      { title: 'Book a time', body: 'Pick a 30-minute slot. We confirm which instance you want reviewed and what your change process requires.' },
+      { title: 'Grant read-only access', body: 'A read-only login for the duration, or a screen-share session if your policy does not permit external logins at all.' },
+      { title: 'We run the checks', body: 'About two hours against a live instance. The queries are read-only and safe to run during business hours.' },
+      { title: 'You get the report', body: 'Within three business days, followed by a walkthrough call with the DBA who ran it.' },
+    ],
+  },
+  {
+    type: 'ctaBand',
+    heading: 'Book your free 20-point SQL Server health check',
+    body: 'One instance, no charge, no obligation. Most clients book the walkthrough call within a week of the report.',
+    cta: { label: 'Book the free health check', href: org.bookingUrl },
+  },
+];
+
+/**
+ * Remote database support — the head term the audit says to win geo-qualified.
+ * The legacy /remote-database-support/ URL ranked ~#9 for "oracle dba support
+ * australia" and 404ed on the new platform, so this rebuilds it rather than
+ * redirecting the equity away.
+ */
+const remoteSupportBlocks: Block[] = [
+  {
+    type: 'cardGrid',
+    anchor: 'whats-included',
+    centered: true,
+    altBackground: false,
+    columns: 3,
+    eyebrow: 'What is included',
+    heading: 'What does a remote DBA service actually include?',
+    body: 'Remote database support covers the work an in-house DBA would do, delivered by a team over a secure connection — without the headcount, the leave cover or the single point of failure.',
+    cards: [
+      { title: 'Monitoring and alerting', body: 'Continuous checks on availability, space, jobs, replication health and error logs, with alerts routed to an engineer rather than an inbox nobody reads.', icon: '#s-managed', coverColor: '#EAF1FB' },
+      { title: 'Incident response', body: 'A senior DBA on the problem within the response time your plan specifies, 24 hours a day, including the 2am ones.', icon: '#s-emergency', coverColor: '#FDECEC' },
+      { title: 'Backup and recovery', body: 'Backups verified, restores actually tested, and recovery objectives documented against what the configuration can really deliver.', icon: '#s-ha', coverColor: '#E7F5EC' },
+      { title: 'Patching and upgrades', body: 'Cumulative updates and security patches applied in your change window, with a tested rollback.', icon: '#s-cloud', coverColor: '#FFF1E0' },
+      { title: 'Performance tuning', body: 'Query, index and configuration work using the monthly professional service hours included in every plan.', icon: '#s-consult', coverColor: '#F3F2F1' },
+      { title: 'Reporting and advice', body: 'A monthly health report and a named consultant who knows your estate, rather than whoever picks up the ticket.', icon: '#s-code', coverColor: '#EAF1FB' },
+    ],
+  },
+  {
+    type: 'platformChips',
+    anchor: 'platforms',
+    eyebrow: 'Platforms',
+    heading: 'What database platforms do you support?',
+    body: 'Four production platforms plus their managed cloud equivalents, supported by engineers certified on each.',
+    groups: [
+      { title: 'Microsoft', chips: [
+        { label: 'SQL Server 2008–2022', color: '#CC2927' },
+        { label: 'Azure SQL Database', color: '#0078D4' },
+        { label: 'Azure SQL Managed Instance', color: '#0063B1' },
+        { label: 'SQL Server on Azure VM', color: '#00A4EF' },
+        { label: 'Always On availability groups', color: '#CC2927' },
+        { label: 'SSIS · SSRS · SSAS', color: '#0E336A' },
+      ] },
+      { title: 'Oracle', chips: [
+        { label: 'Oracle 10g – 23ai', color: '#C74634' },
+        { label: 'Oracle RAC', color: '#C74634' },
+        { label: 'Oracle Data Guard', color: '#C74634' },
+        { label: 'Oracle Cloud (OCI)', color: '#C74634' },
+        { label: 'RMAN & recovery', color: '#8A5A44' },
+        { label: 'Enterprise Manager', color: '#C74634' },
+      ] },
+      { title: 'Open source', chips: [
+        { label: 'PostgreSQL', color: '#336791' },
+        { label: 'EDB Postgres', color: '#336791' },
+        { label: 'MySQL & MariaDB', color: '#00758F' },
+        { label: 'MongoDB', color: '#13AA52' },
+        { label: 'Streaming replication', color: '#336791' },
+        { label: 'Group replication', color: '#00758F' },
+      ] },
+    ],
+    sidebar: {
+      title: 'Where our engineers are',
+      items: [
+        'Australian-based senior consultants lead every engagement and hold the client relationship.',
+        'Follow-the-sun coverage is delivered from Melbourne and our Colombo delivery centre.',
+        'We tell you which engineers can reach your data before you sign, and it goes in the agreement.',
+      ],
+    },
+  },
+  {
+    type: 'steps',
+    anchor: 'how-we-work',
+    eyebrow: 'Onboarding',
+    heading: 'How long does onboarding take?',
+    body: 'Two weeks from signature to full coverage is typical. Nothing is charged until coverage actually starts.',
+    steps: [
+      { title: 'Week 1 — discovery', body: 'We inventory the estate, run the 20-point check on the critical instances, and agree the escalation path and change process.' },
+      { title: 'Week 1 — access', body: 'Secure connectivity is established using your preferred method, with named accounts and logged access. No shared credentials.' },
+      { title: 'Week 2 — monitoring', body: 'Alerting is configured and tuned against your thresholds so you are not paged for noise.' },
+      { title: 'Week 2 — go live', body: 'Coverage starts, the first monthly report is scheduled, and you get the direct number for your named consultant.' },
+    ],
+  },
+  {
+    type: 'ctaBand',
+    heading: 'Speak with a senior DBA today',
+    body: 'A 30-minute call with the consultant who would run your estate — not a salesperson, and not a form response.',
+    cta: { label: 'Book a free consultation', href: org.bookingUrl },
+  },
+];
+
 export const pages: SeedPage[] = [
   {
     slug: 'home',
@@ -3743,9 +3915,9 @@ export const pages: SeedPage[] = [
     // The root layout and the root page share a segment, so the "| Onsys
     // Technologies" title template does not apply here — the brand has to be
     // part of this string.
-    seoTitle: 'Onsys Technologies | Managed IT, Database & Cloud Services Australia',
+    seoTitle: 'Remote DBA Services Australia | 24/7 DBA Support',
     seoDescription:
-      'Onsys is an Australian managed IT service provider — 24/7 remote DBA support from $1,500/month, managed IT, cloud consultancy, cyber security, AI and custom software. Cut IT operating costs by up to 50%.',
+      '24/7 remote DBA support for Australian businesses across SQL Server, Oracle, PostgreSQL and MySQL. Plans from $1,500/month ex-GST, no lock-in.',
     navOrder: 1,
     blocks: homeBlocks,
     /**
@@ -3768,7 +3940,7 @@ export const pages: SeedPage[] = [
   {
     slug: 'expertise',
     title: 'Expertise',
-    heading: 'Deep, hands-on expertise',
+    heading: 'Database and cloud expertise',
     eyebrow: 'Platforms & capability',
     lede: 'Across the platforms your business actually runs on. Our experienced, certified team designs, builds and manages your database, cloud and on-premises infrastructure projects — staffed by senior specialists holding credentials across Oracle, Microsoft, Red Hat, VMware and Fortinet.',
     // No brand suffix — the root layout's title template appends it.
@@ -3777,7 +3949,7 @@ export const pages: SeedPage[] = [
       { label: 'Book a Free Consultation', href: org.bookingUrl },
       { label: 'Talk to an Engineer', href: `tel:${org.phoneE164}` },
     ],
-    seoTitle: 'Our Expertise | Database, Cloud, Software & Security',
+    seoTitle: 'Database & Cloud Expertise | Certified Engineers',
     seoDescription:
       "Onsys Technologies' platform expertise across SQL Server, Oracle, PostgreSQL, EDB, Azure, AWS, Oracle Cloud, software development, AI and cyber security.",
     navOrder: 3,
@@ -3799,9 +3971,9 @@ export const pages: SeedPage[] = [
       { label: 'See DBA plans', href: '/pricing-and-plans#database-plans' },
     ],
     // No brand suffix — the root layout's title template appends it.
-    seoTitle: 'Managed Database Services | 24/7 DBA Support from $1,500/month',
+    seoTitle: 'Managed Database Services Australia | ITIL, 24/7',
     seoDescription:
-      'Managed database services from Onsys — 24/7 proactive monitoring, a guaranteed 1–2 hour response SLA, included service hours and health-check reporting across SQL Server, Oracle, PostgreSQL, EDB, MySQL and Azure SQL. Plans from $1,500/month.',
+      'ITIL-based managed database services from $1,500/month ex-GST — 24/7 monitoring, patching and incident response across SQL Server, Oracle and PostgreSQL.',
     blocks: mdsBlocks,
     faqs: [
       { question: 'What counts as an "incident" under the SLA?', answer: 'Any unplanned event that degrades or interrupts database availability or performance — outages, failed jobs, replication breaks, or critical alert thresholds being breached.' },
@@ -3821,9 +3993,9 @@ export const pages: SeedPage[] = [
       { label: 'Book a Free Consultation', href: org.bookingUrl },
       { label: 'Our expertise', href: '/expertise' },
     ],
-    seoTitle: 'About Onsys Technologies | Melbourne IT & Database Company',
+    seoTitle: 'About Onsys | Melbourne Database & IT Company',
     seoDescription:
-      `${org.name} is a ${org.address.locality}-based IT company delivering database, cloud, managed IT, cyber security and software services. Onshore and offshore specialists, 24/7 coverage, ABN ${org.abn}.`,
+      'Onsys Pty Ltd, ABN 49 602 081 005 — a Melbourne database, cloud and managed IT firm serving Australian organisations since 2014, with a Colombo delivery centre.',
     navOrder: 5,
     blocks: aboutBlocks,
     faqs: [
@@ -3838,9 +4010,9 @@ export const pages: SeedPage[] = [
   {
     slug: 'pricing-and-plans',
     title: 'Pricing & Plans',
-    heading: 'Know what it costs before you call',
+    heading: 'Remote DBA pricing in Australia',
     eyebrow: 'Transparent pricing · No lock-in contracts',
-    lede: 'Every rate we charge is published on this page. 24/7 database cover from $1,500 a month, managed IT from $4,500, senior consultants at a flat $150 an hour. No lock-in contracts, no surprise line items — and a free 30-minute review before you commit to anything.',
+    lede: 'Remote DBA pricing in Australia runs from about $1,000 to $8,000 a month depending on instance count and coverage. Onsys publishes every rate it charges on this page, so you know what it costs before you call. 24/7 database cover from $1,500 a month, managed IT from $4,500, senior consultants at a flat $150 an hour. No lock-in contracts, no surprise line items — and a free 30-minute review before you commit to anything.',
     heroImage: '/images/hero-pricing.jpg',
     heroCtas: [
       { label: 'Compare the plans', href: '#database-plans' },
@@ -3848,9 +4020,9 @@ export const pages: SeedPage[] = [
     ],
     // The root layout appends "| Onsys Technologies" via a title template —
     // repeating it here would double it up in the browser tab.
-    seoTitle: 'Pricing and Support Plans | Remote IT Consultancy & Support',
+    seoTitle: 'Remote DBA Pricing Australia 2026 | Published Rates',
     seoDescription:
-      'Onsys offers competitive pricing for all our services without lock-in contracts — 24/7 DBA plans from $1,500/month, managed IT for SMB from $4,500/month and remote consultancy at $150/hour.',
+      'Published prices: 24/7 DBA plans from $1,500/month ex-GST, managed IT from $4,500, senior consultants $150/hour. No lock-in contracts, no surprise line items.',
     navOrder: 4,
     blocks: pricingBlocks,
     faqs: [
@@ -3874,9 +4046,9 @@ export const pages: SeedPage[] = [
       { label: 'Book a Free Consultation', href: org.bookingUrl },
       { label: 'See DBA plans', href: '/pricing-and-plans#database-plans' },
     ],
-    seoTitle: 'On-Call & Ad-hoc DBA Support | 24/7 SQL Server Cover from $100/instance',
+    seoTitle: 'On-Call DBA Support Australia | From $100/Instance',
     seoDescription:
-      'On-call SQL Server DBA support from Onsys — $100 per instance per month for 24/7 standby cover with a 2-hour response SLA, plus $150/hr support calls. Australian-based certified DBAs, onboarding within 24 hours.',
+      'Standby DBA cover from $100 per instance per month with a 2-hour response SLA, 24/7. Pay only for the call-outs you use. SQL Server, Oracle, PostgreSQL.',
     navOrder: 2,
     blocks: onCallBlocks,
     faqs: [
@@ -3901,9 +4073,9 @@ export const pages: SeedPage[] = [
       { label: `Call ${org.phone}`, href: `tel:${org.phoneE164}` },
       { label: 'Book a Consultation', href: org.bookingUrl },
     ],
-    seoTitle: 'Emergency Database Support Australia | 24/7 Outage Response',
+    seoTitle: 'Emergency DBA Support Australia | 24/7 Response',
     seoDescription:
-      `Emergency database support from Onsys — 24/7 outage response for SQL Server, Oracle, PostgreSQL, MySQL and MongoDB. Australian-based certified DBAs, $150/hour, no existing contract required. Call ${org.phone}.`,
+      'Production database down? Call 1800 431 416 for 24/7 emergency DBA response across SQL Server, Oracle, PostgreSQL and MySQL. No existing contract needed.',
     navOrder: 3,
     blocks: emergencyBlocks,
     faqs: [
@@ -3929,9 +4101,9 @@ export const pages: SeedPage[] = [
       { label: 'Book a Free Consultation', href: org.bookingUrl },
       { label: 'See consultancy rates', href: '/pricing-and-plans#consultancy-rates' },
     ],
-    seoTitle: 'Database Consultancy Australia | SQL Server, Oracle & PostgreSQL Consultants',
+    seoTitle: 'Database Consulting Australia | $150/hr, No Lock-In',
     seoDescription:
-      'Database consultancy from Onsys — architecture, migrations to Azure, AWS and OCI, high availability and DR, upgrades, BI and licence optimisation. Certified SQL Server, Oracle, PostgreSQL and EDB consultants at $150/hour or fixed price.',
+      'Independent database consulting for Australian organisations — architecture reviews, migrations, licensing reduction and performance tuning at $150/hour.',
     navOrder: 7,
     blocks: consultancyBlocks,
     faqs: [
@@ -3957,9 +4129,9 @@ export const pages: SeedPage[] = [
       { label: 'Book a Free Consultation', href: org.bookingUrl },
       { label: 'Talk to an Engineer', href: `tel:${org.phoneE164}` },
     ],
-    seoTitle: 'Products | Data Sharing, Digital ID & Oracle DR Software',
+    seoTitle: 'Software Products | Identity, Data Sharing & DR',
     seoDescription:
-      'Onsys software products — OnsysConnect secure data sharing platform, Onsys IDMS open-source biometric digital identity, and Dbvisit StandbyMP disaster recovery for Oracle Standard Edition. Request a free demo.',
+      'Onsys software products — national-scale digital identity, secure data sharing and gold-standard Oracle disaster recovery, backed by our own engineers.',
     navOrder: 2,
     blocks: productsBlocks,
     faqs: [
@@ -3987,9 +4159,9 @@ export const pages: SeedPage[] = [
       { label: 'Book a Free Consultation', href: org.bookingUrl },
       { label: 'Fixed-price projects', href: '/pricing-and-plans#engagement-options' },
     ],
-    seoTitle: 'Database Upgrades, Migrations & Disaster Recovery | SQL Server & Oracle',
+    seoTitle: 'Database Upgrades & Migrations Australia | DR Too',
     seoDescription:
-      'Database upgrade, migration and DR projects from Onsys — SQL Server 2000–2019 upgrade paths, Oracle 12c/18c/19c, Oracle to EDB, cloud migration to Azure, AWS and OCI, AlwaysOn, RAC and Data Guard. Fixed-price with milestone payments.',
+      'SQL Server and Oracle version upgrades, platform migrations and failover-tested disaster recovery for Australian estates. Fixed price where scope is defined.',
     navOrder: 8,
     blocks: upgradeDrBlocks,
     faqs: [
@@ -4015,7 +4187,7 @@ export const pages: SeedPage[] = [
     ],
     seoTitle: 'Privacy Policy',
     seoDescription:
-      'Onsys Technologies privacy policy — what we collect, how we use it, who we disclose it to including overseas recipients, cookies and analytics, your access and correction rights, and how to make a complaint.',
+      'How Onsys Technologies collects, holds, uses and discloses personal information, and how we comply with the Privacy Act 1988 and Australian Privacy Principles.',
     navOrder: 20,
     blocks: privacyBlocks,
   },
@@ -4031,7 +4203,7 @@ export const pages: SeedPage[] = [
     ],
     seoTitle: 'Terms of Use',
     seoDescription:
-      'Terms of Use for onsys.com.au — permitted use, prohibited conduct, intellectual property, the chat assistant, disclaimers and liability, and governing law.',
+      'The terms governing access to and use of onsys.com.au. These cover the website only — Onsys services are supplied under a separate signed agreement.',
     navOrder: 21,
     blocks: termsBlocks,
   },
@@ -4047,7 +4219,7 @@ export const pages: SeedPage[] = [
     ],
     seoTitle: 'Disclaimer',
     seoDescription:
-      'Onsys Technologies website disclaimer — general information only, technical content and code samples, AI-generated chat responses, limitation of liability, external links, copyright and trademarks.',
+      'Onsys Technologies website disclaimer — content here is general information only, including the technical guides, commands and indicative pricing we publish.',
     navOrder: 22,
     blocks: disclaimerBlocks,
   },
@@ -4063,9 +4235,9 @@ export const pages: SeedPage[] = [
       { label: 'Book a Free Consultation', href: org.bookingUrl },
       { label: 'See managed IT pricing', href: '/pricing-and-plans#managed-it-plans' },
     ],
-    seoTitle: 'Managed IT Services Australia | Outsourced IT Support from $4,500/month',
+    seoTitle: 'Managed IT Services Australia | From $4,500/Month',
     seoDescription:
-      'Managed IT services from Onsys — network and server management, endpoint security, backup and recovery, Microsoft 365, IT consultancy and a 24/7 helpdesk. SMB plans from $4,500/month covering up to 30, 100 or 200 users.',
+      'Outsourced IT for Australian SMBs from $4,500/month ex-GST — service desk, infrastructure, cloud, security and vendor management under one accountable SLA.',
     navOrder: 9,
     blocks: managedItBlocks,
     faqs: [
@@ -4090,9 +4262,9 @@ export const pages: SeedPage[] = [
       { label: 'Book a Free Consultation', href: org.bookingUrl },
       { label: 'See consultancy rates', href: '/pricing-and-plans#consultancy-rates' },
     ],
-    seoTitle: 'Cloud Consultancy & Support | Azure, AWS & Oracle Cloud Consultants',
+    seoTitle: 'Cloud Consulting Australia | Azure, AWS & Oracle',
     seoDescription:
-      'Cloud consultancy from Onsys — cloud strategy and roadmap, cost modelling and FinOps, landing zone and identity design, DevOps automation and 24/7 ongoing support across Microsoft Azure, AWS and Oracle Cloud at $150/hour.',
+      'Vendor-neutral cloud consulting across Azure, AWS and Oracle Cloud — strategy, landing zones, cost modelling and FinOps. Senior consultants at $150/hour.',
     navOrder: 10,
     blocks: cloudConsultancyBlocks,
     faqs: [
@@ -4117,9 +4289,9 @@ export const pages: SeedPage[] = [
       { label: 'Book a Free Consultation', href: org.bookingUrl },
       { label: 'Talk to an Engineer', href: `tel:${org.phoneE164}` },
     ],
-    seoTitle: 'Cloud Migration Services | Azure, AWS & Oracle Cloud Migrations',
+    seoTitle: 'Cloud Migration Services Australia | Azure & AWS',
     seoDescription:
-      'Cloud migration services from Onsys — SQL Server to Azure SQL and Managed Instance, Oracle to EDB, on-premises to Azure, AWS or OCI, and JD Edwards to Oracle Cloud. Dependency analysis, rehearsed cutover and tested rollback, fixed price.',
+      'Move workloads to Azure, AWS or Oracle Cloud without the bad weekend — dependencies mapped, waves planned, cutover rehearsed and rollback tested. Fixed price.',
     navOrder: 11,
     blocks: cloudMigrationBlocks,
     faqs: [
@@ -4145,9 +4317,9 @@ export const pages: SeedPage[] = [
       { label: 'Book a Free Consultation', href: org.bookingUrl },
       { label: 'See managed IT pricing', href: '/pricing-and-plans#managed-it-plans' },
     ],
-    seoTitle: 'System Administration Services | Windows, Linux & Microsoft 365',
+    seoTitle: 'System Administration Australia | Windows & Linux',
     seoDescription:
-      'System administration from Onsys — Windows Server and Active Directory, Linux configuration and hardening, Microsoft 365 administration and licence management, RBAC and account provisioning. $150/hour or within a managed IT plan.',
+      'Managed Windows and Linux administration for Australian businesses — patching, Active Directory, Microsoft 365, identity and server hardening, covered 24/7.',
     navOrder: 12,
     blocks: sysAdminBlocks,
     faqs: [
@@ -4172,9 +4344,9 @@ export const pages: SeedPage[] = [
       { label: 'Book a Free Consultation', href: org.bookingUrl },
       { label: 'Talk to an Engineer', href: `tel:${org.phoneE164}` },
     ],
-    seoTitle: 'Network & Firewall Services | Cisco, Fortinet & Palo Alto Support',
+    seoTitle: 'Network & Firewall Management Australia | 24/7',
     seoDescription:
-      'Network and firewall services from Onsys — network design and optimisation, firewall configuration and management, intrusion detection, VPN and remote access, and 24/7 monitoring across Cisco, Fortinet, Palo Alto, Juniper, Check Point and Sophos.',
+      'Managed networks and firewalls across Cisco, Fortinet, Palo Alto and Sophos — segmentation, VPN, WAF and 24/7 monitoring for Australian organisations.',
     navOrder: 13,
     blocks: networkBlocks,
     faqs: [
@@ -4199,9 +4371,9 @@ export const pages: SeedPage[] = [
       { label: 'Book a Free Consultation', href: org.bookingUrl },
       { label: 'Talk to an Engineer', href: `tel:${org.phoneE164}` },
     ],
-    seoTitle: 'Virtualisation & Storage Services | VMware, Hyper-V, KVM, SAN & NAS',
+    seoTitle: 'Virtualisation & Storage Australia | VMware, SAN',
     seoDescription:
-      'Virtualisation and storage services from Onsys — VMware, Hyper-V and Oracle Linux KVM architecture, migration, upgrades, health checks and support, plus storage administration across NetApp, Dell EMC, HPE, Hitachi, IBM, Veeam and Commvault.',
+      'VMware, Hyper-V and Oracle Linux KVM management plus SAN, NAS and backup across NetApp, Dell EMC and HPE — capacity planning and 24/7 support included.',
     navOrder: 14,
     blocks: virtStorageBlocks,
     faqs: [
@@ -4226,9 +4398,9 @@ export const pages: SeedPage[] = [
       { label: 'Book a Free Consultation', href: org.bookingUrl },
       { label: 'See engagement options', href: '/pricing-and-plans#engagement-options' },
     ],
-    seoTitle: 'Custom Software Development Australia | Offshore Teams, Local Accountability',
+    seoTitle: 'Custom Software Development Australia | Fixed Price',
     seoDescription:
-      'Custom software development from Onsys — web applications, SaaS platforms, backend and APIs, application modernisation and AI-enabled features. Offshore engineering with Melbourne project management, on fixed-cost, milestone or dedicated-team engagements.',
+      'Web, API and SaaS development for Australian businesses — offshore delivery under Melbourne project leadership. Fixed-price, milestone or dedicated-team.',
     navOrder: 15,
     blocks: customSoftwareBlocks,
     faqs: [
@@ -4253,9 +4425,9 @@ export const pages: SeedPage[] = [
       { label: 'Book a Free Consultation', href: org.bookingUrl },
       { label: 'See engagement options', href: '/pricing-and-plans#engagement-options' },
     ],
-    seoTitle: 'Mobile App Development | iOS, Android, Flutter & React Native',
+    seoTitle: 'Mobile App Development Australia | iOS & Android',
     seoDescription:
-      'Mobile app development from Onsys — native iOS and Android, plus Flutter and React Native cross-platform builds. UI/UX design, agile delivery, enterprise-grade security, App Store and Play Store launch, and ongoing support.',
+      'iOS, Android, Flutter and React Native apps built for Australian businesses — from ideation through App Store release, then maintained under a support SLA.',
     navOrder: 16,
     blocks: mobileBlocks,
     faqs: [
@@ -4280,9 +4452,9 @@ export const pages: SeedPage[] = [
       { label: 'Book a Free Consultation', href: org.bookingUrl },
       { label: 'See consultancy rates', href: '/pricing-and-plans#consultancy-rates' },
     ],
-    seoTitle: 'Integration & ETL Services | APIs, SSIS & Azure Data Factory',
+    seoTitle: 'ETL & Integration Services Australia | SSIS, ADF',
     seoDescription:
-      'Integration and ETL services from Onsys — system integration, SSIS and Azure Data Factory pipelines, API development, data migration, event-driven exchange and Power BI reporting feeds. Fixed price or $150/hour.',
+      'SSIS, Azure Data Factory and API integration for Australian data estates — pipeline builds, failure triage, job scheduling and SSIS-to-ADF migration.',
     navOrder: 17,
     blocks: integrationBlocks,
     faqs: [
@@ -4308,9 +4480,9 @@ export const pages: SeedPage[] = [
       { label: 'Book a Free Consultation', href: org.bookingUrl },
       { label: 'See engagement options', href: '/pricing-and-plans#engagement-options' },
     ],
-    seoTitle: 'AI Development & Solutions | Chatbots, Agents & Generative AI',
+    seoTitle: 'AI Development Australia | Agents, RAG & Analytics',
     seoDescription:
-      'AI development from Onsys — AI chatbots with verifiable citations, autonomous agents, generative AI, computer vision and audio intelligence. Two to six week proof of concept, then fixed price or dedicated team. Deployed on Azure, AWS and OCI.',
+      'Production AI for Australian businesses — retrieval chatbots that cite sources, autonomous agents, document processing and analytics on Azure, AWS or OCI.',
     navOrder: 18,
     blocks: aiBlocks,
     faqs: [
@@ -4335,9 +4507,9 @@ export const pages: SeedPage[] = [
       { label: 'Book a Free Consultation', href: org.bookingUrl },
       { label: 'Talk to an Engineer', href: `tel:${org.phoneE164}` },
     ],
-    seoTitle: 'Managed Security Services | 24/7 SOC, SIEM & Threat Hunting',
+    seoTitle: 'Managed Security Services Australia | 24/7 SOC',
     seoDescription:
-      'Managed security services from Onsys — managed SIEM, a 24/7 Security Operations Centre, proactive threat hunting, managed EDR, vulnerability management and cloud security across AWS, Azure and Google Cloud. Book a free security posture review.',
+      '24/7 SOC, managed SIEM and threat hunting for Australian businesses — covering all twelve security domains with monthly evidence your auditor will accept.',
     navOrder: 19,
     blocks: securityBlocks,
     faqs: [
@@ -4363,9 +4535,9 @@ export const pages: SeedPage[] = [
       { label: 'Book a Free Consultation', href: org.bookingUrl },
       { label: 'Talk to an Engineer', href: `tel:${org.phoneE164}` },
     ],
-    seoTitle: 'Managed EDR | SentinelOne Endpoint Detection & Response Australia',
+    seoTitle: 'Managed EDR Australia | SentinelOne, 24/7 Triage',
     seoDescription:
-      'Managed EDR from Onsys, built on SentinelOne — behavioural and static AI detection, automated containment and remediation, ransomware rollback, and 24/7 SOC monitoring. See why anti-virus is no longer enough. Request a free demo.',
+      'Managed endpoint detection and response for Australian businesses — SentinelOne with one-click ransomware rollback, 24/7 analyst triage and containment.',
     navOrder: 20,
     blocks: edrBlocks,
     faqs: [
@@ -4390,9 +4562,9 @@ export const pages: SeedPage[] = [
       { label: 'Book a Free Consultation', href: org.bookingUrl },
       { label: 'Talk to an Engineer', href: `tel:${org.phoneE164}` },
     ],
-    seoTitle: 'Data & Application Security | Classification, DLP & Secure Code',
+    seoTitle: 'Data & Application Security Australia | DLP',
     seoDescription:
-      'Data and application security from Onsys — sensitive data mapping and classification, DLP, encryption key management, access rights review, static code analysis, secure coding standards, patch tracking and mobile app testing.',
+      'Find the sensitive data you hold, control who can reach it and secure the code that touches it — classification, DLP, encryption and secure development.',
     navOrder: 21,
     blocks: dataAppSecBlocks,
     faqs: [
@@ -4417,9 +4589,9 @@ export const pages: SeedPage[] = [
       { label: 'Book a Free Consultation', href: org.bookingUrl },
       { label: 'Talk to an Engineer', href: `tel:${org.phoneE164}` },
     ],
-    seoTitle: 'GRC & Compliance Services | ISO 27001, Essential Eight & SOC 2 Readiness',
+    seoTitle: 'GRC & Compliance Australia | ISO 27001, Essential 8',
     seoDescription:
-      'Governance, risk and compliance from Onsys — control framework mapping against ISO 27001, ACSC Essential Eight, NIST CSF, SOC 2 and APRA CPS 234, audit findings remediation, policy suites, incident and problem management, and business continuity planning.',
+      'Map your controls to ISO 27001, the ACSC Essential Eight, APRA CPS 234 and SOC 2, close the gaps, and hand auditors evidence they will actually accept.',
     navOrder: 22,
     blocks: grcBlocks,
     faqs: [
@@ -4434,19 +4606,78 @@ export const pages: SeedPage[] = [
     ],
   },
   {
+    // Rebuilt from the legacy WordPress URL that ranks #1 for "sql server
+    // health check australia". Do not rename this slug or add a redirect from
+    // it — the ranking is attached to this exact path.
+    slug: 'free-20-point-sql-server-health-check',
+    title: 'Free SQL Server Health Check',
+    heading: 'Free 20-point SQL Server health check',
+    eyebrow: 'No charge · No obligation · One instance',
+    lede: 'A SQL Server health check is a structured review of an instance against a fixed set of configuration, performance, backup and security checks. Onsys runs 20 of them free of charge on one Australian SQL Server instance, using read-only access, and gives you the written findings whether or not you engage us afterwards.',
+    heroImage: '/images/hero-dba-oncall.jpg',
+    heroCtas: [
+      { label: 'Book the free health check', href: org.bookingUrl },
+      { label: `Call ${org.phone}`, href: `tel:${org.phoneE164}` },
+    ],
+    seoTitle: 'Free SQL Server Health Check Australia | 20 Points',
+    seoDescription:
+      '20-point SQL Server health check, free on one instance. Read-only, about 2 hours, written report in 3 business days. Melbourne-based senior DBAs.',
+    navOrder: 3,
+    blocks: healthCheckBlocks,
+    faqs: [
+      { question: 'Is the SQL Server health check really free?', answer: 'Yes — one instance, no charge, no obligation and no requirement to engage us afterwards. You keep the report and the raw query output either way. We offer it because roughly half the environments we review turn out to have a finding serious enough that the owner wants help fixing it, and the other half tell someone we were straight with them.' },
+      { question: 'How long does a SQL Server health check take?', answer: 'About two hours of read-only checks against the live instance, which can run during business hours without affecting production. The written report follows within three business days, and we walk you through it on a 30-minute call.' },
+      { question: 'What access do you need for the health check?', answer: 'A read-only login with VIEW SERVER STATE and db_datareader on the system databases is enough for every one of the 20 checks. If your policy does not allow external logins at all, we run the same checks over a screen-share while a member of your team drives. No data leaves your environment.' },
+      { question: 'What do we get at the end of it?', answer: 'A findings report rating each of the 20 points with the evidence behind it, a prioritised remediation list with effort estimates, the raw query output so your team can reproduce every finding, and a 30-minute walkthrough with the DBA who ran the check.' },
+      { question: 'Will the health check affect production performance?', answer: 'No. Every check is a read-only query against system views and dynamic management views. Nothing is written, no configuration is changed, and no maintenance window is required.' },
+      { question: 'Can you health check Oracle, PostgreSQL or MySQL instead?', answer: 'Yes, though the free offer covers SQL Server. Oracle, PostgreSQL, EDB and MySQL health checks are run as a fixed-price engagement — usually a half day per instance at $150 per hour, quoted before the work starts.' },
+      { question: 'Do you have to be in Melbourne to book one?', answer: 'No. The check is run remotely, so we cover organisations anywhere in Australia and New Zealand. Our consultants are Melbourne-based and work Australian business hours, with 24/7 cover available on a support plan.' },
+    ],
+  },
+  {
+    // Rebuilt from the legacy WordPress URL that ranked ~#9 for "oracle dba
+    // support australia". The audit's guidance is to win the head term
+    // geo-qualified rather than compete for it bare.
+    slug: 'remote-database-support',
+    title: 'Remote Database Support',
+    heading: 'Remote database support in Australia',
+    eyebrow: '24/7 cover · From $1,500/month · No lock-in',
+    lede: 'Remote database support is the ongoing monitoring, patching, tuning and recovery of your databases by an external DBA team working over a secure connection, instead of employing a full-time in-house DBA. Onsys provides it 24 hours a day to Australian organisations running SQL Server, Oracle, PostgreSQL and MySQL, with first response in one to two hours and no minimum contract term.',
+    heroImage: '/images/hero-mds.jpg',
+    heroCtas: [
+      { label: 'Speak with a senior DBA', href: org.bookingUrl },
+      { label: 'See plans and pricing', href: '/pricing-and-plans#database-plans' },
+    ],
+    seoTitle: 'Remote Database Support Australia | 24/7 DBA Team',
+    seoDescription:
+      'Australian-managed 24/7 remote database support from $1,500/month ex-GST. SQL Server, Oracle, PostgreSQL and MySQL, 1-hour response SLA, no lock-in.',
+    navOrder: 2,
+    blocks: remoteSupportBlocks,
+    faqs: [
+      { question: 'What is remote database support?', answer: 'Remote database support is the ongoing monitoring, patching, tuning and recovery of your databases by an external DBA team working over a secure connection. It replaces or supplements an in-house DBA, and covers the same work: availability monitoring, incident response, backup verification, patching, performance tuning and capacity planning.' },
+      { question: 'How much does remote DBA support cost in Australia?', answer: 'Remote DBA support in Australia typically costs between $1,000 and $8,000 per month depending on instance count and coverage hours. Onsys plans start at $1,500 per month ex-GST for up to 10 SQL Server instances with 24/7 coverage, and $7,500 per month for multi-platform estates up to 50 TB. Ad-hoc senior DBA work is $140 per hour, billed in 30-minute increments, with no minimum term.' },
+      { question: 'Is it safe to give an external company access to our production database?', answer: 'It is, provided the access is named, least-privilege, logged and revocable — and you should require all four from any provider. Onsys uses individually named accounts rather than shared credentials, connects over your preferred secure channel, and every session is logged and auditable. We document which engineers hold access before you sign, and access is revoked the day an engagement ends. If your policy prohibits external logins entirely, we work screen-shared with your own staff driving.' },
+      { question: 'Should we hire an in-house DBA or outsource to a managed service?', answer: 'True 24/7/365 database cover needs five to seven DBAs, because one person cannot cover nights, weekends, leave and resignation. Below roughly three full-time DBAs of genuine workload, a managed service is almost always cheaper and more resilient than hiring. Above that, a hybrid is common: in-house staff own the application-facing work and an external team carries after-hours and specialist platforms.' },
+      { question: 'What happens when a production database goes down at 2am?', answer: 'You call the 24/7 number and reach an on-call senior DBA, not a first-line triage queue. On a monthly plan the first response is guaranteed within one to two hours depending on tier, and triage starts on the phone. We hold your runbooks and access already, so no time is lost establishing who you are or how to reach the estate.' },
+      { question: 'Where are your engineers located, and who can see our data?', answer: 'Australian-based senior consultants lead every engagement and hold the client relationship from Melbourne. Round-the-clock coverage is delivered together with our Colombo delivery centre. We tell you exactly which engineers hold access to your environment before you sign, and it is written into the agreement. If you require Australian-resident-only access for regulatory reasons, say so during scoping and we will tell you plainly whether we can meet it.' },
+      { question: 'How long does onboarding take?', answer: 'Two weeks from signature to full coverage is typical: one week for discovery, access and runbooks, one week for monitoring configuration and tuning. Nothing is billed until coverage actually starts.' },
+      { question: 'Are we locked into a contract?', answer: 'No. Monthly plans run on a rolling basis with no minimum term and no exit fee. If the service is not worth what it costs, you should be able to stop paying for it.' },
+    ],
+  },
+  {
     slug: 'contact',
     title: 'Contact Us',
-    heading: 'Start with a conversation',
+    heading: 'Contact Onsys Technologies',
     eyebrow: 'Talk to a senior consultant',
-    lede: `Tell us what you are running and what is going wrong. A senior consultant reads every enquiry and replies within one business day — with a straight answer on whether we can help and what it would cost. No obligation, and no lock-in contracts if you go ahead.`,
+    lede: `Onsys Technologies is on 1800 431 416 at Level 1, 530 Little Collins Street, Melbourne VIC 3000. Tell us what you are running and what is going wrong. A senior consultant reads every enquiry and replies within one business day — with a straight answer on whether we can help and what it would cost. No obligation, and no lock-in contracts if you go ahead.`,
     heroImage: '/images/hero-contact.jpg',
     heroCtas: [
       { label: 'Book a Free 30-Minute Call', href: org.bookingUrl },
       { label: `Call ${org.phone}`, href: `tel:${org.phoneE164}` },
     ],
-    seoTitle: 'Contact Onsys Technologies | Melbourne IT & Database Consultants',
+    seoTitle: 'Contact Onsys | Melbourne Database & IT Consultants',
     seoDescription:
-      `Get in touch with ${org.name} — ${org.postalAddress}, ${org.phone}, ${org.email}.`,
+      'Contact Onsys Technologies on 1800 431 416, Level 1, 530 Little Collins Street, Melbourne VIC 3000. A senior consultant replies within one business day.',
     navOrder: 6,
     blocks: contactBlocks,
   },

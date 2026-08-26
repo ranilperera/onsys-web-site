@@ -678,3 +678,45 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   .booking-done, .booking-fallback{padding:28px 18px;}
   .booking-summary > div{flex:1 1 130px; min-width:0; padding:10px 12px;}
 }
+
+/* ===== Technology groups (expertise platform lists) ===== */
+/* Replaces a flat wall of 36 near-identical pills. Each group is now a card,
+   and each entry carries a glyph saying what kind of technology it is, tinted
+   with the vendor's accent colour. */
+.tech-groups{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px; align-items:start;}
+.tech-card{background:#fff; border:1px solid var(--gray-light); border-radius:12px; padding:22px 22px 10px; min-width:0;}
+.tech-card-title{font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+  color:var(--gray); margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid var(--gray-light);}
+
+.tech-list{list-style:none; margin:0; padding:0;}
+.tech-list li{display:flex; align-items:center; gap:11px; padding:9px 0; min-width:0;}
+.tech-list li + li{border-top:1px solid #F1F4F8;}
+
+.tech-glyph{flex:0 0 32px; width:32px; height:32px; border-radius:8px; border:1px solid transparent;
+  display:flex; align-items:center; justify-content:center; background:#F4F6FA;}
+.tech-glyph svg{width:19px; height:19px;}
+
+.tech-label{font-size:14px; font-weight:600; color:#3B3A39; line-height:1.35; min-width:0;}
+
+/* Was a narrow aside next to a tall column, leaving most of the row empty. */
+.tech-note{margin-top:24px; background:#fff; border:1px solid var(--gray-light); border-radius:12px; padding:22px 26px;}
+.tech-note h4{font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+  color:var(--navy); margin-bottom:14px;}
+.tech-note ul{list-style:none; margin:0; padding:0; display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px 28px;}
+.tech-note li{font-size:13.5px; color:var(--gray); line-height:1.55; padding-left:16px; position:relative;}
+.tech-note li::before{content:''; position:absolute; left:0; top:8px; width:6px; height:6px;
+  border-radius:50%; background:var(--orange);}
+
+@media (max-width:900px){
+  .tech-groups{grid-template-columns:1fr; gap:14px;}
+  .tech-card{padding:18px 18px 8px;}
+  .tech-note{padding:18px; margin-top:18px;}
+  .tech-note ul{grid-template-columns:1fr; gap:12px;}
+}
+
+/* Publication / review dates — small, factual, and deliberately not styled to
+   compete with the content above them. */
+.page-dates{border-top:1px solid var(--gray-light); padding:18px 0 22px; background:#fff;}
+.page-dates p{font-size:12.5px; color:var(--gray); margin:0;}
+.page-dates time{font-weight:600; color:#3B3A39;}

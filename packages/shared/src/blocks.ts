@@ -170,7 +170,19 @@ export const blockSchema = z.discriminatedUnion('type', [
     /// Optional id so menu items can deep-link to this section.
     anchor: z.string().optional(),
     groups: z.array(
-      z.object({ title: z.string(), chips: z.array(z.object({ label: z.string(), color: z.string() })) }),
+      z.object({
+        title: z.string(),
+        chips: z.array(
+          z.object({
+            label: z.string(),
+            /// Vendor accent colour, used to tint the glyph.
+            color: z.string(),
+            /// Sprite id describing what kind of technology this is
+            /// (t-cluster, t-migrate, …). Falls back to a neutral mark.
+            icon: z.string().optional(),
+          }),
+        ),
+      }),
     ),
     sidebar: z.object({ title: z.string(), items: z.array(z.string()) }).optional(),
   }),

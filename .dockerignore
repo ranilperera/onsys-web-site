@@ -1,0 +1,48 @@
+# Everything here is excluded from the build context that gets sent to the
+# Docker daemon. Without it the context is well over a gigabyte and every build
+# re-uploads it.
+
+# Dependencies and build output — reinstalled and rebuilt inside the image.
+node_modules
+**/node_modules
+.next
+**/.next
+dist
+**/dist
+*.tsbuildinfo
+**/*.tsbuildinfo
+
+# Secrets. The API reads .env at runtime via compose's env_file, and the web
+# build receives what it needs as explicit build args — neither needs the file
+# baked into an image layer, where it would persist and be readable.
+.env
+.env.*
+!.env.example
+*.bak
+*.bak-*
+
+# VCS and editor noise.
+.git
+.gitignore
+.github
+.vscode
+.idea
+.claude
+
+# Unprocessed hero photography (~157MB). Pages reference the derived
+# hero-*.jpg files, which are committed and do ship.
+apps/web/public/images/hero[0-9].jpg
+apps/web/public/images/hero[0-9][0-9].jpg
+
+# Local tooling and artefacts that have no business in an image.
+docker-compose.yml
+docker-compose.override.yml
+*.md
+!README.md
+*.pdf
+playwright-report
+test-results
+coverage
+npm-debug.log*
+.DS_Store
+Thumbs.db

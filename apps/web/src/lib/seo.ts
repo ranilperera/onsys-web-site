@@ -199,6 +199,7 @@ export function webPageSchema(opts: {
   description: string;
   path: string;
   modified?: string | null;
+  published?: string | null;
   speakableSelectors?: string[];
 }): Record<string, unknown> {
   const url = absoluteUrl(opts.path);
@@ -213,6 +214,9 @@ export function webPageSchema(opts: {
     about: { '@id': `${siteConfig.url}/#organization` },
     primaryImageOfPage: { '@type': 'ImageObject', url: absoluteUrl(DEFAULT_OG) },
     inLanguage: 'en-AU',
+    // Retrieval systems down-weight content of unknown age and prefer recent
+    // sources for cost and "best of" queries, so both dates are emitted.
+    ...(opts.published ? { datePublished: opts.published } : {}),
     ...(opts.modified ? { dateModified: opts.modified } : {}),
     speakable: {
       '@type': 'SpeakableSpecification',

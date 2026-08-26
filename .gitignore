@@ -32,3 +32,15 @@ apps/web/public/images/hero[0-9][0-9].jpg
 
 # Incremental TypeScript build state — machine-specific, causes noisy diffs.
 *.tsbuildinfo
+
+# Windows "- Copy" duplicates. One of these leaked a full copy of .env into the
+# staging area earlier in this project.
+*[ ]-[ ]Copy.*
+* - Copy.*
+
+# Business documents. The SEO/AEO audit in particular documents an active
+# content-injection compromise on a sister domain, competitor analysis and
+# ranking weaknesses — none of which belongs in a code repository whose
+# visibility can change. Keep it in the drive, not in git history.
+Onsys-SEO-AEO-Report.pdf
+*-Report.pdf

@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
     default: `${siteConfig.name} | Managed Database, Cloud & IT Services Australia`,
-    template: `%s | ${siteConfig.name}`,
+    template: `%s | ${siteConfig.shortName}`,
   },
   description: siteConfig.description,
   applicationName: siteConfig.name,

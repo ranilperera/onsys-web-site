@@ -10,6 +10,51 @@ import { siteConfig } from '@/lib/config';
  */
 
 const STATIC_REDIRECTS: Record<string, string> = {
+  // --- URLs confirmed indexed by the August 2026 SEO audit ---------------
+  // These were live on WordPress and hold real ranking equity, so every one
+  // must resolve rather than 404. Two of them are rebuilt as real pages
+  // (/free-20-point-sql-server-health-check and /remote-database-support) and
+  // are therefore deliberately absent from this map.
+  //
+  // /oncall cannibalised /on-call-dba-services, which ranks #4 for the
+  // after-hours emergency query. The audit says keep the ranking one.
+  '/oncall': '/on-call-dba-services',
+  '/on-call': '/on-call-dba-services',
+  // Duplicate of /managed-it-services carrying an identical title tag.
+  '/managed-it-services-tailored-solutions-for-seamless-operations': '/managed-it-services',
+  // WooCommerce products, including the literal "-copy" duplication suffix
+  // that got indexed. All four sold consultancy hours, which is now pricing.
+  '/product/sql-server-consultancy-services-4hrs': '/pricing-and-plans#consultancy-rates',
+  '/product/sql-server-consultancy-services-4hrs-copy': '/pricing-and-plans#consultancy-rates',
+  '/product/sql-server-consultancy-services-40hrs': '/pricing-and-plans#consultancy-rates',
+  '/product/sql-server-consultancy-services-40hrs-copy': '/pricing-and-plans#consultancy-rates',
+  '/shop': '/pricing-and-plans',
+  '/cart': '/pricing-and-plans',
+  '/checkout': '/pricing-and-plans',
+  // The three plan pages map onto the plan table they were split out of.
+  '/remote-database-support-plan-a': '/pricing-and-plans#database-plans',
+  '/remote-database-support-plan-b': '/pricing-and-plans#database-plans',
+  '/remote-database-support-plan-c': '/pricing-and-plans#database-plans',
+  '/custom-support-plan': '/pricing-and-plans#engagement-options',
+  // Cost-saving article that ranked #7 for the AU pricing query.
+  '/how-to-save-with-onsys-managed-database-services': '/pricing-and-plans',
+  // WordPress taxonomy archives.
+  '/category/database': '/blog',
+  '/category/software-development': '/blog',
+  '/category/uncategorized': '/blog',
+  '/tag/sql-server': '/blog',
+  '/author/admin': '/about',
+  // Yoast served the sitemap at these paths and they may still be submitted in
+  // Search Console; Next serves a single /sitemap.xml.
+  '/sitemap_index.xml': '/sitemap.xml',
+  '/page-sitemap.xml': '/sitemap.xml',
+  '/post-sitemap.xml': '/sitemap.xml',
+  '/wp-sitemap.xml': '/sitemap.xml',
+  // The old booking widget, now a first-party flow.
+  '/appointment': '/book',
+  '/book-a-call': '/book',
+  '/request-a-callback': '/contact',
+
   '/our-expertise': '/expertise',
   '/about-us': '/about',
   '/contact-us': '/contact',
@@ -71,7 +116,11 @@ async function getDynamicRedirects(): Promise<Map<string, { to: string; code: nu
   if (cache && cache.expires > Date.now()) return cache.map;
 
   try {
-    const res = await fetch(`${siteConfig.apiUrl}/api/content/redirects`, {
+    // Server-side, so it must not loop back out through the public hostname —
+    // an Azure VM generally cannot reach its own public IP. Same reasoning as
+    // serverApiBase in lib/api.ts.
+    const base = process.env.INTERNAL_API_URL || siteConfig.apiUrl;
+    const res = await fetch(`${base}/api/content/redirects`, {
       next: { revalidate: 300 },
     });
     if (!res.ok) throw new Error('redirect fetch failed');

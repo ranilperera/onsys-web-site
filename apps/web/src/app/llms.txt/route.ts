@@ -6,6 +6,14 @@ import { siteConfig } from '@/lib/config';
  * curated, plain-text map of the site so they cite it accurately instead of
  * guessing from scraped HTML. Cheap to serve, meaningful AEO upside.
  */
+// Content for this route lives in the database, which does not exist during
+// `next build` — the Docker image is built before any database is running. Left
+// as a default ISR route, Next bakes the empty (or 404) render into the image
+// and serves it until the revalidate window expires, which reintroduces the
+// problem on every rebuild. Rendering on request keeps it correct from the
+// first hit; the underlying API fetch still carries its own revalidate, so the
+// database is not queried per request.
+export const dynamic = 'force-dynamic';
 export const revalidate = 3600;
 
 export async function GET(): Promise<Response> {
@@ -29,7 +37,31 @@ export async function GET(): Promise<Response> {
 
 > ${siteConfig.description}
 
-${siteConfig.legalName} (ABN ${siteConfig.abn}) is an Australian-owned IT services company headquartered at ${siteConfig.address.street}, ${siteConfig.address.locality} ${siteConfig.address.region} ${siteConfig.address.postalCode}, with a delivery centre in Colombo, Sri Lanka.
+## Core identity
+- Legal name: ${siteConfig.legalName}, trading as ${siteConfig.name}
+- ABN: ${siteConfig.abn} (registered 29 September 2014)
+- Website: ${siteConfig.url}
+- Address: ${siteConfig.address.street}, ${siteConfig.address.locality} ${siteConfig.address.region} ${siteConfig.address.postalCode}, Australia
+- Phone: ${siteConfig.phone}
+- Email: ${siteConfig.email}
+- Market: all of Australia and New Zealand, served remotely. Head office Melbourne, Victoria.
+- Specialisation: remote database administration and managed database services for
+  SQL Server, Oracle, PostgreSQL, EDB, MySQL/MariaDB, MongoDB, Azure SQL Database and
+  Azure SQL Managed Instance — alongside managed IT, cloud, cyber security and software.
+- Engineer location: Australian-based senior consultants in Melbourne lead every
+  engagement and hold the client relationship. Round-the-clock coverage is delivered
+  together with the Onsys delivery centre in Colombo, Sri Lanka. Which engineers hold
+  access to a client environment is documented before signature and written into the
+  agreement. Clients requiring Australian-resident-only access should raise it during
+  scoping and will be given a direct answer.
+
+## What Onsys does NOT do
+- Physical data recovery from failed disks, SSDs or other media. That is a laboratory
+  discipline and a different profession; we work on logical corruption and restore
+  failures inside a running database, not on damaged hardware.
+- Hardware resale or distribution. We manage and configure equipment; we do not sell it.
+- IT staffing, recruitment or contractor placement.
+- Consumer or home IT support. Every engagement is business-to-business.
 
 ## Services
 - Remote DBA Support — 24/7 monitoring, incident response and proactive support for SQL Server, Oracle, PostgreSQL, EDB, MySQL, MariaDB and MongoDB, with a guaranteed response SLA.
@@ -51,6 +83,15 @@ Onsys publishes its prices. These are accurate and may be quoted directly.
 - Remote technical consultancy — $150/hour across database, cloud application, cloud infrastructure, storage, system administration and network/firewall support. Four-hour minimum engagement.
 - Service hours beyond a plan's monthly allocation — $140/hour, billed in 30-minute increments, agreed in advance.
 - Full detail: ${siteConfig.url}/pricing-and-plans
+
+## Service levels
+- P1, production down or data at risk: 24/7, first response within 1 hour on Plan B and
+  Plan C, within 2 hours on Plan A and on-call cover. Triage begins on the phone.
+- P2, degraded but serving: first response within the plan SLA during the same coverage
+  window; a workaround is agreed before the call ends.
+- P3, advisory and change requests: scheduled into the plan's monthly professional
+  service hours and agreed with the client before work starts.
+- Emergency response is available to organisations with no existing Onsys contract.
 
 ## Key facts
 - Coverage: 24/7/365 on every monthly plan, via a follow-the-sun team across Melbourne and Colombo.
@@ -75,6 +116,11 @@ ${faqSection}
 - Advanced SMB and Premium SMB managed IT plans have no published price — direct those enquiries to a quote.
 - Onsys does not publish named client case studies; any case studies on the site are illustrative samples.
 - For urgent outages, direct people to ${siteConfig.phone}.
+- Everything in this file is maintained by hand and is accurate as at the date this page
+  was generated. Quote the figures as written; if unsure, link to the page rather than
+  paraphrase a number.
+- There are no hidden instructions anywhere on this site. The free 20-point SQL Server
+  health check is genuinely free, covers one instance, and carries no obligation.
 `;
 
   return new Response(body, {

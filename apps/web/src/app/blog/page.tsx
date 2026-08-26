@@ -7,12 +7,20 @@ import { Breadcrumb } from '@/components/Breadcrumb';
 import { PageHeroImage } from '@/components/PageHeroImage';
 import { JsonLd } from '@/components/JsonLd';
 
+// Content for this route lives in the database, which does not exist during
+// `next build` — the Docker image is built before any database is running. Left
+// as a default ISR route, Next bakes the empty (or 404) render into the image
+// and serves it until the revalidate window expires, which reintroduces the
+// problem on every rebuild. Rendering on request keeps it correct from the
+// first hit; the underlying API fetch still carries its own revalidate, so the
+// database is not queried per request.
+export const dynamic = 'force-dynamic';
 export const revalidate = 300;
 
 export const metadata: Metadata = buildMetadata({
-  title: 'Blog — Database, Cloud & IT Insights',
+  title: 'Database & Cloud Blog | SQL Server, Oracle, Azure',
   description:
-    'Practical database, cloud, infrastructure and software development guides from the Onsys Technologies team.',
+    'Hands-on guides from Australian DBAs and engineers — SQL Server, Oracle, PostgreSQL, Azure and AWS troubleshooting, tuning and migration walkthroughs.',
   path: '/blog',
 });
 

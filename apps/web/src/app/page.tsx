@@ -7,12 +7,24 @@ import { BlockRenderer } from '@/components/blocks/BlockRenderer';
 import { FaqAccordion } from '@/components/blocks/FaqAccordion';
 import { JsonLd } from '@/components/JsonLd';
 
+// Content for this route lives in the database, which does not exist during
+// `next build` — the Docker image is built before any database is running. Left
+// as a default ISR route, Next bakes the empty (or 404) render into the image
+// and serves it until the revalidate window expires, which reintroduces the
+// problem on every rebuild. Rendering on request keeps it correct from the
+// first hit; the underlying API fetch still carries its own revalidate, so the
+// database is not queried per request.
+export const dynamic = 'force-dynamic';
 export const revalidate = 300;
 
 export async function generateMetadata(): Promise<Metadata> {
   const page = await getPage('home');
   return buildMetadata({
-    title: page?.seoTitle ?? `${siteConfig.name} | Managed Database, Cloud & IT Services Australia`,
+    // The <title> template in the root layout applies to child segments only,
+    // never to this one, so the brand close has to be appended by hand here.
+    title: page?.seoTitle
+      ? `${page.seoTitle} | ${siteConfig.shortName}`
+      : `${siteConfig.name} | Remote DBA & Managed IT Services Australia`,
     description: page?.seoDescription ?? siteConfig.description,
     path: '/',
     ogImage: page?.ogImage,

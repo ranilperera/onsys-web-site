@@ -68,9 +68,25 @@ export interface PostRecord {
 
 export type PostSummary = Omit<PostRecord, 'bodyHtml' | 'faqs'>;
 
+/**
+ * Base URL for content fetches.
+ *
+ * These run on the server, so they should reach the API directly rather than
+ * looping back out through the public hostname. That matters most on Azure:
+ * a VM generally cannot reach its own public IP, because the load balancer does
+ * not hairpin, so an SSR fetch to https://www.onsys.com.au/api would hang and
+ * every page would fall back to its empty state.
+ *
+ * INTERNAL_API_URL is set to http://api:4000 by the compose stack. It is a
+ * server-only variable — deliberately not NEXT_PUBLIC_ — because the browser
+ * must keep using the public origin, which is also what keeps requests
+ * same-origin and free of CORS.
+ */
+const serverApiBase = process.env.INTERNAL_API_URL || siteConfig.apiUrl;
+
 async function apiGet<T>(path: string, revalidate = REVALIDATE_SECONDS): Promise<T | null> {
   try {
-    const res = await fetch(`${siteConfig.apiUrl}/api/content${path}`, {
+    const res = await fetch(`${serverApiBase}/api/content${path}`, {
       next: { revalidate },
       headers: { Accept: 'application/json' },
     });

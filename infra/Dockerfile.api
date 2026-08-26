@@ -1,44 +1,55 @@
-# ---- deps ----
-FROM node:22-alpine AS deps
-WORKDIR /app
-RUN apk add --no-cache python3 make g++ openssl
-COPY package*.json ./
-COPY apps/api/package.json apps/api/
-COPY packages/shared/package.json packages/shared/
-COPY apps/web/package.json apps/web/
-RUN npm ci --omit=dev --workspace @onsys/api --workspace @onsys/shared --include-workspace-root
+# Express API + Prisma.
+#
+# The runtime stage deliberately keeps devDependencies. Migrations
+# (`prisma migrate deploy`), content seeding (`tsx src/scripts/seed.ts`) and
+# `create:admin` all run from inside this container on the VM, and every one of
+# those needs a tool that is a devDependency. Stripping them saves a few hundred
+# megabytes and takes the operational commands with it.
 
-# ---- build ----
+# ---- build ----------------------------------------------------------------
 FROM node:22-alpine AS build
 WORKDIR /app
+# openssl is required by Prisma's query engine; the build toolchain is for any
+# dependency that still ships a native addon.
 RUN apk add --no-cache python3 make g++ openssl
+
 COPY package*.json ./
 COPY apps/api/package.json apps/api/
-COPY packages/shared/package.json packages/shared/
 COPY apps/web/package.json apps/web/
+COPY packages/shared/package.json packages/shared/
 RUN npm ci --workspace @onsys/api --workspace @onsys/shared --include-workspace-root
+
 COPY packages/shared packages/shared
 COPY apps/api apps/api
 RUN npm run build -w @onsys/shared && npm run build -w @onsys/api
 
-# ---- runtime ----
+# ---- runtime --------------------------------------------------------------
 FROM node:22-alpine AS runner
 WORKDIR /app
 RUN apk add --no-cache openssl dumb-init
 ENV NODE_ENV=production
 
-# Run unprivileged.
-RUN addgroup -g 1001 -S nodejs && adduser -S onsys -u 1001
+RUN addgroup -g 1001 -S nodejs && adduser -S onsys -u 1001 -G nodejs
 
-COPY --from=deps  /app/node_modules ./node_modules
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/apps/api/dist ./apps/api/dist
-COPY --from=build /app/apps/api/node_modules ./apps/api/node_modules
+COPY --from=build /app/apps/api/package.json ./apps/api/package.json
 COPY --from=build /app/packages/shared/dist ./packages/shared/dist
-COPY --from=build /app/packages/shared/package.json ./packages/shared/
-COPY apps/api/package.json apps/api/
-COPY apps/api/prisma apps/api/prisma
+COPY --from=build /app/packages/shared/package.json ./packages/shared/package.json
+# Prisma needs the schema and the migration history at runtime, not just at build.
+COPY --from=build /app/apps/api/prisma ./apps/api/prisma
+# Seeding runs from source via tsx, so the scripts have to travel too.
+COPY --from=build /app/apps/api/src ./apps/api/src
+COPY --from=build /app/apps/api/tsconfig.json ./apps/api/tsconfig.json
+
+COPY infra/docker-entrypoint-api.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 USER onsys
 EXPOSE 4000
-ENTRYPOINT ["dumb-init", "--"]
+
+# dumb-init gives PID 1 proper signal handling, so `docker compose stop` is a
+# clean shutdown rather than a 10-second SIGKILL wait.
+ENTRYPOINT ["dumb-init", "--", "/usr/local/bin/entrypoint.sh"]
 CMD ["node", "apps/api/dist/server.js"]

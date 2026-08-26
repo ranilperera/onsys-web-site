@@ -56,6 +56,60 @@ function Cta({ label, href, variant }: { label: string; href: string; variant: s
   );
 }
 
+/**
+ * Pick a glyph describing what kind of technology an entry is.
+ *
+ * Derived from the label rather than stored per chip: `platformChips` carries
+ * 281 entries across the site, so hand-tagging every one would go stale the
+ * moment someone adds a row. A chip can still set `icon` to override this.
+ *
+ * Order matters — the first match wins, so the specific cases (a migration
+ * *to* a cloud, a replication feature *of* a database) are tested before the
+ * general ones they would otherwise be swallowed by.
+ */
+const GLYPH_RULES: Array<[RegExp, string]> = [
+  [/replicat|always ?on|data guard|\brac\b|cluster|mirror|log shipping|failover|standby|geo-replic|backup|rman|veeam|commvault|recovery|\bdr\b|continuity|dbvisit/i, 't-replicate'],
+  [/→|->|\bmigrat|cross-platform|lift-and-shift|re-platform|\bto\s+(azure|aws|oracle cloud|edb|amazon|managed|postgres)/i, 't-migrate'],
+  [/upgrade|service pack|hotfix|\bpatch|\bpsu\b|\bcpu\/|\bcus\b/i, 't-patch'],
+  [/query|\bindex/i, 't-query'],
+  [/tuning|performance|optimis|optimiz/i, 't-gauge'],
+  [/firewall|fortinet|palo alto|check point|sophos|cisco|juniper|netgear|\bf5\b|\bvpc\b|vnet|transit gateway|load balancer|\bwaf\b|switching|routing|wifi|nginx|haproxy|network/i, 't-network'],
+  [/secur|encrypt|\btde\b|vulnerab|threat|siem|\bsoc\b|incident|identity|\biam\b|\bsso\b|entra|active directory|ldap|keycloak|complian|iso\/|nist|\bpci\b|essential eight|privacy|apra|\brisk\b|governance|audit|breach|cis controls|\bitil\b|problem management/i, 't-lock'],
+  [/table design|schema|data model|architecture|landing zone|blueprint/i, 't-schema'],
+  [/vmware|hyper-v|\bkvm\b|citrix|vsphere|esxi|virtualis|virtualiz/i, 't-layers'],
+  [/netapp|dell|\bhpe\b|hitachi|\bibm\b|\bsan\b|\bnas\b|storage|fibre channel|iscsi|\bnfs\b|\bcifs\b|appliance|physical host/i, 't-server'],
+  [/docker|kubernetes|jenkins|ansible|\bgit\b|ci\/cd|devops|container/i, 't-container'],
+  [/monitor|prometheus|checkmk|\brmm\b|alerting|grafana|analytics|crash/i, 't-pulse'],
+  [/power bi|ssrs|ssas|report|dashboard|\bbi\b|\bmds\b/i, 't-chart'],
+  [/ssis|data factory|\betl\b|integration|wso2|event-driven|flat file|sftp|pipeline/i, 't-pipeline'],
+  [/\bapi\b|apis|rest|soap|microservice|webhook/i, 't-api'],
+  [/react native|flutter|swift|android|\bios\b|mobile|app store|play store|push notification/i, 't-mobile'],
+  [/react|next\.js|angular|typescript|frontend|browser/i, 't-browser'],
+  [/python|\bjava\b|node|\bphp\b|django|laravel|spring|\.net|software|development|weblogic|tomcat|modernis|moderniz/i, 't-code'],
+  [/windows server|linux|rhel|centos|ubuntu|solaris|\baix\b|hp-ux|administration|group policy|microsoft 365|apache|group replication/i, 't-terminal'],
+  [/cloud|azure|\baws\b|\boci\b|autonomous|app service|functions|sentinel|control tower|\brds\b/i, 't-cloud'],
+  [/oracle|sql server|postgres|mysql|mariadb|mongo|\bedb\b|database|\bsql\b/i, 't-database'],
+];
+
+function techGlyph(label: string, explicit?: string): string {
+  if (explicit) return explicit;
+  for (const [pattern, id] of GLYPH_RULES) if (pattern.test(label)) return id;
+  return 't-cluster';
+}
+
+/**
+ * Tint a technology glyph with its own accent colour, over a faint wash of the
+ * same hue. The wash is an 8-digit hex, so it is only applied when the stored
+ * colour is a plain 6-digit hex — anything else falls back to a neutral chip
+ * rather than emitting an invalid colour.
+ */
+function glyphStyle(color: string): React.CSSProperties {
+  const isHex6 = /^#[0-9a-f]{6}$/i.test(color);
+  return isHex6
+    ? { color, backgroundColor: `${color}14`, borderColor: `${color}33` }
+    : { color: 'var(--navy)' };
+}
+
 export function BlockRenderer({ blocks }: { blocks: Block[] }) {
   return (
     <>
@@ -398,45 +452,39 @@ function BlockSwitch({ block, index }: { block: Block; index: number }) {
         <section className="alt-bg" id={block.anchor}>
           <div className="wrap">
             <SectionHead eyebrow={block.eyebrow} heading={block.heading} body={block.body} centered />
-            <div className={block.sidebar ? 'split' : ''}>
-              <div>
-                {block.groups.map((group) => (
-                  <div key={group.title}>
-                    <h4
-                      style={{
-                        fontSize: 14,
-                        color: 'var(--navy)',
-                        textTransform: 'uppercase',
-                        letterSpacing: '.04em',
-                        marginBottom: 14,
-                      }}
-                    >
-                      {group.title}
-                    </h4>
-                    <div className="plat-row" style={{ marginBottom: 30 }}>
-                      {group.chips.map((chip) => (
-                        <div className="plat-chip" key={chip.label}>
-                          <span className="sw" style={{ background: chip.color }} aria-hidden="true" />
-                          {chip.label}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              {block.sidebar && (
-                <aside className="side-card">
-                  <h4>{block.sidebar.title}</h4>
-                  <ul style={{ display: 'block' }}>
-                    {block.sidebar.items.map((item) => (
-                      <li key={item} style={{ display: 'block', padding: '10px 0' }}>
-                        {item}
+            <div className="tech-groups">
+              {block.groups.map((group) => (
+                <div className="tech-card" key={group.title}>
+                  <h3 className="tech-card-title">{group.title}</h3>
+                  <ul className="tech-list">
+                    {group.chips.map((chip) => (
+                      <li key={chip.label}>
+                        <span className="tech-glyph" style={glyphStyle(chip.color)} aria-hidden="true">
+                          <svg>
+                            <use href={`#${techGlyph(chip.label, chip.icon)}`} />
+                          </svg>
+                        </span>
+                        <span className="tech-label">{chip.label}</span>
                       </li>
                     ))}
                   </ul>
-                </aside>
-              )}
+                </div>
+              ))}
             </div>
+
+            {/* Previously a narrow aside beside a tall column of pills, which
+                left most of the row empty. As a full-width band it balances the
+                grid above and stays readable on one line per point. */}
+            {block.sidebar && (
+              <aside className="tech-note">
+                <h4>{block.sidebar.title}</h4>
+                <ul>
+                  {block.sidebar.items.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </aside>
+            )}
           </div>
         </section>
       );

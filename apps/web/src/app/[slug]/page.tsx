@@ -1,12 +1,13 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getPage, getPages } from '@/lib/api';
-import { buildMetadata, faqSchema, breadcrumbSchema, serviceSchema, offerCatalogSchema, productListSchema } from '@/lib/seo';
+import { buildMetadata, faqSchema, breadcrumbSchema, serviceSchema, offerCatalogSchema, productListSchema, webPageSchema } from '@/lib/seo';
 import { BlockRenderer } from '@/components/blocks/BlockRenderer';
 import { FaqAccordion } from '@/components/blocks/FaqAccordion';
 import { Breadcrumb } from '@/components/Breadcrumb';
 import { JsonLd } from '@/components/JsonLd';
 import { PageHeroImage } from '@/components/PageHeroImage';
+import { PageDates } from '@/components/PageDates';
 
 export const revalidate = 300;
 export const dynamicParams = true;
@@ -36,6 +37,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 /** Pages that describe a commercial offering get Service schema. */
 const SERVICE_SLUGS = new Set([
+  'remote-database-support',
+  'free-20-point-sql-server-health-check',
   'managed-database-services',
   'expertise',
   'pricing-and-plans',
@@ -67,6 +70,13 @@ export default async function DynamicPage({ params }: Props) {
   const crumbs = [{ label: 'Home', href: '/' }, { label: page.title }];
   const schemas: Array<Record<string, unknown>> = [
     breadcrumbSchema([{ name: 'Home', url: '/' }, { name: page.title }]),
+    webPageSchema({
+      name: page.seoTitle ?? page.title,
+      description: page.seoDescription ?? page.lede ?? '',
+      path: `/${page.slug}`,
+      modified: page.updatedAt,
+      published: page.publishedAt,
+    }),
   ];
 
   const faqLd = faqSchema(page.faqs);
@@ -112,6 +122,10 @@ export default async function DynamicPage({ params }: Props) {
       </section>
 
       <BlockRenderer blocks={page.blocks} />
+
+      {/* The audit's AEO-11: content of unknown age is down-weighted, and these
+          dates are mirrored into datePublished / dateModified above. */}
+      <PageDates published={page.publishedAt} modified={page.updatedAt} />
 
       {page.faqs.length > 0 && (
         <section className={page.blocks.length % 2 === 0 ? 'alt-bg' : undefined}>

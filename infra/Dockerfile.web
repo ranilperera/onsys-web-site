@@ -1,3 +1,11 @@
+# Next.js front end.
+#
+# Every NEXT_PUBLIC_* and ORG_* value here is a BUILD argument, not a runtime
+# one. Next substitutes them into the client bundle during `next build`, so a
+# value supplied only at `docker run` time never reaches the browser — the page
+# would silently fall back to the defaults in src/lib/config.ts. Changing any of
+# them means rebuilding this image, not restarting the container.
+
 FROM node:22-alpine AS deps
 WORKDIR /app
 COPY package*.json ./
@@ -8,11 +16,65 @@ RUN npm ci --workspace @onsys/web --workspace @onsys/shared --include-workspace-
 
 FROM node:22-alpine AS build
 WORKDIR /app
+ENV NEXT_TELEMETRY_DISABLED=1
+
 ARG NEXT_PUBLIC_SITE_URL
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-ENV NEXT_TELEMETRY_DISABLED=1
+
+# Server-only. Middleware inlines process.env at build time, so this has to be
+# present during the build as well as at runtime.
+ARG INTERNAL_API_URL=http://api:4000
+ENV INTERNAL_API_URL=$INTERNAL_API_URL
+
+# next.config.mjs reads these from the environment first and falls back to the
+# repo-root .env, which is deliberately absent from the image. Passing them here
+# is what keeps the header, footer and schema.org markup driven by config rather
+# than by the hardcoded fallbacks.
+ARG ORG_NAME
+ARG ORG_SHORT_NAME
+ARG ORG_LEGAL_NAME
+ARG ORG_ABN
+ARG ORG_ACN
+ARG ORG_EMAIL
+ARG ORG_PHONE
+ARG ORG_PHONE_E164
+ARG ORG_STREET
+ARG ORG_LOCALITY
+ARG ORG_REGION
+ARG ORG_POSTCODE
+ARG ORG_COUNTRY
+ARG ORG_BOOKING_URL
+ARG ORG_DESCRIPTION
+ARG ORG_TAGLINE
+ARG ORG_LOGO
+ARG ORG_LINKEDIN
+ARG ORG_FACEBOOK
+ARG ORG_TWITTER
+ARG ORG_YOUTUBE
+ENV ORG_NAME=$ORG_NAME \
+    ORG_SHORT_NAME=$ORG_SHORT_NAME \
+    ORG_LEGAL_NAME=$ORG_LEGAL_NAME \
+    ORG_ABN=$ORG_ABN \
+    ORG_ACN=$ORG_ACN \
+    ORG_EMAIL=$ORG_EMAIL \
+    ORG_PHONE=$ORG_PHONE \
+    ORG_PHONE_E164=$ORG_PHONE_E164 \
+    ORG_STREET=$ORG_STREET \
+    ORG_LOCALITY=$ORG_LOCALITY \
+    ORG_REGION=$ORG_REGION \
+    ORG_POSTCODE=$ORG_POSTCODE \
+    ORG_COUNTRY=$ORG_COUNTRY \
+    ORG_BOOKING_URL=$ORG_BOOKING_URL \
+    ORG_DESCRIPTION=$ORG_DESCRIPTION \
+    ORG_TAGLINE=$ORG_TAGLINE \
+    ORG_LOGO=$ORG_LOGO \
+    ORG_LINKEDIN=$ORG_LINKEDIN \
+    ORG_FACEBOOK=$ORG_FACEBOOK \
+    ORG_TWITTER=$ORG_TWITTER \
+    ORG_YOUTUBE=$ORG_YOUTUBE
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY package*.json ./
 COPY packages/shared packages/shared
@@ -21,17 +83,20 @@ RUN npm run build -w @onsys/shared && npm run build -w @onsys/web
 
 FROM node:22-alpine AS runner
 WORKDIR /app
+RUN apk add --no-cache dumb-init
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1
-RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
 
-COPY --from=build /app/apps/web/public ./apps/web/public
-COPY --from=build --chown=nextjs:nodejs /app/apps/web/.next ./apps/web/.next
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/apps/web/package.json ./apps/web/
-COPY --from=build /app/packages/shared/dist ./packages/shared/dist
-COPY --from=build /app/packages/shared/package.json ./packages/shared/
+RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001 -G nodejs
+
+# Standalone output already contains a pruned node_modules and the server entry
+# point. Static assets and public/ are excluded from the trace by design and
+# have to be placed alongside it by hand.
+COPY --from=build --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
+COPY --from=build --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=build --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
 
 USER nextjs
 EXPOSE 3000
-WORKDIR /app/apps/web
-CMD ["../../node_modules/.bin/next", "start", "-p", "3000"]
+ENV PORT=3000 HOSTNAME=0.0.0.0
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "apps/web/server.js"]

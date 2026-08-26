@@ -18,7 +18,7 @@ const rootEnvPath = path.resolve(here, '../../.env');
 const rootEnv = fs.existsSync(rootEnvPath) ? parseEnv(fs.readFileSync(rootEnvPath)) : {};
 
 const ORG_KEYS = [
-  'NAME', 'LEGAL_NAME', 'ABN', 'ACN', 'EMAIL', 'PHONE', 'PHONE_E164',
+  'NAME', 'SHORT_NAME', 'LEGAL_NAME', 'ABN', 'ACN', 'EMAIL', 'PHONE', 'PHONE_E164',
   'STREET', 'LOCALITY', 'REGION', 'POSTCODE', 'COUNTRY', 'BOOKING_URL',
   'DESCRIPTION', 'TAGLINE', 'LOGO', 'LINKEDIN', 'FACEBOOK', 'TWITTER', 'YOUTUBE',
 ];
@@ -32,6 +32,14 @@ const orgEnv = Object.fromEntries(
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   env: orgEnv,
+  // Traces the exact files the server needs into .next/standalone, which is
+  // what makes the container image a few hundred megabytes instead of well over
+  // a gigabyte of hoisted workspace dependencies. Harmless outside Docker: the
+  // dev server and `next start` ignore it.
+  output: 'standalone',
+  // Without this, tracing stops at apps/web and misses @onsys/shared, which is
+  // a workspace sibling rather than a published package.
+  outputFileTracingRoot: path.resolve(here, '../..'),
   reactStrictMode: true,
   poweredByHeader: false,
   compress: true,

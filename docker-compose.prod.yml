@@ -1,0 +1,158 @@
+# Production stack for the Azure VM.
+#
+#   Internet ──▶ HAProxy (TLS termination, on the VM host)
+#                   │
+#                   ▼  plain HTTP
+#              127.0.0.1:3009  ──▶ edge (nginx) ──┬──▶ web  :3000   Next.js
+#                                                 └──▶ api  :4000   Express
+#                                                          │
+#                                                          ▼
+#                                                    postgres :5432
+#                                            data on ${DATA_ROOT}/postgres
+#
+# Only the edge publishes a port, and only on loopback: HAProxy runs on the same
+# host, so nothing in this stack ever needs to be reachable from outside the VM.
+#
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# Values come from the .env file sitting beside this file. See DOCKER-DEPLOYMENT.md.
+
+name: onsys
+
+services:
+  postgres:
+    # pgvector, not plain postgres — the chatbot's retrieval stores embeddings
+    # in a `vector` column and the extension does not exist in the base image.
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-onsys}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-onsys}
+      # Keeps the cluster in a subdirectory so lost+found on a mounted disk, or
+      # anything else the host drops in ${DATA_ROOT}, cannot confuse initdb.
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - ${DATA_ROOT:-/opt/data}/postgres:/var/lib/postgresql/data
+    # No published port. Use `docker compose exec postgres psql` for admin work
+    # rather than opening 5432 on the host.
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-onsys} -d ${POSTGRES_DB:-onsys}']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks: [onsys]
+
+  api:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.api
+    image: onsys-api:latest
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      # Overrides whatever DATABASE_URL is in .env — inside the compose network
+      # the database is reachable as `postgres:5432`, never as localhost.
+      DATABASE_URL: postgresql://${POSTGRES_USER:-onsys}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-onsys}?schema=public
+      NODE_ENV: production
+      PORT: 4000
+      # HAProxy -> nginx edge -> here. Two hops, so Express must walk back two
+      # entries in X-Forwarded-For to find the real client. Set to 1 and every
+      # visitor shares HAProxy's IP, which means one person can rate-limit
+      # everybody.
+      TRUST_PROXY_HOPS: ${TRUST_PROXY_HOPS:-2}
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "require('http').get('http://127.0.0.1:4000/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    networks: [onsys]
+
+  web:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.web
+      # These are BUILD arguments. Next bakes them into the client bundle, so
+      # changing one needs `up -d --build web`, not a restart.
+      args:
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:?NEXT_PUBLIC_SITE_URL is required}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:?NEXT_PUBLIC_API_URL is required}
+        INTERNAL_API_URL: http://api:4000
+        ORG_NAME: ${ORG_NAME:-}
+        ORG_SHORT_NAME: ${ORG_SHORT_NAME:-}
+        ORG_LEGAL_NAME: ${ORG_LEGAL_NAME:-}
+        ORG_ABN: ${ORG_ABN:-}
+        ORG_ACN: ${ORG_ACN:-}
+        ORG_EMAIL: ${ORG_EMAIL:-}
+        ORG_PHONE: ${ORG_PHONE:-}
+        ORG_PHONE_E164: ${ORG_PHONE_E164:-}
+        ORG_STREET: ${ORG_STREET:-}
+        ORG_LOCALITY: ${ORG_LOCALITY:-}
+        ORG_REGION: ${ORG_REGION:-}
+        ORG_POSTCODE: ${ORG_POSTCODE:-}
+        ORG_COUNTRY: ${ORG_COUNTRY:-}
+        ORG_BOOKING_URL: ${ORG_BOOKING_URL:-}
+        ORG_DESCRIPTION: ${ORG_DESCRIPTION:-}
+        ORG_TAGLINE: ${ORG_TAGLINE:-}
+        ORG_LOGO: ${ORG_LOGO:-}
+        ORG_LINKEDIN: ${ORG_LINKEDIN:-}
+        ORG_FACEBOOK: ${ORG_FACEBOOK:-}
+        ORG_TWITTER: ${ORG_TWITTER:-}
+        ORG_YOUTUBE: ${ORG_YOUTUBE:-}
+    image: onsys-web:latest
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_started
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      # Server-side rendering talks to the API over the compose network. The
+      # browser still uses NEXT_PUBLIC_API_URL, which is the public origin.
+      INTERNAL_API_URL: http://api:4000
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "require('http').get('http://127.0.0.1:3000/',r=>process.exit(r.statusCode<500?0:1)).on('error',()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    networks: [onsys]
+
+  edge:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      - web
+      - api
+    volumes:
+      - ./infra/nginx/edge.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      # Loopback only. HAProxy is on this host and is the only thing that should
+      # ever reach this port; binding 0.0.0.0 would expose the app unencrypted
+      # to anything that can route to the VM.
+      - '127.0.0.1:${APP_PORT:-3009}:3009'
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:3009/healthz']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks: [onsys]
+
+networks:
+  onsys:
+    driver: bridge

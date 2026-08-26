@@ -12,6 +12,9 @@
  */
 export const siteConfig = {
   name: process.env.NEXT_PUBLIC_ORG_NAME || 'Onsys Technologies',
+  /// Brand close for <title>. Titles must stay under ~60 characters to
+  /// survive SERP truncation, and the full legal-style name eats 21 of them.
+  shortName: process.env.NEXT_PUBLIC_ORG_SHORT_NAME || 'Onsys',
   legalName: process.env.NEXT_PUBLIC_ORG_LEGAL_NAME || 'Onsys Technologies Pty Ltd',
   abn: process.env.NEXT_PUBLIC_ORG_ABN || '49 602 081 005',
   acn: process.env.NEXT_PUBLIC_ORG_ACN || '602 081 005',
@@ -67,6 +70,7 @@ export const navigation = {
     {
       title: 'Database',
       links: [
+        { label: 'Remote Database Support', href: '/remote-database-support', sub: '24/7 cover from $1,500/month' },
         { label: 'Managed Database Services', href: '/managed-database-services', sub: '24/7 monitoring & ITIL support' },
         { label: 'Remote On-Call DBA', href: '/on-call-dba-services', sub: 'Standby cover from $100/instance' },
         { label: 'Emergency Database Support', href: '/emergency-database-support', sub: 'Outage response, answered 24/7' },
@@ -74,7 +78,7 @@ export const navigation = {
         // at the same section of the same page. The terms live in the sub-label.
         { label: 'Database Consultancy', href: '/database-consultancy', sub: 'Advisory, tuning & health checks' },
         { label: 'Upgrades, Migrations & DR', href: '/database-upgrades-migrations-dr', sub: 'Version moves, clustering & failover' },
-        { label: 'Fixed-Price Projects', href: '/pricing-and-plans', sub: 'Milestone-based delivery' },
+        { label: 'Free SQL Server Health Check', href: '/free-20-point-sql-server-health-check', sub: '20 points, one instance, no charge' },
       ],
     },
     {
@@ -112,11 +116,11 @@ export const navigation = {
   ],
   footer: {
     Services: [
+      { label: 'Remote Database Support', href: '/remote-database-support' },
       { label: 'Managed Services', href: '/managed-database-services' },
       { label: 'On-Call DBA Support', href: '/on-call-dba-services' },
       { label: 'Database Consultancy', href: '/database-consultancy' },
       { label: 'Upgrades, Migrations & DR', href: '/database-upgrades-migrations-dr' },
-      { label: 'ETL & Integration', href: '/integration-services' },
       { label: 'Software Development', href: '/custom-software-development' },
     ],
     Company: [
@@ -128,6 +132,7 @@ export const navigation = {
       { label: 'Careers', href: '/contact' },
     ],
     Support: [
+      { label: 'Free SQL Server Health Check', href: '/free-20-point-sql-server-health-check' },
       { label: 'Book a Consultation', href: '/book' },
       { label: 'Emergency Database Support', href: '/emergency-database-support' },
       { label: 'Pricing & Plans', href: '/pricing-and-plans' },

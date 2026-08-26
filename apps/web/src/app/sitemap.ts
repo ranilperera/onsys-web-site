@@ -2,6 +2,14 @@ import type { MetadataRoute } from 'next';
 import { getSitemapData } from '@/lib/api';
 import { siteConfig } from '@/lib/config';
 
+// Content for this route lives in the database, which does not exist during
+// `next build` — the Docker image is built before any database is running. Left
+// as a default ISR route, Next bakes the empty (or 404) render into the image
+// and serves it until the revalidate window expires, which reintroduces the
+// problem on every rebuild. Rendering on request keeps it correct from the
+// first hit; the underlying API fetch still carries its own revalidate, so the
+// database is not queried per request.
+export const dynamic = 'force-dynamic';
 export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
