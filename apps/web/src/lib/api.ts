@@ -1,5 +1,5 @@
 import { siteConfig } from './config';
-import type { Block } from '@onsys/shared';
+import { blockSchema, type Block } from '@onsys/shared';
 
 /**
  * Server-side data access. Pages are statically rendered and revalidated on a
@@ -131,8 +131,44 @@ async function apiGet<T>(path: string, revalidate = REVALIDATE_SECONDS): Promise
   return (await res.json()) as T;
 }
 
-export const getPage = async (slug: string): Promise<PageRecord | null> =>
-  (await apiGet<{ page: PageRecord }>(`/pages/${slug}`))?.page ?? null;
+/**
+ * Run stored blocks through the schema before rendering them.
+ *
+ * `Block` is zod's *output* type, so every field with a `.default()` is
+ * required on it — but the API returns whatever JSON is in the database, which
+ * may have been written before that field existed. Casting therefore lies: the
+ * renderer reads `block.slides.length`, the stored hero has no `slides` key,
+ * and the page dies with a server-side exception. That is exactly what a
+ * deploy-then-seed ordering produces, and it took the homepage down.
+ *
+ * Parsing applies the defaults and makes the type honest. It is done per block
+ * so one malformed entry drops itself rather than blanking the whole page.
+ */
+function normaliseBlocks(raw: unknown, context: string): Block[] {
+  if (!Array.isArray(raw)) return [];
+  const kept: Block[] = [];
+  for (const item of raw) {
+    const parsed = blockSchema.safeParse(item);
+    if (parsed.success) {
+      kept.push(parsed.data);
+    } else {
+      const type = (item as { type?: string } | null)?.type ?? 'unknown';
+      // eslint-disable-next-line no-console -- server-side, and worth shouting about
+      console.error(
+        `[content] dropped an unparseable "${type}" block on ${context}: ${parsed.error.issues
+          .map((i) => `${i.path.join('.')} ${i.message}`)
+          .join('; ')}`,
+      );
+    }
+  }
+  return kept;
+}
+
+export const getPage = async (slug: string): Promise<PageRecord | null> => {
+  const page = (await apiGet<{ page: PageRecord }>(`/pages/${slug}`))?.page ?? null;
+  if (!page) return null;
+  return { ...page, blocks: normaliseBlocks(page.blocks, `/${slug}`) };
+};
 
 export const getPages = async (): Promise<Array<Pick<PageRecord, 'slug' | 'title'>>> =>
   (await apiGet<{ pages: Array<Pick<PageRecord, 'slug' | 'title'>> }>('/pages'))?.pages ?? [];

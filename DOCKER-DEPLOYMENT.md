@@ -324,12 +324,19 @@ docker compose -f docker-compose.prod.yml build
 docker compose -f docker-compose.prod.yml up -d --no-deps web api
 ```
 
-**Content edits take up to 5 minutes to appear** — service pages are cached with
-ISR (`revalidate = 300`). To publish immediately:
+**Content edits take up to 5 minutes to appear** — pages are cached with ISR
+(`revalidate = 300`) and the API responses behind them carry their own
+revalidate. To publish immediately, recreate the container rather than
+restarting it: a restart keeps the container filesystem, and Next's fetch cache
+lives there.
 
 ```bash
-docker compose -f docker-compose.prod.yml restart web
+docker compose -f docker-compose.prod.yml up -d --force-recreate web
 ```
+
+**Seed before the web container starts, or recreate it afterwards.** Deploying
+new code against not-yet-seeded content is what produces a homepage that renders
+its empty state.
 
 ---
 
