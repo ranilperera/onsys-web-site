@@ -401,6 +401,7 @@ previous image behind. Prune monthly.
 | API restart loop | Cannot reach Postgres | `$C logs api`, then `$C logs postgres` |
 | 503 from HAProxy | Edge container down | `$C ps`, `$C logs edge` |
 | 502 from nginx after a deploy | Edge holding a stale upstream IP (fixed — pull and rebuild) | `$C restart edge` |
+| Content pages 404 while `/` and `/blog` work | ISR cached a `notFound()` from a moment the API was down (fixed — pull and rebuild) | `$C restart web` |
 | Port 3009 already in use | Another stack bound it | `sudo ss -lntp | grep 3009` |
 
 ---

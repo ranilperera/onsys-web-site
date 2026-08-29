@@ -84,19 +84,51 @@ export type PostSummary = Omit<PostRecord, 'bodyHtml' | 'faqs'>;
  */
 const serverApiBase = process.env.INTERNAL_API_URL || siteConfig.apiUrl;
 
+/**
+ * Thrown when the API could not be reached or answered with a server error.
+ *
+ * Distinct from "this page does not exist" on purpose. Collapsing the two into
+ * `null` let a transient outage render as `notFound()`, and Next cached that 404
+ * with `stale-while-revalidate` measured in months — so a few seconds of the API
+ * being down took working pages off the site until someone restarted the web
+ * container. Letting the failure propagate produces a 500, which Next does not
+ * cache, so the page recovers on its own the moment the API does.
+ */
+export class ContentUnavailableError extends Error {
+  constructor(path: string, cause?: unknown) {
+    super(`Content API unavailable for ${path}`);
+    this.name = 'ContentUnavailableError';
+    this.cause = cause;
+  }
+}
+
+/** True while `next build` runs, when no API is expected to exist. */
+const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build';
+
 async function apiGet<T>(path: string, revalidate = REVALIDATE_SECONDS): Promise<T | null> {
+  let res: Response;
   try {
-    const res = await fetch(`${serverApiBase}/api/content${path}`, {
+    res = await fetch(`${serverApiBase}/api/content${path}`, {
       next: { revalidate },
       headers: { Accept: 'application/json' },
     });
-    if (!res.ok) return null;
-    return (await res.json()) as T;
-  } catch {
-    // During a build with no API running, fall back to null so the page can
-    // render its static default rather than failing the whole build.
-    return null;
+  } catch (error) {
+    // The Docker image is built before any API exists, so a build-time failure
+    // is expected and must not fail the build.
+    if (isBuildPhase) return null;
+    throw new ContentUnavailableError(path, error);
   }
+
+  // A genuine 404 means the content really is absent — that is a real
+  // notFound(), and safe to cache.
+  if (res.status === 404) return null;
+
+  if (!res.ok) {
+    if (isBuildPhase) return null;
+    throw new ContentUnavailableError(`${path} (HTTP ${res.status})`);
+  }
+
+  return (await res.json()) as T;
 }
 
 export const getPage = async (slug: string): Promise<PageRecord | null> =>
