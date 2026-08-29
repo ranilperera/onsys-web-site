@@ -15,6 +15,31 @@ declare global {
   }
 }
 
+/**
+ * Turn a Turnstile error code into the thing to go and check.
+ *
+ * The code is the entire diagnosis, and the failures are indistinguishable
+ * without it — a swapped key and an unregistered hostname produce the same
+ * "could not load" message on screen. An earlier version of this file printed
+ * one fixed explanation for every code, which sent a real investigation after
+ * the wrong cause.
+ *
+ * Site keys are 24 characters and secret keys are 35; both begin `0x4AAAAAAA`,
+ * which makes them very easy to transpose.
+ */
+function explainCode(code?: string): string {
+  if (!code) return 'No code supplied.';
+  if (code.startsWith('4000'))
+    return 'The sitekey was rejected. Most often the SECRET key (35 chars) has been put in NEXT_PUBLIC_TURNSTILE_SITE_KEY, which needs the site key (24 chars).';
+  if (code === '110200') return 'This hostname is not on the widget allow-list in the Cloudflare dashboard.';
+  if (code.startsWith('1101')) return 'The sitekey is unknown or malformed.';
+  if (code.startsWith('1105')) return 'Unsupported browser.';
+  if (code.startsWith('1106')) return 'The challenge timed out; the visitor can retry.';
+  if (code.startsWith('3') || code.startsWith('6'))
+    return 'Challenge execution failed — usually transient, or a network/extension blocking Cloudflare.';
+  return 'See the Cloudflare Turnstile client-side error code reference.';
+}
+
 let scriptPromise: Promise<void> | null = null;
 
 /** Load Cloudflare's script once per page, however many widgets ask for it. */
@@ -79,18 +104,10 @@ export function Turnstile({
     widgetId.current = window.turnstile.render(el, {
       sitekey: siteKey,
       callback: (token: string) => onTokenRef.current(token),
-      // Turnstile hands back a numeric code that identifies the cause exactly.
-      // Without surfacing it, every failure looks the same from the outside and
-      // the only way to tell an unregistered hostname from a bad key is to
-      // guess. 110200 = domain not on the widget's allow-list; 1102xx = key
-      // problems; 3xxxxx/6xxxxx = challenge execution.
       'error-callback': (code?: string) => {
         setErrorCode(code ?? '');
         // eslint-disable-next-line no-console -- the code is the whole diagnosis
-        console.error(
-          `[turnstile] failed with code ${code ?? '(none)'}. ` +
-            '110200 means this hostname is not listed on the widget in the Cloudflare dashboard.',
-        );
+        console.error(`[turnstile] failed with code ${code ?? '(none)'}. ${explainCode(code)}`);
         onTokenRef.current('');
       },
       // A token that expires mid-form would be rejected on submit, so clear it

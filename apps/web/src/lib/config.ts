@@ -59,7 +59,23 @@ export const siteConfig = {
   /// Cloudflare Turnstile site key. Empty means no widget renders and the API
   /// does not enforce a captcha — the two halves are gated together on
   /// purpose, see verifyCaptcha in the API.
-  turnstileSiteKey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '',
+  turnstileSiteKey: (() => {
+    const key = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '';
+    // Cloudflare site keys are 24 characters and secret keys are 35, and both
+    // begin 0x4AAAAAAA. Putting the secret here publishes it in the client
+    // bundle and breaks the widget with a 4000xx code. Refusing to use an
+    // over-long value turns a leaked credential into a disabled captcha.
+    if (key.length > 30) {
+      // eslint-disable-next-line no-console -- visible at build and at runtime
+      console.error(
+        `[turnstile] NEXT_PUBLIC_TURNSTILE_SITE_KEY is ${key.length} characters. ` +
+          'That is the length of a SECRET key, not a site key (24). Refusing to ' +
+          'use it — check the two values have not been transposed.',
+      );
+      return '';
+    }
+    return key;
+  })(),
   locale: 'en_AU',
 } as const;
 
