@@ -19,15 +19,49 @@ import { org } from '../lib/env';
  */
 const homeBlocks: Block[] = [
   {
+    // Rotating hero. This block is slide one; `slides` carries the rest. The
+    // interval is NEXT_PUBLIC_HERO_ROTATE_SECONDS, and 0 pins it to slide one.
+    //
+    // Only slide one renders as the page's h1 — the others are visually
+    // identical paragraphs, so the homepage keeps exactly one heading rather
+    // than three competing ones. The keyword the SEO audit cares about stays in
+    // the title tag and in the platform strip below each headline.
     type: 'hero',
-    eyebrow: '24/7 database & IT support · Melbourne & Colombo',
-    heading: 'Remote DBA services',
-    highlight: 'in Australia.',
-    body: 'Remote database administration is the practice of having an external team of certified DBAs monitor, patch, tune and recover your databases over a secure connection, instead of employing a full-time in-house DBA. Onsys delivers it to Australian organisations running SQL Server, Oracle, PostgreSQL and MySQL — from $1,500 a month, with 24/7 cover and response from one hour — alongside managed IT, cloud, security and software.',
-    backgroundImage: '/images/hero-home.jpg',
+    eyebrow: '24/7 database & IT expertise',
+    heading: 'Keep your critical systems running.',
+    highlight: '24/7.',
+    body: 'Senior database and IT specialists supporting Australian businesses around the clock. From proactive database management and performance optimisation to cloud, infrastructure and security, Onsys helps keep your critical technology available, secure and performing at its best.',
+    platforms: 'SQL Server · Oracle · PostgreSQL · MySQL · Azure · AWS',
+    backgroundImage: '/images/hero-home-1.jpg',
     ctas: [
-      { label: 'Schedule a Meeting', href: '/contact' },
-      { label: 'Discover Onsys IT Services', href: '/expertise' },
+      { label: 'Talk to an Expert', href: '/book' },
+      { label: 'Explore Our Services', href: '/expertise' },
+    ],
+    slides: [
+      {
+        eyebrow: '24/7 managed database services',
+        heading: 'Your databases never stop.',
+        highlight: 'Neither does our support.',
+        body: 'Get senior DBA expertise without the cost and complexity of building a 24/7 in-house database team. Onsys helps Australian organisations monitor, manage, optimise and protect business-critical databases across SQL Server, Oracle, PostgreSQL and MySQL — backed by expertise across cloud, infrastructure and security.',
+        platforms: 'From $1,500 a month · Response from one hour · No lock-in contracts',
+        backgroundImage: '/images/hero-home-2.jpg',
+        ctas: [
+          { label: 'Get DBA Support', href: '/remote-database-support' },
+          { label: 'Explore Managed Database Services', href: '/managed-database-services' },
+        ],
+      },
+      {
+        eyebrow: 'Database · Cloud · Infrastructure · Security',
+        heading: 'Technology expertise that keeps',
+        highlight: 'your business moving.',
+        body: 'Onsys provides Australian organisations with senior specialists across database management, cloud, infrastructure, cybersecurity and IT services — from critical projects to ongoing 24/7 operational support.',
+        platforms: 'Expertise when you need it. Support you can depend on.',
+        backgroundImage: '/images/hero-home-3.jpg',
+        ctas: [
+          { label: 'Talk to Our Team', href: '/contact' },
+          { label: 'Explore Our Services', href: '/expertise' },
+        ],
+      },
     ],
   },
   {

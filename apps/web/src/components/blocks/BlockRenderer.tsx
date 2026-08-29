@@ -1,8 +1,10 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import type { Block } from '@onsys/shared';
+import { siteConfig } from '@/lib/config';
 import { FaqAccordion } from './FaqAccordion';
 import { ContactForm } from '../ContactForm';
+import { HeroRotator } from '../HeroRotator';
 
 /**
  * Maps CMS block JSON onto the markup/classes from the approved mockups.
@@ -122,7 +124,28 @@ export function BlockRenderer({ blocks }: { blocks: Block[] }) {
 
 function BlockSwitch({ block, index }: { block: Block; index: number }) {
   switch (block.type) {
-    case 'hero':
+    case 'hero': {
+      // A hero carrying extra variants rotates; one without behaves exactly as
+      // it always has, and stays a server component.
+      if (block.slides.length > 0) {
+        return (
+          <HeroRotator
+            intervalSeconds={siteConfig.heroRotateSeconds}
+            slides={[
+              {
+                eyebrow: block.eyebrow,
+                heading: block.heading,
+                highlight: block.highlight,
+                body: block.body,
+                platforms: block.platforms,
+                backgroundImage: block.backgroundImage,
+                ctas: block.ctas,
+              },
+              ...block.slides,
+            ]}
+          />
+        );
+      }
       return (
         <section className={`hero${block.backgroundImage ? ' hero-dark' : ''}${block.videoUrl ? '' : ' hero-single'}`}>
           {block.backgroundImage && (
@@ -183,6 +206,7 @@ function BlockSwitch({ block, index }: { block: Block; index: number }) {
           </div>
         </section>
       );
+    }
 
     case 'quicklinks':
       return (

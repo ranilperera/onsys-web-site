@@ -76,6 +76,9 @@ export const siteConfig = {
     }
     return key;
   })(),
+  /// Seconds between homepage hero variants. 0 disables rotation entirely,
+  /// as does prefers-reduced-motion at runtime.
+  heroRotateSeconds: Number(process.env.NEXT_PUBLIC_HERO_ROTATE_SECONDS ?? '8') || 0,
   locale: 'en_AU',
 } as const;
 

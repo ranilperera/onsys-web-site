@@ -122,6 +122,9 @@ GRAPH_CLIENT_SECRET=<client secret>
 GRAPH_SENDER_UPN=<sending mailbox>
 BOOKING_CALENDAR_UPN=<booking mailbox>
 
+# Seconds between homepage hero variants. 0 shows only the first.
+NEXT_PUBLIC_HERO_ROTATE_SECONDS=8
+
 TURNSTILE_SECRET=          # leave empty — see the warning below
 OPENAI_API_KEY=<optional, chatbot only>
 ```

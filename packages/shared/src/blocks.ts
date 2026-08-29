@@ -29,6 +29,26 @@ export const blockSchema = z.discriminatedUnion('type', [
     backgroundImage: z.string().optional(),
     videoUrl: z.string().optional(),
     ctas: z.array(linkSchema).default([]),
+    /// Short platform list rendered under the body, e.g.
+    /// "SQL Server · Oracle · PostgreSQL". Kept separate from `body` so it can
+    /// be styled as a credential strip rather than prose.
+    platforms: z.string().optional(),
+    /// Additional hero variants to rotate through. The block's own fields are
+    /// slide one, so a hero with no slides behaves exactly as before and the
+    /// first paint is always server-rendered rather than chosen on the client.
+    slides: z
+      .array(
+        z.object({
+          eyebrow: z.string().optional(),
+          heading: z.string(),
+          highlight: z.string().optional(),
+          body: z.string().optional(),
+          platforms: z.string().optional(),
+          backgroundImage: z.string().optional(),
+          ctas: z.array(linkSchema).default([]),
+        }),
+      )
+      .default([]),
   }),
   z.object({
     type: z.literal('quicklinks'),

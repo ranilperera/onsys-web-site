@@ -720,3 +720,49 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .page-dates{border-top:1px solid var(--gray-light); padding:18px 0 22px; background:#fff;}
 .page-dates p{font-size:12.5px; color:var(--gray); margin:0;}
 .page-dates time{font-weight:600; color:#3B3A39;}
+
+/* ===== Rotating hero ===== */
+/* Slides are stacked and cross-faded rather than mounted on demand, so the
+   markup always carries every variant and the first paint needs no JavaScript. */
+.hero-rotator{position:relative; isolation:isolate;}
+.hero-rotator .hero-slide{position:absolute; inset:0; z-index:-2; opacity:0; transition:opacity .8s ease;}
+.hero-rotator .hero-slide.is-active{opacity:1;}
+.hero-rotator .hero-scrim{position:absolute; inset:0; z-index:1;}
+
+/* Copy is stacked in the same grid cell so the hero never changes height
+   between slides, which would shove the page around mid-read. */
+.hero-rotator .hero-grid{display:grid;}
+.hero-rotator .hero-copy{grid-area:1/1; opacity:0; visibility:hidden;
+  transition:opacity .5s ease, visibility .5s; pointer-events:none;}
+.hero-rotator .hero-copy.is-active{opacity:1; visibility:visible; pointer-events:auto;}
+
+/* Matches h1 exactly — slides after the first are paragraphs, for heading
+   semantics, and must not look any different.
+   Three classes deep on purpose: `.hero-dark.hero-single p` is (0,2,1) and
+   would otherwise win, rendering these headlines at body size. */
+.hero-rotator .hero-copy .hero-heading{font-size:64px; line-height:1.05;
+  letter-spacing:-0.03em; font-weight:700; max-width:15ch; color:#fff;
+  margin-bottom:20px; font-family:var(--font-heading-stack);}
+.hero-rotator .hero-copy .hero-heading span{color:var(--orange);}
+
+/* Same specificity problem as the headline above. */
+.hero-rotator .hero-copy .hero-platforms{font-size:13.5px; font-weight:600;
+  letter-spacing:.02em; color:#B9CBE4; margin-top:-8px; margin-bottom:24px;
+  max-width:560px;}
+
+.hero-dots{grid-area:2/1; display:flex; gap:10px; margin-top:26px; align-self:end;}
+.hero-dot{width:34px; height:4px; border-radius:999px; border:0; padding:0; cursor:pointer;
+  background:rgba(255,255,255,.3); transition:.2s;}
+.hero-dot:hover{background:rgba(255,255,255,.55);}
+.hero-dot.is-active{background:var(--orange); width:48px;}
+
+@media (max-width:900px){
+  .hero-rotator .hero-copy .hero-heading{font-size:34px; max-width:none;}
+  .hero-rotator .hero-copy .hero-platforms{font-size:12.5px;}
+  .hero-dots{margin-top:20px;}
+}
+
+/* Someone who has asked for less motion gets slide one and nothing moving. */
+@media (prefers-reduced-motion: reduce){
+  .hero-rotator .hero-slide, .hero-rotator .hero-copy{transition:none;}
+}
