@@ -36,6 +36,9 @@ ENV NEXT_PUBLIC_TURNSTILE_SITE_KEY=$NEXT_PUBLIC_TURNSTILE_SITE_KEY
 ARG NEXT_PUBLIC_HERO_ROTATE_SECONDS
 ENV NEXT_PUBLIC_HERO_ROTATE_SECONDS=$NEXT_PUBLIC_HERO_ROTATE_SECONDS
 
+ARG NEXT_PUBLIC_PORTAL_URL
+ENV NEXT_PUBLIC_PORTAL_URL=$NEXT_PUBLIC_PORTAL_URL
+
 # next.config.mjs reads these from the environment first and falls back to the
 # repo-root .env, which is deliberately absent from the image. Passing them here
 # is what keeps the header, footer and schema.org markup driven by config rather

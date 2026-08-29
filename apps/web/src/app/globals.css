@@ -766,3 +766,42 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 @media (prefers-reduced-motion: reduce){
   .hero-rotator .hero-slide, .hero-rotator .hero-copy{transition:none;}
 }
+
+/* ===== Client portal signpost ===== */
+.portal-section{padding:44px 0 72px; background:linear-gradient(135deg,#F3F7FD 0%, #FAF9F8 60%, #FFF6EA 100%); min-height:60vh;}
+.portal-grid{display:grid; grid-template-columns:minmax(0,420px) minmax(0,1fr); gap:48px; align-items:start;}
+
+.portal-card{background:#fff; border:1px solid var(--gray-light); border-radius:14px; padding:34px 32px 30px;
+  box-shadow:0 18px 44px -28px rgba(14,51,106,.34);}
+.portal-logo{display:block; margin-bottom:18px;}
+.portal-card h1{font-size:26px; line-height:1.2; color:var(--navy); margin-bottom:10px;}
+.portal-lede{font-size:14.5px; color:var(--gray); line-height:1.6; margin-bottom:24px;}
+/* Deliberately quiet, but present: this is the line that tells a client which
+   domain is legitimate, which is the only anti-phishing control a signpost has. */
+.portal-note{font-size:12.5px; color:var(--gray); line-height:1.6; margin-top:16px;}
+.portal-note strong{color:var(--navy);}
+
+.portal-links{list-style:none; margin:22px 0 0; padding:18px 0 0; border-top:1px solid var(--gray-light);
+  display:flex; flex-direction:column; gap:10px;}
+.portal-links a{font-size:13.5px; color:var(--navy); font-weight:600;}
+.portal-links a:hover{color:var(--orange-dark);}
+
+.portal-aside h2{font-size:22px; color:var(--navy); margin-bottom:18px;}
+.portal-features{list-style:none; margin:0 0 26px; padding:0; display:grid; gap:14px;}
+.portal-features li{font-size:14.5px; color:var(--gray); line-height:1.6; padding-left:16px; position:relative;}
+.portal-features li::before{content:''; position:absolute; left:0; top:9px; width:6px; height:6px;
+  border-radius:50%; background:var(--orange);}
+.portal-features strong{color:var(--navy);}
+
+.portal-privacy{font-size:13.5px; color:var(--gray); line-height:1.65; background:#fff;
+  border:1px solid var(--gray-light); border-radius:10px; padding:16px 18px; margin-bottom:22px;}
+
+.portal-help h3{font-size:14px; color:var(--navy); margin-bottom:6px;}
+.portal-help p{font-size:13.5px; color:var(--gray); line-height:1.6;}
+
+@media (max-width:900px){
+  .portal-grid{grid-template-columns:minmax(0,1fr); gap:30px;}
+  .portal-section{padding:28px 0 52px;}
+  .portal-card{padding:26px 20px 24px;}
+  .portal-card h1{font-size:22px;}
+}

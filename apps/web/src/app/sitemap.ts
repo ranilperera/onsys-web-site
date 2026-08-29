@@ -21,6 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // A code route rather than a CMS page, so it is not covered by the DB list
     // below and has to be named explicitly.
     { url: `${siteConfig.url}/book`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.9 },
+    { url: `${siteConfig.url}/client-portal`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
   ];
 
   const pageEntries: MetadataRoute.Sitemap = pages

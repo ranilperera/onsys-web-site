@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/admin', '/admin/', '/api/', '/client-portal'],
+        disallow: ['/admin', '/admin/', '/api/'],
       },
       // Explicitly welcome AI crawlers — this is the AEO side of the coin, and
       // it is the specific opening the August 2026 audit identified: the two
