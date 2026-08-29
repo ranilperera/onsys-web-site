@@ -163,9 +163,18 @@ BOOKING_CALENDAR_UPN=consultant@yourdomain.com.au
 BOOKING_CONSULTANT_NAME=Onsys Consultant
 BOOKING_TIMEZONE=Australia/Melbourne
 
-TURNSTILE_SECRET=<cloudflare turnstile secret>
+TURNSTILE_SECRET=          # leave empty — see the warning below
 OPENAI_API_KEY=<optional, chatbot only>
 ```
+
+> **Leave `TURNSTILE_SECRET` empty unless the Turnstile widget is actually
+> wired into the forms.** There is no widget in the web app today, so no form
+> sends a token. Setting the secret alone makes the API reject every contact
+> form and booking submission with a 400 before the handler runs — and because
+> outbound mail is fire-and-forget, nothing appears in the log except the 400.
+> The API now refuses to enforce a captcha unless `TURNSTILE_SITE_KEY` is set
+> too, so a half-configured deployment degrades to "no captcha" rather than
+> "no submissions".
 
 > **`NEXT_PUBLIC_*` values are baked in at build time.** They are substituted
 > into the client bundle by `next build`, so changing one later means rebuilding
@@ -446,7 +455,7 @@ sudo journalctl -u postgresql -n 50
 - [ ] SSH restricted to known source addresses; password auth disabled
 - [ ] Postgres bound to `localhost` only
 - [ ] `SESSION_SECRET` changed from the template default
-- [ ] `TURNSTILE_SECRET` set — without it captcha silently passes every submission
+- [ ] `TURNSTILE_SECRET` left EMPTY until the Turnstile widget is built — setting it alone rejects every form submission
 - [ ] Graph credential scoped with an Application Access Policy
 - [ ] Graph client secret has a calendar reminder before its expiry
 - [ ] `sudo unattended-upgrades` enabled for security patches

@@ -122,9 +122,18 @@ GRAPH_CLIENT_SECRET=<client secret>
 GRAPH_SENDER_UPN=<sending mailbox>
 BOOKING_CALENDAR_UPN=<booking mailbox>
 
-TURNSTILE_SECRET=<cloudflare turnstile secret>
+TURNSTILE_SECRET=          # leave empty — see the warning below
 OPENAI_API_KEY=<optional, chatbot only>
 ```
+
+> **Leave `TURNSTILE_SECRET` empty unless the Turnstile widget is actually
+> wired into the forms.** There is no widget in the web app today, so no form
+> sends a token. Setting the secret alone makes the API reject every contact
+> form and booking submission with a 400 before the handler runs — and because
+> outbound mail is fire-and-forget, nothing appears in the log except the 400.
+> The API now refuses to enforce a captcha unless `TURNSTILE_SITE_KEY` is set
+> too, so a half-configured deployment degrades to "no captcha" rather than
+> "no submissions".
 
 `DATABASE_URL` in `.env` is ignored: the compose file overrides it, because
 inside the container network the database is `postgres:5432`, never `localhost`.
@@ -396,7 +405,7 @@ previous image behind. Prune monthly.
 - [ ] Postgres publishes no port at all (`$C ps` shows no host mapping)
 - [ ] `TRUST_PROXY_HOPS` matches the real number of proxies
 - [ ] HAProxy serves the full certificate chain — verified with `openssl s_client`
-- [ ] `TURNSTILE_SECRET` set; without it the captcha silently passes everything
+- [ ] `TURNSTILE_SECRET` left EMPTY until the Turnstile widget is built — setting it alone rejects every form submission
 - [ ] Graph credential scoped with an Application Access Policy (see `DEPLOYMENT.md` §10)
 - [ ] Calendar reminder set before the Graph client secret expires
 - [ ] A backup has actually been restored once, not just created

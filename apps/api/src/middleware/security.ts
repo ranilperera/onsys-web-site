@@ -43,9 +43,32 @@ export const authLimiter = rateLimit({
  * Cloudflare Turnstile verification. Skipped when no secret is configured so
  * local development is not blocked, but required in production.
  */
+/**
+ * Enforcement needs BOTH halves of the Turnstile pair.
+ *
+ * The secret alone is worse than no captcha at all: the browser has no site key,
+ * so no form can produce a token, so every contact-form and booking submission
+ * is rejected with 400 before it reaches the handler. That failure is silent
+ * from the server's side — no email is attempted, so nothing appears in the log
+ * except a 400 — and it took a production outage to spot. Requiring the site key
+ * too means a half-configured deployment degrades to "no captcha" rather than
+ * "no submissions".
+ */
+const captchaEnforced = Boolean(env.TURNSTILE_SECRET && env.TURNSTILE_SITE_KEY);
+
+if (isProd && env.TURNSTILE_SECRET && !env.TURNSTILE_SITE_KEY) {
+  logger.warn(
+    'TURNSTILE_SECRET is set but TURNSTILE_SITE_KEY is not. Captcha is DISABLED: ' +
+      'without a site key the front end cannot produce a token, and enforcing the ' +
+      'secret alone would reject every form submission.',
+  );
+}
+
 export const verifyCaptcha: RequestHandler = async (req, res, next) => {
-  if (!env.TURNSTILE_SECRET) {
-    if (isProd) logger.warn('TURNSTILE_SECRET not set — captcha verification skipped in production');
+  if (!captchaEnforced) {
+    if (isProd && !env.TURNSTILE_SECRET) {
+      logger.warn('TURNSTILE_SECRET not set — captcha verification skipped in production');
+    }
     return next();
   }
 

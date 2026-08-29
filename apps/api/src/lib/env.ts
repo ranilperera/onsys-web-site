@@ -116,7 +116,9 @@ const envSchema = z.object({
 
   // --- Security ---
   SESSION_SECRET: z.string().min(16).default('change-me-in-production-please!!'),
+  // Captcha is only enforced when BOTH are present — see verifyCaptcha.
   TURNSTILE_SECRET: z.string().optional(),
+  TURNSTILE_SITE_KEY: z.string().optional(),
   ADMIN_ORIGIN: z.string().optional(),
 });
 
