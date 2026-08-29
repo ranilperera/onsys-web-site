@@ -15,13 +15,25 @@ export const revalidate = 3600;
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { pages, posts, categories } = await getSitemapData();
 
+  // Only listed once the portal is live. Advertising a sign-in page for a
+  // service that is not running yet is a broken promise to a crawler.
+  const portalEntry: MetadataRoute.Sitemap = siteConfig.portalEnabled
+    ? [
+        {
+          url: `${siteConfig.url}/client-portal`,
+          lastModified: new Date(),
+          changeFrequency: 'monthly' as const,
+          priority: 0.5,
+        },
+      ]
+    : [];
+
   const staticEntries: MetadataRoute.Sitemap = [
     { url: siteConfig.url, lastModified: new Date(), changeFrequency: 'weekly', priority: 1 },
     { url: `${siteConfig.url}/blog`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.8 },
     // A code route rather than a CMS page, so it is not covered by the DB list
     // below and has to be named explicitly.
     { url: `${siteConfig.url}/book`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.9 },
-    { url: `${siteConfig.url}/client-portal`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
   ];
 
   const pageEntries: MetadataRoute.Sitemap = pages
@@ -47,5 +59,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }));
 
-  return [...staticEntries, ...pageEntries, ...postEntries, ...categoryEntries];
+  return [...staticEntries, ...portalEntry, ...pageEntries, ...postEntries, ...categoryEntries];
 }

@@ -79,6 +79,11 @@ export const siteConfig = {
   /// Seconds between homepage hero variants. 0 disables rotation entirely,
   /// as does prefers-reduced-motion at runtime.
   heroRotateSeconds: Number(process.env.NEXT_PUBLIC_HERO_ROTATE_SECONDS ?? '8') || 0,
+  /// Whether to advertise the client portal at all. Off until DBPulse is
+  /// live — the /client-portal page still resolves for anyone holding the
+  /// link, but nothing on the site points at it and it stays out of the
+  /// sitemap and the index. Set NEXT_PUBLIC_PORTAL_ENABLED=true to launch it.
+  portalEnabled: process.env.NEXT_PUBLIC_PORTAL_ENABLED === 'true',
   /// Onsys DBPulse — the client monitoring portal. Its own origin, with its
   /// own sessions and sign-in; this site only ever links to it.
   portalUrl: (process.env.NEXT_PUBLIC_PORTAL_URL || 'https://dbpulse.onsys.com.au').replace(/\/+$/, ''),
@@ -168,7 +173,6 @@ export const navigation = {
       { label: 'Careers', href: '/contact' },
     ],
     Support: [
-      { label: 'Client Portal (DBPulse)', href: '/client-portal' },
       { label: 'Free SQL Server Health Check', href: '/free-20-point-sql-server-health-check' },
       { label: 'Book a Consultation', href: '/book' },
       { label: 'Emergency Database Support', href: '/emergency-database-support' },

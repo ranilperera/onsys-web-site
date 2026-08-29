@@ -11,6 +11,10 @@ export const metadata: Metadata = buildMetadata({
   description:
     'Sign in to Onsys DBPulse, the client monitoring portal — database availability, backups, security posture and patch currency across your estate, in one place.',
   path: '/client-portal',
+  // Unadvertised until the portal is live: nothing links here, so a search
+  // result pointing at a sign-in for a service that is not running yet would
+  // be the only way anyone found it.
+  noindex: !siteConfig.portalEnabled,
 });
 
 export const dynamic = 'force-static';

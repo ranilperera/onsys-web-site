@@ -203,11 +203,13 @@ export function Header() {
                 </li>
               </ul>
             </nav>
-            <div className="navcta">
-              <a className="btn btn-outline" href="/client-portal">
-                Client Login
-              </a>
-            </div>
+            {siteConfig.portalEnabled && (
+              <div className="navcta">
+                <a className="btn btn-outline" href="/client-portal">
+                  Client Login
+                </a>
+              </div>
+            )}
           </div>
         </div>
       </header>

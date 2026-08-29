@@ -125,6 +125,11 @@ BOOKING_CALENDAR_UPN=<booking mailbox>
 # Seconds between homepage hero variants. 0 shows only the first.
 NEXT_PUBLIC_HERO_ROTATE_SECONDS=8
 
+# Client portal. Leave false until DBPulse is live — false hides the Client
+# Login button, keeps /client-portal out of the sitemap and noindexes it.
+NEXT_PUBLIC_PORTAL_ENABLED=false
+NEXT_PUBLIC_PORTAL_URL=https://dbpulse.onsys.com.au
+
 TURNSTILE_SECRET=          # leave empty — see the warning below
 OPENAI_API_KEY=<optional, chatbot only>
 ```
