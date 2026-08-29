@@ -179,41 +179,47 @@ const homeBlocks: Block[] = [
   },
   {
     type: 'platformChips',
-    eyebrow: 'Supported technologies',
-    heading: 'The platforms we keep running',
-    body: 'Two decades of production estates across database, operating system and cloud platforms — on-premises, hybrid or fully cloud-native.',
+    eyebrow: 'Multi-platform database expertise',
+    heading: 'One expert team across your entire database estate',
+    body: 'From legacy enterprise databases to modern cloud platforms, Onsys brings deep expertise across the technologies your business depends on — helping you manage, modernise, optimise and protect critical environments across on-premises, hybrid and cloud.',
     groups: [
       {
-        title: 'Database platforms',
+        // Labels lead with the vendor's full product name rather than the
+        // abbreviation a DBA would use — this page is read by people choosing a
+        // supplier, not only by the engineers who will work with us. Exact
+        // version ranges still appear on /remote-database-support and
+        // /database-upgrades-migrations-dr, which is where a version-specific
+        // search should land anyway.
+        title: 'Database expertise',
         chips: [
-          { label: 'Oracle 10g – 23ai', color: '#C74634' },
-          { label: 'SQL Server 2000 – 2022', color: '#CC2927' },
-          { label: 'Azure SQL & MI', color: '#0078D4' },
-          { label: 'PostgreSQL & EDB', color: '#336791' },
+          { label: 'Microsoft SQL Server — legacy to latest', color: '#CC2927' },
+          { label: 'Oracle Database — legacy to 23ai', color: '#C74634' },
+          { label: 'Azure SQL Database & Managed Instance', color: '#0078D4' },
+          { label: 'PostgreSQL & EDB Postgres', color: '#336791' },
           { label: 'MySQL & MariaDB', color: '#00758F' },
           { label: 'MongoDB', color: '#13AA52' },
         ],
       },
       {
-        title: 'High availability & tooling',
+        title: 'Availability, resilience & data services',
         chips: [
-          { label: 'RAC · Data Guard · OEM', color: '#C74634' },
-          { label: 'ASM · RMAN · Audit Vault', color: '#8A5A44' },
-          { label: 'AlwaysOn · Replication', color: '#CC2927' },
-          { label: 'Mirroring · Log shipping', color: '#A4373A' },
-          { label: 'TDE · Compression · Backups', color: '#605E5C' },
-          { label: 'SSRS · SSIS · SSAS · MDS', color: '#0E336A' },
+          { label: 'Oracle RAC & Data Guard', color: '#C74634' },
+          { label: 'SQL Server Always On & clustering', color: '#CC2927' },
+          { label: 'Replication & log shipping', color: '#A4373A' },
+          { label: 'Backup & recovery — RMAN and native', color: '#8A5A44' },
+          { label: 'Encryption, TDE & data protection', color: '#605E5C' },
+          { label: 'Reporting & ETL — SSRS, SSIS, SSAS', color: '#0E336A' },
         ],
       },
       {
-        title: 'Cloud & operating systems',
+        title: 'Cloud & infrastructure',
         chips: [
           { label: 'Microsoft Azure', color: '#0078D4' },
-          { label: 'AWS', color: '#FF9900' },
-          { label: 'Oracle Cloud (OCI)', color: '#C74634' },
-          { label: 'Windows Server 2012 – 2022', color: '#00A4EF' },
-          { label: 'Linux (RHEL · Ubuntu)', color: '#EE0000' },
-          { label: 'Solaris · AIX · HP-UX', color: '#605E5C' },
+          { label: 'Amazon Web Services (AWS)', color: '#FF9900' },
+          { label: 'Oracle Cloud Infrastructure (OCI)', color: '#C74634' },
+          { label: 'Windows Server', color: '#00A4EF' },
+          { label: 'Linux — Red Hat, Ubuntu & Oracle Linux', color: '#EE0000' },
+          { label: 'Solaris, AIX & HP-UX', color: '#605E5C' },
         ],
       },
     ],
