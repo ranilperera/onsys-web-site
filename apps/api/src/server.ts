@@ -37,7 +37,37 @@ app.use(
   }),
 );
 
-const allowedOrigins = [env.SITE_URL, env.ADMIN_ORIGIN].filter(Boolean) as string[];
+/**
+ * Both spellings of a hostname: `example.com` and `www.example.com`.
+ *
+ * SITE_URL names the canonical host, but the other one of the pair almost
+ * always resolves too — a bookmark, an inbound link, a page someone still has
+ * open. A visitor who lands there gets markup that renders perfectly (it is
+ * server-rendered) and then every form fails at the CORS preflight, which reads
+ * as "the site is broken" rather than "you are on the wrong hostname".
+ *
+ * Redirecting to the canonical host is still the right thing to do, and belongs
+ * in the proxy. This just stops the wrong host being silently unusable.
+ */
+function withHostSibling(url: string): string[] {
+  try {
+    const parsed = new URL(url);
+    const sibling = new URL(url);
+    sibling.hostname = parsed.hostname.startsWith('www.')
+      ? parsed.hostname.slice(4)
+      : `www.${parsed.hostname}`;
+    return [parsed.origin, sibling.origin];
+  } catch {
+    return [url];
+  }
+}
+
+const allowedOrigins = [
+  ...withHostSibling(env.SITE_URL),
+  ...(env.ADMIN_ORIGIN ? [env.ADMIN_ORIGIN] : []),
+].filter(Boolean);
+
+logger.info({ allowedOrigins }, 'CORS origins');
 
 app.use(
   cors({
