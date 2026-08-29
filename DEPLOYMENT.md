@@ -146,9 +146,9 @@ NODE_ENV=production
 DATABASE_URL=postgresql://onsys:CHANGE_ME_STRONG@localhost:5432/onsys?schema=public
 
 SITE_URL=https://www.onsys.com.au
-API_URL=https://www.onsys.com.au/api
+API_URL=https://www.onsys.com.au
 NEXT_PUBLIC_SITE_URL=https://www.onsys.com.au
-NEXT_PUBLIC_API_URL=https://www.onsys.com.au/api
+NEXT_PUBLIC_API_URL=https://www.onsys.com.au
 
 SESSION_SECRET=<openssl rand -base64 32>
 
@@ -166,6 +166,14 @@ BOOKING_TIMEZONE=Australia/Melbourne
 TURNSTILE_SECRET=          # leave empty — see the warning below
 OPENAI_API_KEY=<optional, chatbot only>
 ```
+
+> **`NEXT_PUBLIC_API_URL` is the origin only — do not append `/api`.** Every
+> browser call adds its own `/api/...` path, so `https://www.onsys.com.au/api`
+> produces `/api/api/leads` and a silent 404. Server-rendered pages keep working
+> because they use `INTERNAL_API_URL`, so the site looks healthy while the
+> contact form, booking and chat all fail. The app now strips a trailing `/api`
+> defensively, but set it correctly anyway.
+
 
 > **Leave `TURNSTILE_SECRET` empty unless the Turnstile widget is actually
 > wired into the forms.** There is no widget in the web app today, so no form

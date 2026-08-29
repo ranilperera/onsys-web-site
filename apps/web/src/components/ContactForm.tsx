@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from 'react';
 import { leadInputSchema } from '@onsys/shared';
 import { siteConfig } from '@/lib/config';
+import { Turnstile } from './Turnstile';
 
 const SERVICES = [
   'Managed Database Services',
@@ -19,6 +20,10 @@ type FieldErrors = Partial<Record<string, string>>;
 
 export function ContactForm({ heading, body }: { heading?: string; body?: string }) {
   const [state, setState] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+  const [captchaToken, setCaptchaToken] = useState('');
+  // Bumping this asks the widget for a fresh token: they are single-use, so a
+  // resubmit after a validation error would otherwise be rejected.
+  const [captchaNonce, setCaptchaNonce] = useState(0);
   const [message, setMessage] = useState('');
   const [errors, setErrors] = useState<FieldErrors>({});
 
@@ -26,7 +31,12 @@ export function ContactForm({ heading, body }: { heading?: string; body?: string
     e.preventDefault();
     setErrors({});
 
-    const form = new FormData(e.currentTarget);
+    // Capture the element before any await. React nulls `currentTarget` once
+    // the handler yields, so touching it after the fetch throws a TypeError
+    // that the catch below reports as a network failure — telling the visitor
+    // the submission failed when the lead was in fact created.
+    const formEl = e.currentTarget;
+    const form = new FormData(formEl);
     const payload = {
       name: String(form.get('name') ?? ''),
       email: String(form.get('email') ?? ''),
@@ -35,6 +45,7 @@ export function ContactForm({ heading, body }: { heading?: string; body?: string
       service: String(form.get('service') ?? ''),
       message: String(form.get('message') ?? ''),
       website: String(form.get('website') ?? ''), // honeypot
+      captchaToken,
       referrer: typeof document !== 'undefined' ? document.referrer : undefined,
       utmSource: new URLSearchParams(window.location.search).get('utm_source') ?? undefined,
       utmMedium: new URLSearchParams(window.location.search).get('utm_medium') ?? undefined,
@@ -74,7 +85,7 @@ export function ContactForm({ heading, body }: { heading?: string; body?: string
 
       setState('success');
       setMessage(data.message ?? "Thanks — we've received your enquiry.");
-      e.currentTarget.reset();
+      formEl.reset();
     } catch {
       setState('error');
       setMessage(
@@ -184,6 +195,8 @@ export function ContactForm({ heading, body }: { heading?: string; body?: string
                 <label htmlFor="website">Leave this field empty</label>
                 <input id="website" name="website" type="text" tabIndex={-1} autoComplete="off" />
               </div>
+
+              <Turnstile onToken={setCaptchaToken} resetKey={captchaNonce} />
 
               <button className="btn btn-primary btn-block" type="submit" disabled={state === 'submitting'}>
                 {state === 'submitting' ? 'Sending…' : 'Send message'}

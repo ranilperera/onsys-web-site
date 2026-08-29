@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { bookingInputSchema, type AvailabilityResponse, type BookingConfirmation } from '@onsys/shared';
 import { siteConfig } from '@/lib/config';
+import { Turnstile } from './Turnstile';
 
 const TOPICS = [
   'Managed database services',
@@ -38,6 +39,8 @@ export function BookingWidget() {
   const [message, setMessage] = useState('');
   const [errors, setErrors] = useState<FieldErrors>({});
   const [confirmed, setConfirmed] = useState<BookingConfirmation | null>(null);
+  const [captchaToken, setCaptchaToken] = useState('');
+  const [captchaNonce, setCaptchaNonce] = useState(0);
 
   const stripRef = useRef<HTMLDivElement>(null);
   const detailsRef = useRef<HTMLDivElement>(null);
@@ -124,6 +127,7 @@ export function BookingWidget() {
       message: String(form.get('message') ?? ''),
       startsAt: selected,
       website: String(form.get('website') ?? ''), // honeypot
+      captchaToken,
       referrer: typeof document !== 'undefined' ? document.referrer : undefined,
       utmSource: params.get('utm_source') ?? undefined,
       utmMedium: params.get('utm_medium') ?? undefined,
@@ -157,6 +161,7 @@ export function BookingWidget() {
         // Someone took it between load and submit. Refresh the grid and let
         // them re-pick — their typed details stay in the form.
         setState('error');
+        setCaptchaNonce((n) => n + 1);
         setMessage(data.error ?? 'That time has just been taken. Please choose another.');
         setSelected(null);
         void loadAvailability();
@@ -164,6 +169,7 @@ export function BookingWidget() {
       }
       if (!res.ok) {
         setState('error');
+        setCaptchaNonce((n) => n + 1);
         setMessage(data.error ?? 'Something went wrong. Please try again or call us.');
         return;
       }
@@ -425,6 +431,8 @@ export function BookingWidget() {
               {message}
             </p>
           )}
+
+          <Turnstile onToken={setCaptchaToken} resetKey={captchaNonce} />
 
           <button className="btn btn-primary btn-block" type="submit" disabled={state === 'submitting' || !selected}>
             {state === 'submitting' ? 'Confirming…' : 'Confirm booking'}

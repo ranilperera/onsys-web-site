@@ -19,7 +19,17 @@ export const siteConfig = {
   abn: process.env.NEXT_PUBLIC_ORG_ABN || '49 602 081 005',
   acn: process.env.NEXT_PUBLIC_ORG_ACN || '602 081 005',
   url: process.env.NEXT_PUBLIC_SITE_URL || 'https://www.onsys.com.au',
-  apiUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000',
+  /// Origin only — every caller appends its own `/api/...` path.
+  ///
+  /// A trailing `/api` is stripped rather than rejected. Setting this to
+  /// `https://host/api` is the obvious reading, and it produced
+  /// `/api/api/leads` on every browser request: a silent 404 that broke the
+  /// contact form, booking and chat while server-rendered pages kept working,
+  /// because those go through INTERNAL_API_URL instead. Accepting both spellings
+  /// costs one regex.
+  apiUrl: (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')
+    .replace(/\/+$/, '')
+    .replace(/\/api$/, ''),
   description:
     process.env.NEXT_PUBLIC_ORG_DESCRIPTION ||
     'Australian managed IT service provider delivering 24/7 remote DBA support, managed IT, cloud consultancy, cyber security, AI and custom software. Senior, certified specialists across SQL Server, Oracle, PostgreSQL, EDB, MySQL, Azure, AWS and OCI.',
@@ -46,6 +56,10 @@ export const siteConfig = {
     twitter: process.env.NEXT_PUBLIC_ORG_TWITTER || '#',
     youtube: process.env.NEXT_PUBLIC_ORG_YOUTUBE || '#',
   },
+  /// Cloudflare Turnstile site key. Empty means no widget renders and the API
+  /// does not enforce a captcha — the two halves are gated together on
+  /// purpose, see verifyCaptcha in the API.
+  turnstileSiteKey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '',
   locale: 'en_AU',
 } as const;
 

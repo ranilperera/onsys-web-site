@@ -28,6 +28,11 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ARG INTERNAL_API_URL=http://api:4000
 ENV INTERNAL_API_URL=$INTERNAL_API_URL
 
+# Public half of the Turnstile pair. Baked into the bundle, so turning the
+# captcha on or off needs a rebuild of this image, not just a restart.
+ARG NEXT_PUBLIC_TURNSTILE_SITE_KEY
+ENV NEXT_PUBLIC_TURNSTILE_SITE_KEY=$NEXT_PUBLIC_TURNSTILE_SITE_KEY
+
 # next.config.mjs reads these from the environment first and falls back to the
 # repo-root .env, which is deliberately absent from the image. Passing them here
 # is what keeps the header, footer and schema.org markup driven by config rather
