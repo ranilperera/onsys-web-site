@@ -72,7 +72,11 @@ const nextConfig = {
       "font-src 'self' data:",
       "frame-src https://www.youtube-nocookie.com https://www.youtube.com https://challenges.cloudflare.com",
       // HMR needs the dev websocket; the local API is plain http.
-      `connect-src 'self' https://plausible.io ${apiUrl}${isDev ? ' ws: wss: http://localhost:* http://127.0.0.1:*' : ''}`,
+      // challenges.cloudflare.com needs all three of script-src, frame-src and
+      // connect-src: the widget loads a script, renders an iframe, and the script
+      // then calls back to Cloudflare. Allowing only the first two lets the script
+      // load and then fail, which surfaces as "the spam check could not load".
+      `connect-src 'self' https://plausible.io https://challenges.cloudflare.com ${apiUrl}${isDev ? ' ws: wss: http://localhost:* http://127.0.0.1:*' : ''}`,
       "form-action 'self'",
       "frame-ancestors 'none'",
       "base-uri 'self'",

@@ -64,7 +64,7 @@ export function Turnstile({
   const siteKey = siteConfig.turnstileSiteKey;
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetId = useRef<string | null>(null);
-  const [failed, setFailed] = useState(false);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
   const domId = useId();
 
   // Kept in a ref so re-rendering the parent does not tear the widget down.
@@ -79,8 +79,18 @@ export function Turnstile({
     widgetId.current = window.turnstile.render(el, {
       sitekey: siteKey,
       callback: (token: string) => onTokenRef.current(token),
-      'error-callback': () => {
-        setFailed(true);
+      // Turnstile hands back a numeric code that identifies the cause exactly.
+      // Without surfacing it, every failure looks the same from the outside and
+      // the only way to tell an unregistered hostname from a bad key is to
+      // guess. 110200 = domain not on the widget's allow-list; 1102xx = key
+      // problems; 3xxxxx/6xxxxx = challenge execution.
+      'error-callback': (code?: string) => {
+        setErrorCode(code ?? '');
+        // eslint-disable-next-line no-console -- the code is the whole diagnosis
+        console.error(
+          `[turnstile] failed with code ${code ?? '(none)'}. ` +
+            '110200 means this hostname is not listed on the widget in the Cloudflare dashboard.',
+        );
         onTokenRef.current('');
       },
       // A token that expires mid-form would be rejected on submit, so clear it
@@ -98,7 +108,7 @@ export function Turnstile({
       .then(() => {
         if (!cancelled) render();
       })
-      .catch(() => setFailed(true));
+      .catch(() => setErrorCode('script-load-failed'));
     return () => {
       cancelled = true;
       if (widgetId.current && window.turnstile) {
@@ -120,10 +130,13 @@ export function Turnstile({
   return (
     <div className="turnstile-field">
       <div ref={containerRef} id={`turnstile-${domId}`} />
-      {failed && (
+      {errorCode !== null && (
         <p className="field-error">
           The spam check could not load. Please disable any script blocker, or call us on{' '}
           {siteConfig.phone}.
+          {/* Shown so a visitor reporting the problem can quote it, and so it is
+              visible in a screenshot without opening developer tools. */}
+          {errorCode ? <> (code {errorCode})</> : null}
         </p>
       )}
     </div>
