@@ -115,6 +115,10 @@ const envSchema = z.object({
   ORG_BOOKING_URL: z.string().default('/book'),
 
   // --- Security ---
+  /// Form submissions allowed per IP per hour. Low on purpose in production,
+  /// but it makes debugging a deployment painful — raise it temporarily
+  /// rather than wondering why the fifth test returns 429.
+  LEAD_RATE_LIMIT: z.coerce.number().int().min(1).max(1000).default(5),
   SESSION_SECRET: z.string().min(16).default('change-me-in-production-please!!'),
   // Captcha is only enforced when BOTH are present — see verifyCaptcha.
   TURNSTILE_SECRET: z.string().optional(),

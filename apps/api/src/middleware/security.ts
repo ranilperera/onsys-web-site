@@ -14,7 +14,7 @@ export const globalLimiter = rateLimit({
 /** Contact form: tight. A real person submits once or twice. */
 export const leadLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  limit: 5,
+  limit: env.LEAD_RATE_LIMIT,
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   message: { error: `Too many submissions. Please try again later or call us on ${org.phone}.` },
@@ -64,6 +64,22 @@ if (isProd && env.TURNSTILE_SECRET && !env.TURNSTILE_SITE_KEY) {
   );
 }
 
+/** Turn Cloudflare's siteverify error codes into the thing to go and check. */
+function explainSiteverify(codes: string[]): string {
+  if (codes.includes('invalid-input-secret') || codes.includes('missing-input-secret')) {
+    return 'TURNSTILE_SECRET is wrong, stale after a rotation, or has stray whitespace. It must be the 35-character secret from the same widget that issued the site key.';
+  }
+  if (codes.includes('timeout-or-duplicate')) {
+    return 'The token was already used or is older than about five minutes. Tokens are single-use; the widget must mint a fresh one per submission.';
+  }
+  if (codes.includes('invalid-input-response')) {
+    return 'The token does not belong to this secret — usually the site key and secret come from two different widgets.';
+  }
+  if (codes.includes('bad-request')) return 'Cloudflare rejected the request shape.';
+  if (codes.includes('internal-error')) return 'Cloudflare-side error; retrying usually succeeds.';
+  return 'See the Cloudflare siteverify error-code reference.';
+}
+
 export const verifyCaptcha: RequestHandler = async (req, res, next) => {
   if (!captchaEnforced) {
     if (isProd && !env.TURNSTILE_SECRET) {
@@ -84,8 +100,16 @@ export const verifyCaptcha: RequestHandler = async (req, res, next) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ secret: env.TURNSTILE_SECRET, response: token, remoteip: req.ip }),
     });
-    const result = (await response.json()) as { success: boolean };
+    const result = (await response.json()) as { success: boolean; 'error-codes'?: string[] };
     if (!result.success) {
+      const codes = result['error-codes'] ?? [];
+      // Cloudflare's error-codes are the whole diagnosis, and every cause looks
+      // identical from the browser. Without them the only way to tell a stale
+      // secret from a reused token is to guess.
+      logger.warn(
+        { codes, ip: req.ip },
+        `Turnstile rejected a token: ${codes.join(', ') || 'no codes returned'}. ${explainSiteverify(codes)}`,
+      );
       res.status(400).json({ error: 'Captcha verification failed. Please try again.' });
       return;
     }
