@@ -1661,7 +1661,7 @@ const productsBlocks: Block[] = [
           'Cuts DR cost against Enterprise Edition licensing',
           'Implemented and supported by Onsys DBAs, not just resold',
         ],
-        cta: { label: 'More info', href: 'https://www.onsys.com.au/dbvisit/' },
+        cta: { label: 'More info', href: 'https://dbvisit.com/solutions/standby-software/' },
         secondaryCta: { label: 'Talk to us', href: '/contact' },
       },
     ],

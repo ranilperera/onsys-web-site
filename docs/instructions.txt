@@ -1,0 +1,49 @@
+Content lives in two places, and the distinction matters:
+
+Where	What it is
+Source of truth	seed-content.ts — 4,784 lines	In git, reviewable, survives a database rebuild
+What the site renders	Postgres pages table	Populated by npm run seed from the file above
+The page you have open, [slug]/page.tsx, holds no copy at all — it calls getPage(slug) and renders whatever the database returns. That one file serves all 29 content pages.
+
+Which pages are database-driven
+Editable in seed-content.ts (page entries start at line 3948): home, expertise, about, contact, products, pricing-and-plans, managed-database-services, on-call-dba-services, emergency-database-support, database-consultancy, database-upgrades-migrations-dr, remote-database-support, free-20-point-sql-server-health-check, all the managed-IT / cloud / software / security service pages, plus privacy, terms and disclaimer.
+
+Hardcoded React — edit the .tsx directly: /book, /book/cancel, /client-portal, the /blog listing, and /admin/*.
+
+Blog posts live in the database and are editable through the admin console at /admin/posts.
+
+Yes, you can edit it manually — here's the shape
+Each page is a plain object. For example, emergency-database-support:
+
+
+slug: 'emergency-database-support',
+heading: 'Emergency database support',
+eyebrow: 'Outage response · answered 24/7',
+lede: `Production down, data at risk...`,
+seoTitle: 'Emergency DBA Support Australia | 24/7 Response',
+seoDescription: 'Production database down? Call 1800 431 416 for...',
+blocks: emergencyBlocks,
+faqs: [ { question: '...', answer: '...' }, ... ],
+Two levels of edit:
+
+Hero, SEO fields and FAQs — plain strings right there in the page entry. Change the text and you're done.
+Body copy — that's the blocks: reference. The block arrays sit higher in the same file: emergencyBlocks at line 1266, homeBlocks at line 20, pricingBlocks at line 728, and so on. They're typed against the shared zod schema, so npm run typecheck -w @onsys/api will catch a malformed block before it reaches the database.
+Note ${org.phone} in that lede — phone, email and booking URL come from config, so never hardcode 1800 431 416 into copy; use the interpolation.
+
+Applying a change
+
+# locally: edit seed-content.ts, then
+npm run typecheck -w @onsys/api
+
+# on the VM, after git pull && up -d --build api
+docker compose -f docker-compose.prod.yml exec api npm run seed -w @onsys/api
+docker compose -f docker-compose.prod.yml exec api npm run embeddings:build -w @onsys/api -- --all
+docker compose -f docker-compose.prod.yml up -d --force-recreate web
+The seed upserts by slug, so it's safe to re-run. Pages carry revalidate = 300, so edits surface on their own within five minutes — the --force-recreate just makes it immediate. The embeddings rebuild is the --all case from the runbook: you edited existing content, so incremental would silently skip it.
+
+Two things not to do
+Don't edit the database directly with SQL. It works until the next npm run seed, which upserts by slug and overwrites your change — and it's not in git, so it vanishes on any rebuild.
+
+Don't reach for the admin console for pages. PUT /api/admin/pages/:id exists in admin.routes.ts, but there's no page editor in the UI — admin only has the dashboard, posts, leads, chat and login. Anything written through that endpoint has the same overwrite problem.
+
+If you'd like a page editor in the admin console so content changes don't need a deploy, that's a real piece of work but the API half already exists — say the word and I'll scope it.

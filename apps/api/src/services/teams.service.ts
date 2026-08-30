@@ -74,6 +74,20 @@ function buildAdaptiveCard(payload: EscalationPayload) {
   const lastMessages = payload.transcript.slice(-6);
 
   return {
+    // Flat copies of everything a Power Automate flow needs. Teams ignores
+    // unknown top-level properties when it renders the card, but a flow can
+    // read triggerBody()?['sessionId'] directly instead of indexing into
+    // attachments[0].content.body[1].facts[4] — which silently starts pointing
+    // at the wrong visitor the first time anyone reorders the card.
+    kind: 'chat-escalation',
+    sessionId: payload.sessionId,
+    visitorName: payload.visitorName || 'Anonymous',
+    visitorEmail: payload.visitorEmail || '',
+    entryUrl: payload.entryUrl || '',
+    reason: payload.reason || 'Requested a human',
+    transcriptText: lastMessages
+      .map((m) => `${m.role === 'VISITOR' ? 'Visitor' : 'Assistant'}: ${m.content}`)
+      .join('\n'),
     type: 'message',
     attachments: [
       {
@@ -260,6 +274,12 @@ export async function notifyLeadToTeams(lead: {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        // Same reason as buildAdaptiveCard: a flow reads these flat. `kind` is
+        // what lets one webhook serve both notifications — a lead has no
+        // session to reply into, so the flow must not offer a reply box for it.
+        kind: 'lead',
+        visitorName: lead.name,
+        visitorEmail: lead.email,
         type: 'message',
         attachments: [
           {
