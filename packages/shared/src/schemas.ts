@@ -20,6 +20,17 @@ export type LeadInput = z.infer<typeof leadInputSchema>;
 
 export const chatStartSchema = z.object({
   entryUrl: z.string().max(500).optional(),
+  /// Captured by the pre-chat form so the transcript can be emailed when the
+  /// conversation ends. Optional: a visitor who declines still gets to chat.
+  name: z.string().max(120).optional(),
+  email: z.string().email().max(200).optional(),
+});
+
+export const chatCloseSchema = z.object({
+  sessionId: z.string().min(1),
+  /// Where to send the transcript. Falls back to the address given at the
+  /// start of the chat; omit both and the conversation just closes.
+  email: z.string().email().max(200).optional(),
 });
 
 export const chatMessageSchema = z.object({

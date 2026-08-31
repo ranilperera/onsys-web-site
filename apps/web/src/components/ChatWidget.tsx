@@ -27,6 +27,20 @@ export function ChatWidget() {
   const [status, setStatus] = useState<Status>('BOT');
   const [error, setError] = useState<string | null>(null);
 
+  /**
+   * Pre-chat capture. The transcript is emailed when the visitor ends the
+   * chat, which needs an address before the conversation rather than after —
+   * by then they have usually closed the tab.
+   *
+   * Skippable on purpose. A hard gate on a support widget turns away the
+   * person with a production outage who just wants to reach someone, and they
+   * are exactly the enquiry we least want to lose.
+   */
+  const [prechatDone, setPrechatDone] = useState(false);
+  const [form, setForm] = useState({ name: '', email: '' });
+  const [closing, setClosing] = useState(false);
+  const [closeNote, setCloseNote] = useState<string | null>(null);
+
   const bodyRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const lastPolledRef = useRef<string | null>(null);
@@ -46,12 +60,20 @@ export function ChatWidget() {
     if (stored) setSessionId(stored);
   }, []);
 
-  const startSession = useCallback(async (): Promise<string | null> => {
+  const startSession = useCallback(async (
+    details?: { name?: string; email?: string },
+  ): Promise<string | null> => {
     try {
       const res = await fetch(`${siteConfig.apiUrl}/api/chat/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entryUrl: window.location.pathname }),
+        body: JSON.stringify({
+          entryUrl: window.location.pathname,
+          // Send only what we actually have — the schema rejects an empty
+          // string as an invalid email and would fail the whole start call.
+          ...(details?.name?.trim() ? { name: details.name.trim() } : {}),
+          ...(details?.email?.trim() ? { email: details.email.trim() } : {}),
+        }),
       });
       if (!res.ok) throw new Error('Could not start chat');
 
@@ -84,16 +106,19 @@ export function ChatWidget() {
     }
   }, []);
 
-  // Open: resume or start.
+  // Open: resume, or start once the pre-chat form is out of the way.
   useEffect(() => {
     if (!open) return;
     if (sessionId) {
       void loadHistory(sessionId);
-    } else {
-      void startSession();
+    } else if (prechatDone) {
+      void startSession({ name: form.name, email: form.email });
     }
     setTimeout(() => inputRef.current?.focus(), 120);
-  }, [open, sessionId, startSession, loadHistory]);
+    // form is read only at the moment prechatDone flips, so it is not a dep —
+    // including it would restart the session on every keystroke.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, sessionId, prechatDone, startSession, loadHistory]);
 
   // Poll for agent replies once a human is in the loop.
   useEffect(() => {
@@ -193,6 +218,50 @@ export function ChatWidget() {
     }
   }, [sessionId]);
 
+  const endChat = useCallback(async () => {
+    if (!sessionId || closing) return;
+    setClosing(true);
+    try {
+      const res = await fetch(`${siteConfig.apiUrl}/api/chat/close`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId,
+          ...(form.email.trim() ? { email: form.email.trim() } : {}),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? 'Could not end the chat.');
+        return;
+      }
+
+      setStatus('CLOSED');
+      setCloseNote(
+        data.transcriptSent
+          ? `Chat ended. We've emailed the transcript to ${data.email}.`
+          : "Chat ended. Thanks for getting in touch.",
+      );
+      // The session is finished server-side; drop it so reopening the widget
+      // starts a fresh conversation rather than resuming a closed one.
+      window.sessionStorage.removeItem(SESSION_KEY);
+    } catch {
+      setError(`Could not end the chat. Please call ${siteConfig.phone} if you still need us.`);
+    } finally {
+      setClosing(false);
+    }
+  }, [sessionId, closing, form.email]);
+
+  const startFresh = useCallback(() => {
+    setSessionId(null);
+    setMessages([]);
+    setStatus('BOT');
+    setCloseNote(null);
+    setError(null);
+    setPrechatDone(false);
+    lastPolledRef.current = null;
+  }, []);
+
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -233,6 +302,59 @@ export function ChatWidget() {
             </button>
           </div>
 
+          {!sessionId && !prechatDone ? (
+            <div className="chat-body">
+              <form
+                className="chat-prechat"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  setPrechatDone(true);
+                }}
+              >
+                <h4>Before we start</h4>
+                <p>
+                  Leave your email and we&rsquo;ll send you a copy of the conversation when
+                  you&rsquo;re done — handy if you need to forward it on.
+                </p>
+
+                <label htmlFor="chat-name">Name</label>
+                <input
+                  id="chat-name"
+                  type="text"
+                  autoComplete="name"
+                  maxLength={120}
+                  value={form.name}
+                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                  placeholder="Your name"
+                />
+
+                <label htmlFor="chat-email">Email</label>
+                <input
+                  id="chat-email"
+                  type="email"
+                  autoComplete="email"
+                  maxLength={200}
+                  value={form.email}
+                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                  placeholder="you@company.com.au"
+                />
+
+                <button type="submit" className="btn btn-primary btn-block">
+                  Start chat
+                </button>
+                <button
+                  type="button"
+                  className="chat-skip-btn"
+                  onClick={() => {
+                    setForm({ name: '', email: '' });
+                    setPrechatDone(true);
+                  }}
+                >
+                  Skip and just chat
+                </button>
+              </form>
+            </div>
+          ) : (
           <div className="chat-body" ref={bodyRef} role="log" aria-live="polite" aria-atomic="false">
             {messages.map((m, i) => (
               <div key={m.id ?? i} className={`chat-msg ${m.role.toLowerCase()}`}>
@@ -258,9 +380,18 @@ export function ChatWidget() {
               </div>
             )}
 
+            {closeNote && <div className="chat-msg system">{closeNote}</div>}
             {error && <div className="chat-msg system">{error}</div>}
           </div>
+          )}
 
+          {status === 'CLOSED' ? (
+            <div className="chat-foot">
+              <button className="btn btn-primary btn-block" onClick={startFresh}>
+                Start a new chat
+              </button>
+            </div>
+          ) : (
           <div className="chat-foot">
             <div className="chat-input-row">
               <label htmlFor="chat-input" className="sr-only">
@@ -275,7 +406,6 @@ export function ChatWidget() {
                 placeholder="Ask about our services…"
                 rows={1}
                 maxLength={2000}
-                disabled={status === 'CLOSED'}
               />
               <button
                 className="chat-send"
@@ -289,12 +419,20 @@ export function ChatWidget() {
               </button>
             </div>
 
-            {status === 'BOT' && (
-              <button className="chat-human-btn" onClick={() => void requestHuman()} disabled={sending}>
-                Talk to a human instead
-              </button>
-            )}
+            <div className="chat-foot-actions">
+              {status === 'BOT' && (
+                <button className="chat-human-btn" onClick={() => void requestHuman()} disabled={sending}>
+                  Talk to a human instead
+                </button>
+              )}
+              {sessionId && (
+                <button className="chat-end-btn" onClick={() => void endChat()} disabled={closing}>
+                  {closing ? 'Ending…' : 'End chat'}
+                </button>
+              )}
+            </div>
           </div>
+          )}
         </div>
       )}
     </>
