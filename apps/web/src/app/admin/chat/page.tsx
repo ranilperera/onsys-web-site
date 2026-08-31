@@ -48,6 +48,21 @@ export default function ChatConsole() {
 
   useEffect(loadSessions, [loadSessions]);
 
+  /**
+   * Deep link from the Teams escalation card: /admin/chat?session=<id> opens
+   * that conversation straight away. Without it the card can only drop an
+   * agent on the list, leaving them to match a cuid by eye against the session
+   * id printed on the card — which is the moment they give up and use email.
+   *
+   * Read from window rather than useSearchParams: this page is a client
+   * component with no Suspense boundary around it, and useSearchParams would
+   * opt the whole route into client-side bailout at build time.
+   */
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get('session');
+    if (id) setActive(id);
+  }, []);
+
   // Poll the open conversation so an agent sees visitor replies live.
   useEffect(() => {
     if (!active) return;

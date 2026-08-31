@@ -70,6 +70,18 @@ export interface EscalationPayload {
 const escapeHtml = (v: string) =>
   v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
+/**
+ * Makes a value safe to drop into an Adaptive Card's JSON.
+ *
+ * A Power Automate flow substitutes these fields directly into card JSON, so a
+ * visitor who types a double quote — or simply presses Enter mid-message —
+ * would produce invalid JSON and fail the run with a schema error that says
+ * nothing about the real cause. Emitting the escape sequences keeps the card
+ * valid, and \n still renders as a line break inside a TextBlock.
+ */
+const jsonSafe = (v: string) =>
+  v.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\r?\n/g, '\\n');
+
 function buildAdaptiveCard(payload: EscalationPayload) {
   const lastMessages = payload.transcript.slice(-6);
 
@@ -81,13 +93,13 @@ function buildAdaptiveCard(payload: EscalationPayload) {
     // at the wrong visitor the first time anyone reorders the card.
     kind: 'chat-escalation',
     sessionId: payload.sessionId,
-    visitorName: payload.visitorName || 'Anonymous',
-    visitorEmail: payload.visitorEmail || '',
-    entryUrl: payload.entryUrl || '',
-    reason: payload.reason || 'Requested a human',
+    visitorName: jsonSafe(payload.visitorName || 'Anonymous'),
+    visitorEmail: jsonSafe(payload.visitorEmail || ''),
+    entryUrl: jsonSafe(payload.entryUrl || ''),
+    reason: jsonSafe(payload.reason || 'Requested a human'),
     transcriptText: lastMessages
-      .map((m) => `${m.role === 'VISITOR' ? 'Visitor' : 'Assistant'}: ${m.content}`)
-      .join('\n'),
+      .map((m) => jsonSafe(`${m.role === 'VISITOR' ? 'Visitor' : 'Assistant'}: ${m.content}`))
+      .join('\\n'),
     type: 'message',
     attachments: [
       {
@@ -133,8 +145,11 @@ function buildAdaptiveCard(payload: EscalationPayload) {
           actions: [
             {
               type: 'Action.OpenUrl',
-              title: 'Reply in admin console',
-              url: `${env.SITE_URL}/admin/chat/${payload.sessionId}`,
+              title: 'Reply to this visitor',
+              // Query string, not a path segment: /admin/chat is a single
+              // console with an in-page session list, so /admin/chat/<id>
+              // has no route and 404s.
+              url: `${env.SITE_URL}/admin/chat?session=${payload.sessionId}`,
             },
           ],
         },
