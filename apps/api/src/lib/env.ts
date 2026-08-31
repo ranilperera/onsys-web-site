@@ -101,7 +101,10 @@ const envSchema = z.object({
   ORG_NAME: z.string().default('Onsys Technologies'),
   /// Short brand used to close <title> tags, which must stay under ~60 chars.
   ORG_SHORT_NAME: z.string().default('Onsys'),
-  ORG_LEGAL_NAME: z.string().default('Onsys Technologies Pty Ltd'),
+  /// The registered entity, which is NOT the trading name plus "Pty Ltd" —
+  /// it is "Onsys Pty Ltd". Legal pages cite this, so a wrong default here
+  /// misnames the company in the disclaimer, privacy policy and terms.
+  ORG_LEGAL_NAME: z.string().default('Onsys Pty Ltd'),
   ORG_ABN: z.string().default('49 602 081 005'),
   ORG_ACN: z.string().default('602 081 005'),
   ORG_EMAIL: z.string().default('sales@onsys.com.au'),

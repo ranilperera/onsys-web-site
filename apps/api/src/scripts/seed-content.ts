@@ -2061,7 +2061,7 @@ const disclaimerBlocks: Block[] = [
 <p>By accessing or using this website you agree to be bound by this Disclaimer, together with our <a href="/terms">Terms of Use</a> and <a href="/privacy">Privacy Policy</a>.</p>
 
 <h2>1. General information only</h2>
-<p>The content on this website is provided for general information purposes only. While Onsys Technologies Pty Ltd endeavours to keep it accurate and current, we make no representation or warranty, express or implied, about:</p>
+<p>The content on this website is provided for general information purposes only. While ${org.legalName} (<strong>&ldquo;Onsys&rdquo;</strong>, <strong>&ldquo;we&rdquo;</strong>, <strong>&ldquo;us&rdquo;</strong>) endeavours to keep it accurate and current, we make no representation or warranty, express or implied, about:</p>
 <ul>
 <li>the completeness, accuracy, currency or reliability of any content on this website</li>
 <li>the suitability or availability of any service, product or information described here for any particular purpose</li>
@@ -3974,7 +3974,7 @@ export const pages: SeedPage[] = [
       { question: 'How much can a business save by outsourcing DBA work to Onsys?', answer: 'Onsys clients reduce DBA and IT operating costs by up to 50% compared with hiring in-house. You pay a fixed monthly plan instead of salary, recruitment, training and leave cover, and you get a certified team rather than a single person.' },
       { question: 'What engagement models does Onsys offer?', answer: 'Four: a fixed monthly support plan, a fixed-price project with milestone-based payments, blocked hours or time and materials, or a dedicated offshore development team. Models can be combined — many clients run a monthly plan alongside project work.' },
       { question: 'Does Onsys require a lock-in contract?', answer: 'No. Onsys does not use lock-in contracts. Monthly support plans run on a rolling basis, and hourly consultancy and fixed-price projects carry no ongoing commitment once the work is complete.' },
-      { question: 'Where is Onsys Technologies based?', answer: 'Onsys Technologies is an Australian company with its head office at ${org.postalAddress}, and a delivery centre in Colombo, Sri Lanka. The two locations provide follow-the-sun coverage for Australian clients.' },
+      { question: 'Where is Onsys Technologies based?', answer: `Onsys Technologies is an Australian company with its head office at ${org.postalAddress}, and a delivery centre in Colombo, Sri Lanka. The two locations provide follow-the-sun coverage for Australian clients.` },
     ],
   },
   {
@@ -4034,13 +4034,12 @@ export const pages: SeedPage[] = [
       { label: 'Our expertise', href: '/expertise' },
     ],
     seoTitle: 'About Onsys | Melbourne Database & IT Company',
-    seoDescription:
-      'Onsys Pty Ltd, ABN 49 602 081 005 — a Melbourne database, cloud and managed IT firm serving Australian organisations since 2014, with a Colombo delivery centre.',
+    seoDescription: `${org.legalName}, ABN ${org.abn} — a Melbourne database, cloud and managed IT firm serving Australian organisations since 2014, with a Colombo delivery centre.`,
     navOrder: 5,
     blocks: aboutBlocks,
     faqs: [
-      { question: 'Where is Onsys Technologies based?', answer: 'Onsys Technologies is a Melbourne-based Information Technology company, with its head office at ${org.postalAddress} and a delivery centre in Colombo, Sri Lanka. The two locations provide follow-the-sun coverage for Australian clients.' },
-      { question: 'What is the Onsys Technologies ABN and ACN?', answer: '${org.legalName} holds ABN ${org.abn} and ACN ${org.acn}.' },
+      { question: 'Where is Onsys Technologies based?', answer: `Onsys Technologies is a Melbourne-based Information Technology company, with its head office at ${org.postalAddress} and a delivery centre in Colombo, Sri Lanka. The two locations provide follow-the-sun coverage for Australian clients.` },
+      { question: 'What is the Onsys Technologies ABN and ACN?', answer: `${org.legalName} holds ABN ${org.abn} and ACN ${org.acn}.` },
       { question: 'What services does Onsys provide?', answer: 'Database support and consultancy, managed database services, ad-hoc and 24×7 remote DBA support, emergency outage response and project delivery — plus cloud solutions, managed IT, cyber security, software development and AI services.' },
       { question: 'Does Onsys use offshore staff?', answer: 'Yes, deliberately. Our team combines onshore specialists in Australia with an offshore expert team in Colombo. That is how enterprise-grade engineering is delivered at a cost-effective price, with Australian accountability on every engagement.' },
       { question: 'What is Onsys Technologies’ mission?', answer: 'To design and deliver technology services that reduce operational costs, protect critical data, maximise availability, and enable organisations to manage, acquire and operate technology with confidence.' },

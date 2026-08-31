@@ -15,7 +15,9 @@ export const siteConfig = {
   /// Brand close for <title>. Titles must stay under ~60 characters to
   /// survive SERP truncation, and the full legal-style name eats 21 of them.
   shortName: process.env.NEXT_PUBLIC_ORG_SHORT_NAME || 'Onsys',
-  legalName: process.env.NEXT_PUBLIC_ORG_LEGAL_NAME || 'Onsys Technologies Pty Ltd',
+  /// The registered entity is "Onsys Pty Ltd", not the trading name with
+  /// "Pty Ltd" appended. Used in legal copy and schema.org markup.
+  legalName: process.env.NEXT_PUBLIC_ORG_LEGAL_NAME || 'Onsys Pty Ltd',
   abn: process.env.NEXT_PUBLIC_ORG_ABN || '49 602 081 005',
   acn: process.env.NEXT_PUBLIC_ORG_ACN || '602 081 005',
   url: process.env.NEXT_PUBLIC_SITE_URL || 'https://www.onsys.com.au',
