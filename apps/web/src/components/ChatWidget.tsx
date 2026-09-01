@@ -13,6 +13,7 @@ interface Message {
 }
 
 type Status = 'BOT' | 'WAITING_HUMAN' | 'HUMAN' | 'CLOSED';
+type Phase = 'form' | 'code' | 'chat';
 
 const SESSION_KEY = 'onsys_chat_session';
 /** Only poll while a human is involved — no point burning requests otherwise. */
@@ -28,16 +29,18 @@ export function ChatWidget() {
   const [error, setError] = useState<string | null>(null);
 
   /**
-   * Pre-chat capture. The transcript is emailed when the visitor ends the
-   * chat, which needs an address before the conversation rather than after —
-   * by then they have usually closed the tab.
+   * Three phases: collect details, verify the emailed code, then chat.
    *
-   * Skippable on purpose. A hard gate on a support widget turns away the
-   * person with a production outage who just wants to reach someone, and they
-   * are exactly the enquiry we least want to lose.
+   * The gate exists so an address in the database is one somebody actually
+   * reads. It also prices out casual abuse: every conversation now costs a
+   * working inbox, so a script cannot open hundreds of sessions or page the
+   * on-call team for free.
    */
-  const [prechatDone, setPrechatDone] = useState(false);
+  const [phase, setPhase] = useState<Phase>('form');
   const [form, setForm] = useState({ name: '', email: '' });
+  const [code, setCode] = useState('');
+  const [verifying, setVerifying] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
   const [closing, setClosing] = useState(false);
   const [closeNote, setCloseNote] = useState<string | null>(null);
 
@@ -57,7 +60,21 @@ export function ChatWidget() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const stored = window.sessionStorage.getItem(SESSION_KEY);
-    if (stored) setSessionId(stored);
+    if (!stored) return;
+    try {
+      const parsed = JSON.parse(stored) as { id?: string; verified?: boolean };
+      // Only a verified session is worth resuming. An unverified one holds no
+      // messages and its code has usually expired, so restoring it would drop
+      // the visitor on a code screen they can no longer complete.
+      if (parsed?.id && parsed.verified) {
+        setSessionId(parsed.id);
+        setPhase('chat');
+        return;
+      }
+    } catch {
+      /* value written by an older build — discard rather than guess */
+    }
+    window.sessionStorage.removeItem(SESSION_KEY);
   }, []);
 
   const startSession = useCallback(async (
@@ -79,9 +96,18 @@ export function ChatWidget() {
 
       const data = await res.json();
       setSessionId(data.sessionId);
-      setMessages(data.messages ?? []);
+      setMessages([]);
       setStatus(data.status ?? 'BOT');
-      window.sessionStorage.setItem(SESSION_KEY, data.sessionId);
+      setPhase('code');
+      setNotice(
+        data.emailSent
+          ? `We've sent a 6-digit code to ${data.email}. It expires in 10 minutes.`
+          : `We couldn't email a code just now. Please call ${siteConfig.phone} and we'll help straight away.`,
+      );
+      window.sessionStorage.setItem(
+        SESSION_KEY,
+        JSON.stringify({ id: data.sessionId, verified: false }),
+      );
       return data.sessionId as string;
     } catch {
       setError(`Chat is unavailable right now. Please email us or call ${siteConfig.phone}.`);
@@ -106,19 +132,13 @@ export function ChatWidget() {
     }
   }, []);
 
-  // Open: resume, or start once the pre-chat form is out of the way.
+  // Only a verified conversation has history to reload; the other phases are
+  // driven by the form and the code screen, not by this effect.
   useEffect(() => {
-    if (!open) return;
-    if (sessionId) {
-      void loadHistory(sessionId);
-    } else if (prechatDone) {
-      void startSession({ name: form.name, email: form.email });
-    }
+    if (!open || phase !== 'chat' || !sessionId) return;
+    void loadHistory(sessionId);
     setTimeout(() => inputRef.current?.focus(), 120);
-    // form is read only at the moment prechatDone flips, so it is not a dep —
-    // including it would restart the session on every keystroke.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, sessionId, prechatDone, startSession, loadHistory]);
+  }, [open, phase, sessionId, loadHistory]);
 
   // Poll for agent replies once a human is in the loop.
   useEffect(() => {
@@ -218,6 +238,71 @@ export function ChatWidget() {
     }
   }, [sessionId]);
 
+  const verifyCode = useCallback(async () => {
+    if (!sessionId || verifying) return;
+    const entered = code.trim();
+    if (!/^\d{6}$/.test(entered)) {
+      setError('Enter the 6-digit code from your email.');
+      return;
+    }
+
+    setVerifying(true);
+    setError(null);
+    try {
+      const res = await fetch(`${siteConfig.apiUrl}/api/chat/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, code: entered }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error ?? 'That code did not work.');
+        // Expired or burned through its attempts — the only way on is a new one.
+        if (data.expired) setCode('');
+        return;
+      }
+
+      setMessages(data.messages ?? []);
+      setStatus(data.status ?? 'BOT');
+      setPhase('chat');
+      setNotice(null);
+      setCode('');
+      window.sessionStorage.setItem(SESSION_KEY, JSON.stringify({ id: sessionId, verified: true }));
+    } catch {
+      setError(`Could not check that code. Please try again, or call ${siteConfig.phone}.`);
+    } finally {
+      setVerifying(false);
+    }
+  }, [sessionId, code, verifying]);
+
+  const resendCode = useCallback(async () => {
+    if (!sessionId || verifying) return;
+    setVerifying(true);
+    setError(null);
+    try {
+      const res = await fetch(`${siteConfig.apiUrl}/api/chat/resend-code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? 'Could not send another code.');
+        return;
+      }
+      setNotice(
+        data.emailSent
+          ? 'A new code is on its way. It expires in 10 minutes.'
+          : `We couldn't email a code just now. Please call ${siteConfig.phone}.`,
+      );
+    } catch {
+      setError(`Could not send another code. Please call ${siteConfig.phone}.`);
+    } finally {
+      setVerifying(false);
+    }
+  }, [sessionId, verifying]);
+
   const endChat = useCallback(async () => {
     if (!sessionId || closing) return;
     setClosing(true);
@@ -258,7 +343,9 @@ export function ChatWidget() {
     setStatus('BOT');
     setCloseNote(null);
     setError(null);
-    setPrechatDone(false);
+    setNotice(null);
+    setCode('');
+    setPhase('form');
     lastPolledRef.current = null;
   }, []);
 
@@ -302,19 +389,24 @@ export function ChatWidget() {
             </button>
           </div>
 
-          {!sessionId && !prechatDone ? (
+          {phase === 'form' ? (
             <div className="chat-body">
               <form
                 className="chat-prechat"
                 onSubmit={(e) => {
                   e.preventDefault();
-                  setPrechatDone(true);
+                  if (sending) return;
+                  setError(null);
+                  setSending(true);
+                  void startSession({ name: form.name, email: form.email }).finally(() =>
+                    setSending(false),
+                  );
                 }}
               >
                 <h4>Before we start</h4>
                 <p>
-                  Leave your email and we&rsquo;ll send you a copy of the conversation when
-                  you&rsquo;re done — handy if you need to forward it on.
+                  We&rsquo;ll email you a 6-digit code to confirm your address, then send you a copy
+                  of the conversation when you&rsquo;re done.
                 </p>
 
                 <label htmlFor="chat-name">Name</label>
@@ -322,35 +414,83 @@ export function ChatWidget() {
                   id="chat-name"
                   type="text"
                   autoComplete="name"
+                  required
                   maxLength={120}
                   value={form.name}
                   onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                   placeholder="Your name"
                 />
 
-                <label htmlFor="chat-email">Email</label>
+                <label htmlFor="chat-email">Work email</label>
                 <input
                   id="chat-email"
                   type="email"
                   autoComplete="email"
+                  required
                   maxLength={200}
                   value={form.email}
                   onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
                   placeholder="you@company.com.au"
                 />
 
-                <button type="submit" className="btn btn-primary btn-block">
-                  Start chat
+                {error && <p className="chat-form-error" role="alert">{error}</p>}
+
+                <button type="submit" className="btn btn-primary btn-block" disabled={sending}>
+                  {sending ? 'Sending code…' : 'Start chat'}
+                </button>
+                <p className="chat-prechat-foot">
+                  In a hurry? Call <a href={`tel:${siteConfig.phoneE164}`}>{siteConfig.phone}</a> and
+                  speak to a consultant now.
+                </p>
+              </form>
+            </div>
+          ) : phase === 'code' ? (
+            <div className="chat-body">
+              <form
+                className="chat-prechat"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void verifyCode();
+                }}
+              >
+                <h4>Check your email</h4>
+                {notice && <p>{notice}</p>}
+
+                <label htmlFor="chat-code">6-digit code</label>
+                <input
+                  id="chat-code"
+                  className="chat-code-input"
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  pattern="\d{6}"
+                  maxLength={6}
+                  required
+                  autoFocus
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="000000"
+                />
+
+                {error && <p className="chat-form-error" role="alert">{error}</p>}
+
+                <button
+                  type="submit"
+                  className="btn btn-primary btn-block"
+                  disabled={verifying || code.length !== 6}
+                >
+                  {verifying ? 'Checking…' : 'Verify and start chatting'}
                 </button>
                 <button
                   type="button"
                   className="chat-skip-btn"
-                  onClick={() => {
-                    setForm({ name: '', email: '' });
-                    setPrechatDone(true);
-                  }}
+                  onClick={() => void resendCode()}
+                  disabled={verifying}
                 >
-                  Skip and just chat
+                  Send me a new code
+                </button>
+                <button type="button" className="chat-skip-btn" onClick={startFresh}>
+                  Use a different email
                 </button>
               </form>
             </div>
@@ -385,7 +525,10 @@ export function ChatWidget() {
           </div>
           )}
 
-          {status === 'CLOSED' ? (
+          {/* The composer exists only in the chat phase. Rendering it beside
+              the form let a visitor type straight past the gate — the input
+              sat under the pre-chat panel and posted messages happily. */}
+          {phase !== 'chat' ? null : status === 'CLOSED' ? (
             <div className="chat-foot">
               <button className="btn btn-primary btn-block" onClick={startFresh}>
                 Start a new chat

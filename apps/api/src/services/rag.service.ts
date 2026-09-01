@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import type { Citation } from '@onsys/shared';
-import { env, aiConfigured } from '../lib/env';
+import { env, org, aiConfigured } from '../lib/env';
 import { prisma } from '../lib/prisma';
 import { logger } from '../lib/logger';
 
@@ -79,7 +79,8 @@ Rules — follow these exactly:
 3. Never quote a specific price beyond what appears in the context. Pricing is scoped per environment — say so and offer the free consultation.
 4. Be concise: 2-4 sentences typically. Use plain language, Australian English.
 5. You are not a licensed advisor. For anything contractual, legal or security-incident related, recommend speaking to the team directly.
-6. If the visitor asks for a human, is frustrated, or is reporting an active outage, set needsHuman to true.
+6. If the visitor asks for a human or is frustrated, set needsHuman to true.
+7. Live incidents do NOT go through this chat. If someone reports an outage, data loss or a security breach, tell them to call ${org.phone} straight away — it is answered 24/7 — and leave needsHuman false. Chat has no reference number and no SLA clock behind it, so it is the wrong place to raise a P1.
 
 Respond with strict JSON matching:
 {"answer": string, "needsHuman": boolean}`;

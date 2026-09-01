@@ -199,11 +199,30 @@ model ChatSession {
   /// Page the widget was opened on — useful context for the human agent
   entryUrl      String?
   userAgent     String?
+  /// Kept for rate limiting and abuse correlation without exposing the address.
   ipHash        String?
+  /// The address itself, for the audit trail on who chatted from where.
+  /// Personal information under the Privacy Act — covered by the privacy
+  /// policy, and subject to the same retention limits as the transcript.
+  ipAddress     String?
+
+  /// Email verification gate. The chat stays locked until the visitor enters
+  /// the code we email them, which is what makes visitorEmail worth treating
+  /// as a lead rather than as whatever they felt like typing.
+  emailVerified Boolean   @default(false)
+  /// SHA-256 of sessionId + code. Never the code itself: a leaked database
+  /// row must not hand someone a working credential.
+  otpHash       String?
+  otpExpiresAt  DateTime?
+  otpSentAt     DateTime?
+  otpAttempts   Int        @default(0)
 
   /// Teams conversation/message id used to thread replies back to this session
   teamsThreadId String?
   escalatedAt   DateTime?
+  /// When the visitor was told to phone a live incident through. Set once, so
+  /// a conversation about an outage does not fire a card on every message.
+  incidentNotifiedAt DateTime?
   closedAt      DateTime?
 
   messages      ChatMessage[]
@@ -214,6 +233,7 @@ model ChatSession {
 
   @@index([status, updatedAt])
   @@index([teamsThreadId])
+  @@index([visitorEmail])
   @@map("chat_sessions")
 }
 

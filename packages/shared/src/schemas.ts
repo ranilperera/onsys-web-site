@@ -20,10 +20,22 @@ export type LeadInput = z.infer<typeof leadInputSchema>;
 
 export const chatStartSchema = z.object({
   entryUrl: z.string().max(500).optional(),
-  /// Captured by the pre-chat form so the transcript can be emailed when the
-  /// conversation ends. Optional: a visitor who declines still gets to chat.
-  name: z.string().max(120).optional(),
-  email: z.string().email().max(200).optional(),
+  /// Both required: the chat is gated behind a code emailed to this address,
+  /// so an unreachable inbox means no conversation.
+  name: z.string().trim().min(1, 'Please tell us your name').max(120),
+  email: z.string().trim().email('Enter a valid email address').max(200),
+});
+
+export const chatVerifySchema = z.object({
+  sessionId: z.string().min(1),
+  code: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/, 'Enter the 6-digit code from your email'),
+});
+
+export const chatResendSchema = z.object({
+  sessionId: z.string().min(1),
 });
 
 export const chatCloseSchema = z.object({

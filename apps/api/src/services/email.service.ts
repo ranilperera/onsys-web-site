@@ -193,6 +193,24 @@ export function renderLeadAcknowledgement(lead: LeadEmailData): string {
   );
 }
 
+/**
+ * One-time code that unlocks the chat widget.
+ *
+ * Deliberately plain: no links, no buttons, nothing to click. A visitor who
+ * has been taught that "verify your email" messages contain a button to press
+ * is a visitor who will press one in a forged copy of this email, so the only
+ * thing here is a number they type back into the widget they already have open.
+ */
+export function renderChatCode(code: string, minutes: number): string {
+  return wrapEmail(
+    'Your chat verification code',
+    `<p style="margin:0 0 16px;font-size:15px;line-height:1.6;">Enter this code in the chat window to start the conversation:</p>
+     <p style="margin:0 0 20px;font-size:34px;font-weight:700;letter-spacing:.22em;color:${BRAND_NAVY};font-family:'Segoe UI',Arial,sans-serif;">${escapeHtml(code)}</p>
+     <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#605E5C;">The code expires in ${minutes} minutes. We will never ask you for it by phone or email.</p>
+     <p style="margin:0;font-size:14px;line-height:1.6;color:#605E5C;">If you did not open a chat on our website, you can ignore this — nobody can use the code without it.</p>`,
+  );
+}
+
 /** Chat transcript emailed to the visitor or the team on request. */
 export function renderChatTranscript(
   messages: Array<{ role: string; content: string; createdAt: Date }>,

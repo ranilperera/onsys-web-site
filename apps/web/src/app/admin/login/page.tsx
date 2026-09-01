@@ -27,7 +27,15 @@ export default function AdminLogin() {
         setError(data.error ?? 'Login failed');
         return;
       }
-      window.location.href = '/admin';
+      // Return to whatever sent us here — the Teams escalation card links
+      // straight to a conversation, and bouncing the agent to the dashboard
+      // would make them hunt for it by session id.
+      const next = new URLSearchParams(window.location.search).get('next');
+      // Same-origin paths only: an open redirect here would let a crafted link
+      // bounce a just-authenticated admin to an attacker's page. Both `//host`
+      // and `/\host` are treated as protocol-relative by browsers, so the
+      // character after the slash has to be neither.
+      window.location.href = next && /^\/[^/\\]/.test(next) ? next : '/admin';
     } catch {
       setError('Could not reach the server.');
     } finally {

@@ -1,6 +1,6 @@
 import { ClientSecretCredential } from '@azure/identity';
 import { Client } from '@microsoft/microsoft-graph-client';
-import { env, graphConfigured, teamsConfigured } from '../lib/env';
+import { env, org, graphConfigured, teamsConfigured } from '../lib/env';
 import { logger } from '../lib/logger';
 
 /**
@@ -271,6 +271,89 @@ export async function fetchThreadReplies(threadId: string): Promise<TeamsReply[]
   } catch (error) {
     logger.error({ err: error, threadId }, 'Failed to fetch Teams thread replies');
     return [];
+  }
+}
+
+/**
+ * Heads-up that someone reported a live incident in the chat.
+ *
+ * This is an FYI, not a work item. The visitor has already been told to call
+ * the 24/7 number, because that is the path with a reference number and an SLA
+ * clock behind it. The card carries no reply box on purpose: answering here
+ * would recreate the untracked intake channel this exists to avoid.
+ *
+ * The `kind` field is what a Power Automate flow branches on — without a
+ * condition on it, a flow built around "post a card and wait for a response"
+ * will sit waiting on a card nobody is meant to answer.
+ */
+export async function notifyIncidentToTeams(payload: {
+  sessionId: string;
+  visitorName?: string | null;
+  visitorEmail?: string | null;
+  entryUrl?: string | null;
+  message: string;
+}): Promise<void> {
+  if (!env.TEAMS_WEBHOOK_URL) return;
+
+  try {
+    await fetch(env.TEAMS_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        kind: 'incident',
+        sessionId: payload.sessionId,
+        visitorName: jsonSafe(payload.visitorName || 'Anonymous'),
+        visitorEmail: jsonSafe(payload.visitorEmail || ''),
+        entryUrl: jsonSafe(payload.entryUrl || ''),
+        transcriptText: jsonSafe(payload.message),
+        type: 'message',
+        attachments: [
+          {
+            contentType: 'application/vnd.microsoft.card.adaptive',
+            content: {
+              $schema: 'http://adaptivecards.io/schemas/adaptive-card.json',
+              type: 'AdaptiveCard',
+              version: '1.4',
+              msteams: { width: 'Full' },
+              body: [
+                {
+                  type: 'TextBlock',
+                  text: '⚠️ Possible P1 — visitor directed to phone',
+                  weight: 'Bolder',
+                  size: 'Large',
+                  color: 'Attention',
+                },
+                {
+                  type: 'TextBlock',
+                  text: `They were told to call ${org.phone}. If no call arrives shortly, consider reaching out.`,
+                  wrap: true,
+                  isSubtle: true,
+                },
+                {
+                  type: 'FactSet',
+                  facts: [
+                    { title: 'Visitor', value: payload.visitorName || 'Anonymous' },
+                    { title: 'Email', value: payload.visitorEmail || '—' },
+                    { title: 'Page', value: payload.entryUrl || '—' },
+                  ],
+                },
+                { type: 'TextBlock', text: payload.message, wrap: true, spacing: 'Medium' },
+              ],
+              actions: [
+                {
+                  type: 'Action.OpenUrl',
+                  title: 'View conversation',
+                  url: `${env.SITE_URL}/admin/chat?session=${payload.sessionId}`,
+                },
+              ],
+            },
+          },
+        ],
+      }),
+    });
+    logger.info({ sessionId: payload.sessionId }, 'Incident heads-up posted to Teams');
+  } catch (error) {
+    logger.error({ err: error, sessionId: payload.sessionId }, 'Failed to post incident notice to Teams');
   }
 }
 

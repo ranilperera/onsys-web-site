@@ -1,6 +1,13 @@
 import crypto from 'node:crypto';
 import { Router } from 'express';
-import { chatStartSchema, chatMessageSchema, chatEscalateSchema, chatCloseSchema } from '@onsys/shared';
+import {
+  chatStartSchema,
+  chatMessageSchema,
+  chatEscalateSchema,
+  chatCloseSchema,
+  chatVerifySchema,
+  chatResendSchema,
+} from '@onsys/shared';
 import { prisma } from '../lib/prisma';
 import { env, org } from '../lib/env';
 import { logger } from '../lib/logger';
@@ -8,41 +15,194 @@ import { asyncHandler } from '../middleware/error';
 import { chatLimiter } from '../middleware/security';
 import { hashIp } from '../middleware/auth';
 import { answerQuestion } from '../services/rag.service';
-import { wantsHuman } from '../lib/escalation';
-import { escalateToTeams, fetchThreadReplies } from '../services/teams.service';
-import { sendEmail, renderChatTranscript } from '../services/email.service';
+import { wantsHuman, reportsIncident } from '../lib/escalation';
+import {
+  generateCode,
+  hashCode,
+  codeMatches,
+  OTP_TTL_MINUTES,
+  OTP_MAX_ATTEMPTS,
+  OTP_RESEND_COOLDOWN_MS,
+} from '../lib/otp';
+import { escalateToTeams, fetchThreadReplies, notifyIncidentToTeams } from '../services/teams.service';
+import { sendEmail, renderChatTranscript, renderChatCode } from '../services/email.service';
 
 export const chatRouter = Router();
 
-/** Start a conversation. Returns the session id the widget holds onto. */
+const GREETING =
+  "Hi — I'm the Onsys assistant. I can answer questions about our database, cloud, software and security services. What can I help with?";
+
+// --- Email verification ----------------------------------------------------
+
+async function issueCode(sessionId: string, email: string): Promise<boolean> {
+  const code = generateCode();
+
+  await prisma.chatSession.update({
+    where: { id: sessionId },
+    data: {
+      otpHash: hashCode(sessionId, code),
+      otpExpiresAt: new Date(Date.now() + OTP_TTL_MINUTES * 60_000),
+      otpSentAt: new Date(),
+      otpAttempts: 0,
+    },
+  });
+
+  const result = await sendEmail({
+    to: email,
+    subject: `${code} is your Onsys chat code`,
+    html: renderChatCode(code, OTP_TTL_MINUTES),
+  });
+
+  // Without Graph configured there is no inbox to read, so local development
+  // would have no way past the gate. Never in production: a delivery failure
+  // there must not put a live credential into the log file.
+  if (!result.sent && process.env.NODE_ENV !== 'production') {
+    logger.warn({ sessionId, code }, 'Email not configured — chat code logged for local development only');
+    return true;
+  }
+
+  return result.sent;
+}
+
+/**
+ * Start a conversation. Creates the session and emails a code; the chat stays
+ * locked until POST /verify accepts it.
+ *
+ * No greeting is written yet. A session that never gets verified should leave
+ * nothing behind that looks like a conversation.
+ */
 chatRouter.post(
   '/start',
   chatLimiter,
   asyncHandler(async (req, res) => {
     const input = chatStartSchema.parse(req.body ?? {});
+    const email = input.email.slice(0, 200);
 
     const session = await prisma.chatSession.create({
       data: {
         entryUrl: input.entryUrl?.slice(0, 500) || null,
         userAgent: req.get('user-agent')?.slice(0, 300) || null,
         ipHash: hashIp(req.ip),
-        visitorName: input.name?.slice(0, 120) || null,
-        visitorEmail: input.email?.slice(0, 200) || null,
+        ipAddress: req.ip?.slice(0, 64) || null,
+        visitorName: input.name.slice(0, 120),
+        visitorEmail: email,
       },
     });
 
-    const greeting =
-      "Hi — I'm the Onsys assistant. I can answer questions about our database, cloud, software and security services. What can I help with?";
-
-    await prisma.chatMessage.create({
-      data: { sessionId: session.id, role: 'ASSISTANT', content: greeting },
-    });
+    const emailSent = await issueCode(session.id, email);
 
     res.status(201).json({
       sessionId: session.id,
       status: session.status,
-      messages: [{ role: 'ASSISTANT', content: greeting, createdAt: new Date() }],
+      requiresVerification: true,
+      emailSent,
+      email,
+      messages: [],
     });
+  }),
+);
+
+/** Exchange the emailed code for an unlocked conversation. */
+chatRouter.post(
+  '/verify',
+  chatLimiter,
+  asyncHandler(async (req, res) => {
+    const input = chatVerifySchema.parse(req.body);
+
+    const session = await prisma.chatSession.findUnique({ where: { id: input.sessionId } });
+    if (!session) {
+      res.status(404).json({ error: 'Chat session not found. Please refresh and start again.' });
+      return;
+    }
+
+    if (session.emailVerified) {
+      const messages = await prisma.chatMessage.findMany({
+        where: { sessionId: session.id },
+        orderBy: { createdAt: 'asc' },
+      });
+      res.json({ sessionId: session.id, status: session.status, verified: true, messages });
+      return;
+    }
+
+    if (!session.otpHash || !session.otpExpiresAt || session.otpExpiresAt < new Date()) {
+      res.status(400).json({ error: 'That code has expired. Send yourself a new one.', expired: true });
+      return;
+    }
+
+    if (session.otpAttempts >= OTP_MAX_ATTEMPTS) {
+      res.status(429).json({
+        error: 'Too many incorrect codes. Send yourself a new one.',
+        expired: true,
+      });
+      return;
+    }
+
+    if (!codeMatches(session.id, input.code, session.otpHash)) {
+      const { otpAttempts } = await prisma.chatSession.update({
+        where: { id: session.id },
+        data: { otpAttempts: { increment: 1 } },
+        select: { otpAttempts: true },
+      });
+      res.status(400).json({
+        error: 'That code is not right. Check your email and try again.',
+        attemptsLeft: Math.max(OTP_MAX_ATTEMPTS - otpAttempts, 0),
+      });
+      return;
+    }
+
+    // Clear the code on success so it cannot be replayed.
+    await prisma.chatSession.update({
+      where: { id: session.id },
+      data: { emailVerified: true, otpHash: null, otpExpiresAt: null, otpAttempts: 0 },
+    });
+
+    const greeting = await prisma.chatMessage.create({
+      data: { sessionId: session.id, role: 'ASSISTANT', content: GREETING },
+    });
+
+    logger.info(
+      { sessionId: session.id, email: session.visitorEmail, ip: session.ipAddress },
+      'Chat session verified',
+    );
+
+    res.json({
+      sessionId: session.id,
+      status: session.status,
+      verified: true,
+      messages: [greeting],
+    });
+  }),
+);
+
+/** Send a fresh code, rate limited so the endpoint cannot be used to spam an inbox. */
+chatRouter.post(
+  '/resend-code',
+  chatLimiter,
+  asyncHandler(async (req, res) => {
+    const input = chatResendSchema.parse(req.body);
+
+    const session = await prisma.chatSession.findUnique({ where: { id: input.sessionId } });
+    if (!session || !session.visitorEmail) {
+      res.status(404).json({ error: 'Chat session not found. Please refresh and start again.' });
+      return;
+    }
+
+    if (session.emailVerified) {
+      res.json({ ok: true, alreadyVerified: true });
+      return;
+    }
+
+    const since = session.otpSentAt ? Date.now() - session.otpSentAt.getTime() : Infinity;
+    if (since < OTP_RESEND_COOLDOWN_MS) {
+      res.status(429).json({
+        error: 'A code was just sent. Give it a moment before asking for another.',
+        retryAfterSeconds: Math.ceil((OTP_RESEND_COOLDOWN_MS - since) / 1000),
+      });
+      return;
+    }
+
+    const emailSent = await issueCode(session.id, session.visitorEmail);
+    res.json({ ok: true, emailSent });
   }),
 );
 
@@ -63,6 +223,16 @@ chatRouter.post(
       return;
     }
 
+    // The gate. Enforced here rather than only in the widget, because the
+    // widget is the one part of this an abuser can rewrite.
+    if (!session.emailVerified) {
+      res.status(403).json({
+        error: 'Enter the code we emailed you before sending a message.',
+        requiresVerification: true,
+      });
+      return;
+    }
+
     await prisma.chatMessage.create({
       data: { sessionId, role: 'VISITOR', content: message },
     });
@@ -79,6 +249,52 @@ chatRouter.post(
           session.status === 'WAITING_HUMAN'
             ? "Thanks — I've passed this to the team and someone will reply here shortly."
             : null,
+      });
+      return;
+    }
+
+    /**
+     * A live incident leaves the chat here.
+     *
+     * Chat carries no reference number and starts no SLA clock, so it is not
+     * where a P1 gets raised — the visitor is given the 24/7 number and, once
+     * the portal is live, the place to log it. The team still gets a heads-up
+     * card so nobody in trouble goes unseen, but the conversation stays with
+     * the assistant rather than joining the human queue behind it.
+     */
+    if (reportsIncident(message)) {
+      const notice = org.portalEnabled
+        ? `For a production incident, call ${org.phone} now — it's answered 24/7. Please also log it in the client portal (${org.portalUrl}) so it's tracked with a reference number. This chat isn't monitored for incident response.`
+        : `For a production incident, call ${org.phone} now — it's answered 24/7 and that's the fastest way to get a senior DBA on it. This chat isn't monitored for incident response.`;
+
+      await prisma.chatMessage.create({
+        data: { sessionId, role: 'SYSTEM', content: notice },
+      });
+
+      // Claim the notification atomically so a conversation that keeps saying
+      // "still down" sends one card, not one per message.
+      const firstMention = await prisma.chatSession.updateMany({
+        where: { id: sessionId, incidentNotifiedAt: null },
+        data: { incidentNotifiedAt: new Date() },
+      });
+
+      if (firstMention.count > 0) {
+        await notifyIncidentToTeams({
+          sessionId,
+          visitorName: session.visitorName,
+          visitorEmail: session.visitorEmail,
+          entryUrl: session.entryUrl,
+          message,
+        });
+      }
+
+      res.json({
+        sessionId,
+        reply: notice,
+        citations: [],
+        status: session.status,
+        escalated: false,
+        incident: true,
       });
       return;
     }
@@ -140,6 +356,16 @@ chatRouter.post(
     const session = await prisma.chatSession.findUnique({ where: { id: input.sessionId } });
     if (!session) {
       res.status(404).json({ error: 'Chat session not found' });
+      return;
+    }
+
+    // An unverified session must not be able to page a human — that is the
+    // cheapest way to waste the team's time at scale.
+    if (!session.emailVerified) {
+      res.status(403).json({
+        error: 'Enter the code we emailed you first, then we can put you through.',
+        requiresVerification: true,
+      });
       return;
     }
 

@@ -116,6 +116,14 @@ const envSchema = z.object({
   ORG_POSTCODE: z.string().default('3000'),
   ORG_COUNTRY: z.string().default('AU'),
   ORG_BOOKING_URL: z.string().default('/book'),
+  /// Client portal (DBPulse). Incidents are directed here for tracking, but
+  /// only once it is actually live — pointing a visitor mid-outage at a portal
+  /// that is still hidden behind a flag is worse than not mentioning it.
+  ORG_PORTAL_URL: z.string().default('https://dbpulse.onsys.com.au'),
+  ORG_PORTAL_ENABLED: z
+    .string()
+    .default('false')
+    .transform((v) => v.trim().toLowerCase() === 'true'),
 
   // --- Security ---
   /// Form submissions allowed per IP per hour. Low on purpose in production,
@@ -189,6 +197,8 @@ export const org = {
   phone: env.ORG_PHONE,
   phoneE164: env.ORG_PHONE_E164,
   bookingUrl: env.ORG_BOOKING_URL,
+  portalUrl: env.ORG_PORTAL_URL,
+  portalEnabled: env.ORG_PORTAL_ENABLED,
   address: {
     street: env.ORG_STREET,
     locality: env.ORG_LOCALITY,

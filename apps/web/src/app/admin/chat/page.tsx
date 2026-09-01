@@ -36,7 +36,16 @@ export default function ChatConsole() {
 
   const loadSessions = useCallback(() => {
     fetch(`${siteConfig.apiUrl}/api/admin/chat`, { credentials: 'include' })
-      .then((r) => (r.status === 401 ? (window.location.href = '/admin/login', null) : r.json()))
+      .then((r) => {
+        if (r.status === 401) {
+          // Carry the destination through the login so the Teams card's link
+          // lands on the right conversation rather than the dashboard.
+          const next = encodeURIComponent(window.location.pathname + window.location.search);
+          window.location.href = `/admin/login?next=${next}`;
+          return null;
+        }
+        return r.json();
+      })
       .then((d) => d && setSessions(d.sessions));
   }, []);
 
