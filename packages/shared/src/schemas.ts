@@ -62,6 +62,48 @@ export const loginSchema = z.object({
   password: z.string().min(8),
 });
 
+/**
+ * Second factor. One field takes either a 6-digit authenticator code or a
+ * recovery code — asking someone to first classify what they are holding is a
+ * step that only exists to serve the implementation.
+ */
+export const mfaVerifySchema = z.object({
+  challengeId: z.string().min(1),
+  code: z.string().trim().min(6).max(20),
+});
+
+export const mfaSendEmailSchema = z.object({
+  challengeId: z.string().min(1),
+});
+
+export const mfaEnableSchema = z.object({
+  code: z.string().trim().regex(/^\d{6}$/, 'Enter the 6-digit code from your authenticator app'),
+});
+
+export const mfaDisableSchema = z.object({
+  password: z.string().min(1, 'Confirm your password to turn off two-factor authentication'),
+});
+
+/**
+ * Twelve characters to match what create-admin enforces, so the console cannot
+ * be used to set a password the CLI would have rejected.
+ */
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'Enter your current password'),
+    newPassword: z.string().min(12, 'Use at least 12 characters'),
+  })
+  .refine((v) => v.currentPassword !== v.newPassword, {
+    message: 'The new password must be different from the current one',
+    path: ['newPassword'],
+  });
+
+export const purgeChatSchema = z.object({
+  /// Sessions last touched before this many days ago are removed. Floored at 7
+  /// so a mistyped 0 cannot wipe conversations that are still open.
+  olderThanDays: z.coerce.number().int().min(7).max(3650),
+});
+
 export interface Citation {
   title: string;
   url: string;

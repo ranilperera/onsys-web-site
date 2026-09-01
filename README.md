@@ -10,6 +10,8 @@ Replaces the existing WordPress site, with a 301 redirect map so existing search
 
 - [Architecture](#architecture)
 - [Quick start](#quick-start)
+- [Creating an admin user](#creating-an-admin-user)
+- [Signing in — two-factor authentication](#signing-in--two-factor-authentication)
 - [Migrating content from WordPress](#migrating-content-from-wordpress)
 - [Microsoft Graph — email setup](#microsoft-graph--email-setup)
 - [Microsoft Teams — chat escalation setup](#microsoft-teams--chat-escalation-setup)
@@ -70,6 +72,8 @@ npm run db:migrate                   # create the schema
 npm run db:seed                      # load the approved pages + first article
 
 npm run create:admin -- --email=you@onsys.com.au --name="Your Name"
+                                     # see "Creating an admin user" for the
+                                     # Docker and PowerShell forms
 
 npm run dev                          # web :3000, api :4000
 ```
@@ -85,12 +89,145 @@ npm run dev                          # web :3000, api :4000
 
 | Missing credential | Behaviour |
 |---|---|
-| `GRAPH_*` | Leads still save to Postgres; notification emails are logged, not sent |
+| `GRAPH_*` | Leads still save to Postgres; notification emails are logged, not sent. **Outside production, chat and admin sign-in codes are written to the log so local development is not locked out — never in production, where a delivery failure must not put a live code in a log file** |
 | `TEAMS_*` | Chat still works; escalation tells the visitor to phone instead |
 | `OPENAI_API_KEY` | Chatbot escalates every question straight to a human |
 | `TURNSTILE_SECRET` | Captcha check is skipped (honeypot + rate limiting still apply) |
+| `ORG_PORTAL_ENABLED` | Defaults to `false`; incident replies give the phone number without the client-portal link |
 
 This is deliberate: a missing integration degrades one feature rather than breaking the site.
+
+---
+
+## Creating an admin user
+
+Admin accounts sign in at `/admin/login` and are the only way to reach the
+content console, the leads list and the live chat console.
+
+Pick the section for where you are running it — the command is different on the
+VM, and the wrong one fails with `tsx: not found`.
+
+### On the Azure VM (Docker)
+
+Run it **inside the API container**, not on the host:
+
+```bash
+cd /opt/onsys
+docker compose -f docker-compose.prod.yml exec api \
+  npm run create:admin -w @onsys/api -- \
+  --email=you@onsys.com.au --name="Your Name" --role=ADMIN
+```
+
+It then prompts for the password.
+
+> **Why not on the host?** `/opt/onsys` is only the git checkout — `npm install`
+> never runs there, so there is no `node_modules` and no `tsx`. Running
+> `npm run create:admin` from the host fails with `sh: 1: tsx: not found`. The
+> API image keeps its devDependencies precisely so this script, `seed` and
+> `embeddings:build` can run inside the container.
+
+Note `--%` is a **PowerShell** token. On the VM's shell it does nothing, so
+leave it out.
+
+### Locally
+
+```bash
+npm run create:admin -- --email=you@onsys.com.au --name="Your Name" --role=ADMIN
+```
+
+On **Windows PowerShell**, npm swallows the flags before the script sees them
+("Unknown cli config"). Either insert `--%` to stop PowerShell parsing:
+
+```powershell
+npm run create:admin --% -- --email=you@onsys.com.au --name="Your Name" --role=ADMIN
+```
+
+or skip npm and call the script directly:
+
+```powershell
+cd apps/api
+npx tsx src/scripts/create-admin.ts --email=you@onsys.com.au --name="Your Name" --role=ADMIN
+```
+
+### Options
+
+| Flag | Required | Notes |
+|---|---|---|
+| `--email` | yes | Also the sign-in name. Lower-cased before storage. |
+| `--name` | no | Defaults to `Administrator`. |
+| `--role` | no | `ADMIN` or `EDITOR`. Defaults to `ADMIN`. |
+| `--password` | no | Prompted for when omitted — **prefer that**, it keeps the password out of your shell history and out of the container's process list. |
+
+Minimum 12 characters, hashed with Argon2id.
+
+**Re-running with an existing email resets that account's password**, name and
+role rather than failing. That is the supported way to recover a locked-out
+admin — there is no self-service password reset.
+
+---
+
+## Signing in — two-factor authentication
+
+Every admin sign-in needs a second factor. A correct password produces a
+*challenge*, never a session, so a stolen password on its own opens nothing.
+
+The second screen accepts any of three things in one field:
+
+| Factor | When it applies |
+|---|---|
+| **Authenticator app** (TOTP) | Once enrolled — the primary factor |
+| **Emailed code** | Admins not yet enrolled, or who click "email me a code instead" |
+| **Recovery code** | A lost phone. Ten are issued at enrolment; each works once |
+
+A challenge lasts 5 minutes and allows 5 attempts. Running out burns the
+*challenge*, not the account — otherwise anyone holding a leaked password could
+lock a real admin out at will by guessing.
+
+### Enrolling an authenticator app
+
+Sign in, go to **My account**, and choose **Set up authenticator app**. Scan the
+QR with Microsoft Authenticator, Google Authenticator or 1Password, enter the
+code it shows, then save the ten recovery codes. They are stored hashed, so
+**that screen is the only time they are readable** — losing them means
+re-enrolling, not recovering.
+
+### Break-glass: enrolling from the VM
+
+> **Do this for at least one admin immediately after deploying MFA.**
+
+Until someone has an authenticator, *every* sign-in depends on the emailed code
+— so a Microsoft Graph outage locks the whole team out of the console with no
+way back in. `create:admin` does not help: it resets passwords, not the second
+factor.
+
+```bash
+docker compose -f docker-compose.prod.yml exec api \
+  npm run setup:mfa -w @onsys/api -- --email=you@onsys.com.au
+```
+
+It draws the QR code in the terminal, confirms a live code before switching
+anything on, and prints the recovery codes. Anyone who can run it already has a
+shell on the VM and the database credentials, so it grants no access they did
+not already have.
+
+For an admin who has lost their phone *and* used up their recovery codes:
+
+```bash
+docker compose -f docker-compose.prod.yml exec api \
+  npm run setup:mfa -w @onsys/api -- --email=them@onsys.com.au --reset
+```
+
+That clears their authenticator; their next sign-in falls back to an emailed
+code, and they can enrol again from **My account**.
+
+### Verifying it before you rely on it
+
+MFA depends on email for anyone not yet enrolled, so confirm delivery works
+*before* signing out:
+
+```bash
+docker compose -f docker-compose.prod.yml logs api | grep -i "admin sign-in\|second factor"
+```
 
 ---
 
@@ -163,41 +300,78 @@ Verify with `Test-ApplicationAccessPolicy`.
 
 ## Microsoft Teams — chat escalation setup
 
-Two options; the code picks the richer one automatically when configured.
+Escalations go to a Teams channel through a Power Automate flow. Two `.env`
+values, and one flow with a branch in it.
 
-### Option A — Incoming Webhook (simplest, one-way)
+> **Do not set `TEAMS_TEAM_ID` / `TEAMS_CHANNEL_ID`.** Microsoft permits
+> application-only posts to a Teams channel *only* for the migration/import
+> API — a normal app-only post is refused with 401 no matter which permissions
+> are granted or how thoroughly an admin consents. `ChannelMessage.Send` will
+> not fix it. The code detects the refusal, logs it once and falls back to the
+> webhook. These variables exist for a path Microsoft closed.
+>
+> **Private channels do not work either** — neither webhooks nor the Power
+> Automate Teams connector will post to one. Use a standard channel.
 
-1. In Teams, open the target channel → **⋯ → Connectors → Incoming Webhook**
-2. Name it "Onsys Website", copy the URL
-3. `TEAMS_WEBHOOK_URL=https://...`
+### 1. Create the webhook
 
-Escalations post as an Adaptive Card with the transcript and a link into the admin console, where staff reply. Replies reach the visitor through the admin console, not Teams.
+In Teams: hover the target channel → **⋯ → Workflows** → template
+**"Post to a channel when a webhook request is received"** → confirm the team
+and channel → copy the URL.
 
-### Option B — Graph channel messages (two-way, recommended)
-
-Staff reply **in the Teams thread** and it appears in the visitor's widget.
-
-1. Add these **Application** permissions to the same app registration, with admin consent:
-   - `ChannelMessage.Send`
-   - `ChannelMessage.Read.All`
-2. Get the IDs from the channel's **Get link to channel** URL:
+(Office 365 *Connectors* are retired; **Workflows** is the replacement.)
 
 ```env
-TEAMS_TEAM_ID=<groupId from the link>
-TEAMS_CHANNEL_ID=<19:xxxx@thread.tacv2>
+TEAMS_WEBHOOK_URL=https://prod-xx.westus.logic.azure.com/workflows/...
+TEAMS_INBOUND_SECRET=<openssl rand -hex 32>   # only for the two-way flow below
 ```
 
-The API polls the thread for replies while a conversation is live.
+### 2. Branch the flow on `kind`
 
-**Lower-latency alternative:** rather than polling, have a Power Automate flow trigger on new channel replies and POST to:
+Every payload carries a top-level `kind`, and only one of them expects an
+answer. Without a **Condition** on `triggerBody()?['kind']`, a flow built around
+"post a card and wait for a response" parks on cards nobody is meant to answer.
+
+| `kind` | What it is | Needs a reply box? |
+|---|---|---|
+| `chat-escalation` | Visitor asked for a human | **Yes** |
+| `incident` | Possible P1 — visitor was sent to the phone | No |
+| `lead` | Contact form submission | No |
+
+Payloads also carry `sessionId`, `visitorName`, `visitorEmail`, `entryUrl`,
+`reason` and `transcriptText` as flat top-level fields, so a flow reads
+`triggerBody()?['sessionId']` rather than indexing into the card body — which
+silently starts pointing at the wrong visitor the first time anyone reorders the
+card. Values are escaped for direct substitution into Adaptive Card JSON.
+
+### 3. Replying to the visitor
+
+**From the admin console** (no licence needed). Every card carries a
+**Continue in console** button linking to `/admin/chat?session=<id>`, which
+survives the sign-in redirect and opens that conversation. Both sides poll every
+few seconds.
+
+**From inside Teams** (needs Power Automate **Premium** — the HTTP action is a
+premium connector, and there is no free substitute). In the
+`chat-escalation` branch use *Post adaptive card and wait for a response* with
+an `Input.Text` (id `reply`), then an **HTTP** action:
 
 ```
-POST /api/chat/teams-reply
-Header: x-onsys-signature: <TEAMS_INBOUND_SECRET>
-Body:   { "sessionId": "...", "message": "...", "authorName": "..." }
+POST https://www.onsys.com.au/api/chat/teams-reply
+Header:       x-onsys-signature: <TEAMS_INBOUND_SECRET>
+Content-Type: application/x-www-form-urlencoded
+Body:         sessionId=@{encodeUriComponent(triggerBody()?['sessionId'])}
+              &message=@{encodeUriComponent(body('PostCard')?['data']?['reply'])}
 ```
 
-Generate the secret with `openssl rand -hex 32`. The endpoint compares it in constant time and rejects anything else.
+Form-encoded rather than JSON on purpose: `encodeUriComponent()` is one function
+that handles quotes, newlines and ampersands in the agent's reply. The JSON
+equivalent needs nested `replace()` calls that are easy to get subtly wrong. The
+API accepts both.
+
+The endpoint compares the signature in constant time. Note *wait for a response*
+completes on the first submit — one reply per card; the conversation continues in
+the console.
 
 ---
 
@@ -206,21 +380,59 @@ Generate the secret with `openssl rand -hex 32`. The endpoint compares it in con
 **Hybrid model:** the AI handles routine questions; anything it can't answer well goes to a human.
 
 ```
-Visitor message
+Visitor opens the widget
       │
       ▼
- wantsHuman()?  ──yes──► escalate to Teams
-      │ no                 (outage/urgent/"talk to a human"/complaint)
-      ▼
- Retrieve from pgvector
-      │
-      ├─ nothing above RAG_MIN_SCORE ──► escalate (never guesses)
-      │
-      ▼
- LLM answers, grounded in retrieved chunks + citations
-      │
-      └─ model sets needsHuman ──► escalate
+ Name + email ──► 6-digit code emailed ──► verified?
+      │ no                                    │ yes
+      └─► chat stays locked                   ▼
+                                       Visitor message
+                                              │
+                                              ▼
+                              reportsIncident()? ──yes──► phone number
+                                              │            + heads-up card
+                                              │ no           (never queued)
+                                              ▼
+                              wantsHuman()? ──yes──► escalate to Teams
+                                              │        ("talk to a human",
+                                              │         complaint)
+                                              ▼
+                                    Retrieve from pgvector
+                                              │
+                                              ├─ nothing above RAG_MIN_SCORE
+                                              │     └──► escalate (never guesses)
+                                              ▼
+                              LLM answers, grounded + citations
+                                              │
+                                              └─ model sets needsHuman ──► escalate
 ```
+
+**The email gate.** The widget asks for a name and address and emails a
+six-digit code; nothing can be sent until it comes back. Enforced server-side on
+`/message` and `/escalate`, not only in the widget — the widget is the one part
+an abuser can rewrite. It makes a captured address worth treating as a lead, and
+prices out casual abuse: every conversation now costs a working inbox. Codes are
+hashed (salted with the session id), last 10 minutes, allow 5 attempts, and can
+be resent once a minute.
+
+**Live incidents leave the chat.** Chat carries no reference number and starts
+no SLA clock, so it is the wrong place to raise a P1. `reportsIncident()`
+answers with the 24/7 number instead and sends the team a heads-up card with no
+reply box, once per conversation. "down" only counts beside something that can
+be down — "are your prices coming down?" is not an outage. Set
+`ORG_PORTAL_ENABLED=true` to add the client-portal link once DBPulse is live;
+until then the reply is phone-only, because pointing someone mid-outage at a
+portal that is still hidden is worse than not mentioning it.
+
+**Ending a chat.** The visitor can end the conversation and the transcript is
+emailed to the address they verified. Closing never fails on the email — someone
+clicking "end chat" wants it closed.
+
+**Retention.** Transcripts hold names, addresses, IPs and whatever a visitor
+typed, so they are a liability once stale. **Admin → Chat → Delete old
+sessions** removes closed conversations past a chosen age; the confirmation says
+how many first, and anything still awaiting a reply is excluded regardless of
+age.
 
 **Why it refuses rather than guesses:** a confidently wrong answer about someone's SLA or pricing is worse than no answer. The system prompt forbids inventing services, prices, SLAs or client names, and retrieval below the similarity floor triggers a handoff instead of a fabricated response. Answers carry citations linking back to the source page.
 
@@ -355,25 +567,9 @@ tests/e2e/                 Playwright specs
 
 ### Content model
 
-cd C:\DEV2026\onsys-platform\onsys-platform\apps\api
-npx tsx src/scripts/create-admin.ts --email=ranil@onsys.com.au --name="Ranil Perera" --role=ADMIN
-
-
-
-
 Pages are composed from **blocks** (`packages/shared/src/blocks.ts`) — `hero`, `cardGrid`, `pricing`, `faq`, `steps`, `platformChips`, `ctaBand`, and so on. Each block type maps to one renderer in `components/blocks/BlockRenderer.tsx`. Adding a section type means adding a Zod variant and a case in the renderer; editors can then reorder and reuse it without touching code.
 
 
-npm run create:admin --% -- --email=ranil@onsys.com.au --name="Ranil Perera" --role=ADMIN
-
-
-
-On Windows PowerShell npm eats the flags before the script sees them
-("Unknown cli config"). Run the script directly instead:
-  npx tsx src/scripts/create-admin.ts --email=... --name="..." --role=ADMIN
-
-
-==============================
 
 
 How it works

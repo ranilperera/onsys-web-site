@@ -2,9 +2,10 @@ import { Router } from 'express';
 import DOMPurify from 'isomorphic-dompurify';
 import { z } from 'zod';
 import { marked } from 'marked';
-import { blocksSchema } from '@onsys/shared';
+import { blocksSchema, purgeChatSchema } from '@onsys/shared';
 import { prisma } from '../lib/prisma';
 import { asyncHandler } from '../middleware/error';
+import { logger } from '../lib/logger';
 import { requireAuth, requireAdmin, verifyCsrf } from '../middleware/auth';
 import { sendEmail, renderChatTranscript } from '../services/email.service';
 
@@ -290,6 +291,50 @@ adminRouter.patch(
 // ---------------------------------------------------------------
 // Chat transcripts + agent replies from the console
 // ---------------------------------------------------------------
+
+/**
+ * Delete conversations that have not been touched in a while.
+ *
+ * Chat transcripts hold names, email addresses, IPs and whatever a visitor
+ * chose to type, so keeping them forever is a liability rather than an asset.
+ * Messages go with the session through the cascade, and so do the embeddings
+ * chunks — no orphans to sweep up afterwards.
+ *
+ * Open conversations are never touched regardless of age: a session someone is
+ * still waiting on is not old, however long it has been sitting there.
+ */
+adminRouter.post(
+  '/chat/purge',
+  asyncHandler(async (req, res) => {
+    const { olderThanDays } = purgeChatSchema.parse(req.body);
+    const cutoff = new Date(Date.now() - olderThanDays * 24 * 60 * 60_000);
+
+    const { count } = await prisma.chatSession.deleteMany({
+      where: {
+        updatedAt: { lt: cutoff },
+        status: { in: ['CLOSED', 'BOT'] },
+      },
+    });
+
+    logger.info({ olderThanDays, count }, 'Purged old chat sessions');
+    res.json({ ok: true, deleted: count, olderThanDays });
+  }),
+);
+
+/** How many sessions a purge would remove, so the button can say so first. */
+adminRouter.get(
+  '/chat/purge-preview',
+  asyncHandler(async (req, res) => {
+    const { olderThanDays } = purgeChatSchema.parse(req.query);
+    const cutoff = new Date(Date.now() - olderThanDays * 24 * 60 * 60_000);
+
+    const count = await prisma.chatSession.count({
+      where: { updatedAt: { lt: cutoff }, status: { in: ['CLOSED', 'BOT'] } },
+    });
+
+    res.json({ count, olderThanDays });
+  }),
+);
 
 adminRouter.get(
   '/chat',

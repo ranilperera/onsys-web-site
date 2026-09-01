@@ -591,6 +591,66 @@ footer li a:hover{color:var(--navy);}
   .chat-launcher{bottom:16px; right:16px;}
 }
 
+/* ===== Admin console ===== */
+.admin-nav{display:flex; gap:18px; flex-wrap:wrap; border-bottom:1px solid var(--gray-light); padding-bottom:14px; margin-bottom:28px;}
+.admin-nav a{color:#605E5C; font-size:14px;}
+.admin-nav a:hover{color:var(--navy);}
+.admin-nav a.active{font-weight:700; color:var(--navy);}
+
+.admin-head{display:flex; align-items:flex-start; justify-content:space-between; gap:24px; flex-wrap:wrap; margin-bottom:22px;}
+
+.admin-card{border:1px solid var(--gray-light); border-radius:10px; padding:22px 24px; margin-bottom:24px; background:#fff;}
+.admin-card h2{font-size:18px; margin:0 0 14px;}
+.admin-card h3{font-size:15px; margin:0 0 8px;}
+.admin-card .btn{margin-right:8px; margin-top:6px;}
+
+.admin-table{width:100%; border-collapse:collapse; font-size:14px;}
+.admin-table thead th{text-align:left; padding:10px; border-bottom:2px solid var(--gray-light); font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:#605E5C; white-space:nowrap;}
+.admin-table tbody td{padding:10px; border-bottom:1px solid var(--gray-light); vertical-align:top;}
+
+.btn-sm{padding:6px 12px; font-size:12.5px; white-space:nowrap;}
+
+/* Leads */
+.lead-filters{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px;}
+.lead-filters button{border:1px solid var(--gray-light); background:#fff; border-radius:999px; padding:6px 14px; font-size:12.5px; font-weight:600; color:#605E5C; cursor:pointer; font-family:inherit;}
+.lead-filters button:hover{border-color:var(--blue-light); color:var(--navy);}
+.lead-filters button.active{background:var(--navy); border-color:var(--navy); color:#fff;}
+
+.lead-message{max-width:320px; min-width:220px;}
+.lead-message .clamped{display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+.lead-message .full{display:block; white-space:pre-wrap;}
+.lead-more{display:block; background:none; border:none; padding:4px 0 0; color:var(--orange-dark); font-size:12px; font-weight:600; cursor:pointer; text-decoration:underline; font-family:inherit;}
+.lead-service{display:inline-block; margin-top:6px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--navy); background:#EAF1FB; border-radius:4px; padding:2px 7px;}
+
+.lead-status{display:inline-block; font-size:11px; font-weight:700; letter-spacing:.04em; padding:3px 9px; border-radius:999px; white-space:nowrap;}
+.lead-status.new{background:#FFF4CE; color:#6B5900;}
+.lead-status.contacted{background:#EAF1FB; color:var(--navy);}
+.lead-status.qualified{background:#DFF6E7; color:#0B5C2E;}
+.lead-status.closed{background:#F3F2F1; color:#605E5C;}
+
+/* Chat purge */
+.purge-control{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+.purge-control label{font-size:12.5px; color:#605E5C; font-weight:600;}
+.purge-control select{border:1px solid var(--gray-light); border-radius:6px; padding:7px 10px; font-family:inherit; font-size:13px; background:#fff;}
+
+/* MFA */
+.mfa-state{display:flex; align-items:center; gap:8px; font-size:14px; margin:0 0 12px;}
+.mfa-state .dot{width:9px; height:9px; border-radius:50%; flex-shrink:0;}
+.mfa-state.on .dot{background:var(--green-mid);}
+.mfa-state.off .dot{background:#D89A00;}
+.mfa-warn{font-size:13px; color:#6B5900; background:#FFF4CE; border:1px solid #F0DFA0; border-radius:6px; padding:10px 12px; margin:0 0 12px;}
+.mfa-secret{display:inline-block; margin-top:6px; font-family:ui-monospace,Consolas,monospace; font-size:13px; letter-spacing:.08em; background:#F3F2F1; border:1px solid var(--gray-light); border-radius:6px; padding:6px 10px; word-break:break-all;}
+
+.recovery-panel{border:1px solid var(--orange); background:#FFF6EA; border-radius:8px; padding:18px 20px; margin-bottom:20px;}
+.recovery-panel p{font-size:13.5px; color:#5C3200; margin:0 0 12px;}
+.recovery-codes{list-style:none; margin:0 0 14px; padding:0; display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:8px;}
+.recovery-codes li{font-family:ui-monospace,Consolas,monospace; font-size:14px; letter-spacing:.06em; background:#fff; border:1px solid #F0D5AE; border-radius:6px; padding:8px 10px; text-align:center;}
+
+@media(max-width:720px){
+  .admin-head{flex-direction:column;}
+  .lead-message{max-width:none; min-width:0;}
+}
+
 /* ===== Forms: status + a11y ===== */
 .form-status{padding:14px 16px; border-radius:8px; font-size:14px; margin-bottom:18px;}
 .form-status.success{background:#E7F5EC; border:1px solid #A8DCBB; color:#0B5B36;}

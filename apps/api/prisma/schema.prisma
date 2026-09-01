@@ -321,10 +321,48 @@ model User {
   passwordHash String
   role         Role     @default(EDITOR)
   lastLoginAt  DateTime?
+
+  /// Authenticator-app secret, base32. Present once setup has been started;
+  /// totpEnabledAt is what marks it confirmed and in use, so an abandoned
+  /// enrolment never becomes a factor nobody can satisfy.
+  totpSecret     String?
+  totpEnabledAt  DateTime?
+  /// SHA-256 of each single-use recovery code. Hashed for the same reason the
+  /// password is: these are long-lived admin credentials, and a leaked table
+  /// of plaintext codes is a leaked table of logins. Removed as they are used.
+  recoveryCodes  String[]  @default([])
+
+  challenges   MfaChallenge[]
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   @@map("users")
+}
+
+/// A password accepted, second factor still outstanding.
+///
+/// Deliberately not an AdminSession: until the second factor lands there is no
+/// session, so a stolen password alone yields a row that can open nothing.
+model MfaChallenge {
+  id             String    @id @default(cuid())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Wrong attempts across every method. Burns the challenge, not the account,
+  /// so an attacker cannot lock a real admin out by guessing at them.
+  attempts       Int       @default(0)
+
+  /// Emailed fallback code, for a lost or not-yet-enrolled authenticator.
+  emailOtpHash   String?
+  emailOtpSentAt DateTime?
+
+  expiresAt      DateTime
+  createdAt      DateTime  @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("mfa_challenges")
 }
 
 /// Server-side sessions for the admin CMS (httpOnly cookie holds the id).

@@ -211,6 +211,23 @@ export function renderChatCode(code: string, minutes: number): string {
   );
 }
 
+/**
+ * Second-factor code for admin sign-in.
+ *
+ * The warning is the point. Anyone receiving this without having just typed
+ * their password is looking at evidence that someone else has it, and the one
+ * useful instruction at that moment is "change it" — not a link to click.
+ */
+export function renderAdminCode(code: string, name: string, minutes: number): string {
+  return wrapEmail(
+    'Your admin sign-in code',
+    `<p style="margin:0 0 16px;font-size:15px;line-height:1.6;">Hello ${escapeHtml(name)}, here is the code to finish signing in to the Onsys admin console:</p>
+     <p style="margin:0 0 20px;font-size:34px;font-weight:700;letter-spacing:.22em;color:${BRAND_NAVY};font-family:'Segoe UI',Arial,sans-serif;">${escapeHtml(code)}</p>
+     <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#605E5C;">It expires in ${minutes} minutes and can only be used once.</p>
+     <p style="margin:0;font-size:14px;line-height:1.6;color:#A4262C;"><strong>If you did not just try to sign in, someone else has your password.</strong> Change it immediately and tell the team.</p>`,
+  );
+}
+
 /** Chat transcript emailed to the visitor or the team on request. */
 export function renderChatTranscript(
   messages: Array<{ role: string; content: string; createdAt: Date }>,

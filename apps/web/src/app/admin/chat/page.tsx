@@ -33,6 +33,65 @@ export default function ChatConsole() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [reply, setReply] = useState('');
   const [sending, setSending] = useState(false);
+  const [purgeDays, setPurgeDays] = useState(90);
+  const [purging, setPurging] = useState(false);
+  const [purgeNote, setPurgeNote] = useState<{ ok: boolean; text: string } | null>(null);
+
+  /**
+   * Remove old conversations.
+   *
+   * Asks the server how many would go before asking the person to confirm — a
+   * confirm dialog that cannot say what it is about to delete is one people
+   * learn to click through. Open conversations are excluded server-side
+   * regardless of age.
+   */
+  async function purge() {
+    setPurging(true);
+    setPurgeNote(null);
+    try {
+      const preview = await fetch(
+        `${siteConfig.apiUrl}/api/admin/chat/purge-preview?olderThanDays=${purgeDays}`,
+        { credentials: 'include' },
+      );
+      const { count } = await preview.json();
+
+      if (!count) {
+        setPurgeNote({ ok: true, text: `Nothing to delete — no closed sessions older than ${purgeDays} days.` });
+        return;
+      }
+
+      const ok = window.confirm(
+        `Permanently delete ${count} chat ${count === 1 ? 'session' : 'sessions'} older than ` +
+          `${purgeDays} days, along with their transcripts?\n\nThis cannot be undone. ` +
+          'Conversations still waiting on a reply are not touched.',
+      );
+      if (!ok) return;
+
+      const res = await fetch(`${siteConfig.apiUrl}/api/admin/chat/purge`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', 'x-csrf-token': csrfToken() },
+        body: JSON.stringify({ olderThanDays: purgeDays }),
+      });
+      const body = await res.json();
+      if (!res.ok) {
+        setPurgeNote({ ok: false, text: body.error ?? 'Could not delete those sessions.' });
+        return;
+      }
+
+      setPurgeNote({
+        ok: true,
+        text: `Deleted ${body.deleted} ${body.deleted === 1 ? 'session' : 'sessions'}.`,
+      });
+      setActive(null);
+      setMessages([]);
+      loadSessions();
+    } catch {
+      setPurgeNote({ ok: false, text: 'Could not reach the server.' });
+    } finally {
+      setPurging(false);
+    }
+  }
 
   const loadSessions = useCallback(() => {
     fetch(`${siteConfig.apiUrl}/api/admin/chat`, { credentials: 'include' })
@@ -101,11 +160,38 @@ export default function ChatConsole() {
 
   return (
     <>
-      <h1 style={{ fontSize: 26, marginBottom: 8 }}>Live chat</h1>
-      <p style={{ color: 'var(--gray)', fontSize: 14, marginBottom: 22 }}>
-        Conversations escalated from the website. Replies here appear in the visitor&apos;s chat widget
-        within a few seconds.
-      </p>
+      <div className="admin-head">
+        <div>
+          <h1 style={{ fontSize: 26, marginBottom: 8 }}>Live chat</h1>
+          <p style={{ color: 'var(--gray)', fontSize: 14, margin: 0 }}>
+            Conversations escalated from the website. Replies here appear in the visitor&apos;s chat
+            widget within a few seconds.
+          </p>
+        </div>
+
+        <div className="purge-control">
+          <label htmlFor="purge-days">Delete sessions older than</label>
+          <select
+            id="purge-days"
+            value={purgeDays}
+            onChange={(e) => setPurgeDays(Number(e.target.value))}
+          >
+            <option value={30}>30 days</option>
+            <option value={90}>90 days</option>
+            <option value={180}>6 months</option>
+            <option value={365}>1 year</option>
+          </select>
+          <button className="btn btn-outline btn-sm" onClick={() => void purge()} disabled={purging}>
+            {purging ? 'Deleting…' : 'Delete old sessions'}
+          </button>
+        </div>
+      </div>
+
+      {purgeNote && (
+        <div className={`form-status ${purgeNote.ok ? 'success' : 'error'}`} role="status">
+          {purgeNote.text}
+        </div>
+      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: 24, alignItems: 'start' }}>
         <div>
