@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { siteConfig } from '@/lib/config';
+import { mergeMessages, lastTimestamp } from '@/lib/chatMessages';
 
 interface Message {
   id?: string;
@@ -125,8 +126,13 @@ export function ChatWidget() {
         return;
       }
       const data = await res.json();
-      setMessages(data.messages ?? []);
+      const history: Message[] = data.messages ?? [];
+      setMessages(history);
       setStatus(data.status ?? 'BOT');
+      // Start the poll from the end of what we just loaded. Without this the
+      // first poll asks for everything and re-sends the whole conversation on
+      // every tick, which the id filter then has to throw away.
+      lastPolledRef.current = lastTimestamp(history);
     } catch {
       /* transient — the poll will retry */
     }
@@ -156,12 +162,8 @@ export function ChatWidget() {
 
         const data = await res.json();
         if (Array.isArray(data.messages) && data.messages.length > 0) {
-          setMessages((prev) => {
-            const seen = new Set(prev.map((m) => m.id).filter(Boolean));
-            const fresh = (data.messages as Message[]).filter((m) => !m.id || !seen.has(m.id));
-            return fresh.length ? [...prev, ...fresh] : prev;
-          });
-          lastPolledRef.current = data.messages[data.messages.length - 1].createdAt ?? null;
+          setMessages((prev) => mergeMessages(prev, data.messages as Message[]));
+          lastPolledRef.current = lastTimestamp(data.messages as Message[]);
         }
         if (data.status) setStatus(data.status);
       } catch {
