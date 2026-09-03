@@ -13,7 +13,10 @@
     "import:wp": "tsx src/scripts/import-wordpress.ts",
     "embeddings:build": "tsx src/scripts/build-embeddings.ts",
     "create:admin": "tsx src/scripts/create-admin.ts",
-    "setup:mfa": "tsx src/scripts/setup-mfa.ts"
+    "setup:mfa": "tsx src/scripts/setup-mfa.ts",
+    "redirects:blog": "tsx src/scripts/backfill-blog-redirects.ts",
+    "fix:imported": "tsx src/scripts/fix-imported-content.ts",
+    "seed:author": "tsx src/scripts/seed-author.ts"
   },
   "dependencies": {
     "@azure/identity": "^4.5.0",
@@ -35,6 +38,7 @@
     "pino": "^9.5.0",
     "pino-http": "^10.3.0",
     "qrcode": "^1.5.4",
+    "stripe": "^22.6.1",
     "zod": "^3.24.1"
   },
   "devDependencies": {

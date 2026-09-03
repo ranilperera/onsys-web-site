@@ -357,6 +357,142 @@ export async function notifyIncidentToTeams(payload: {
   }
 }
 
+/**
+ * Paid — or attempted — emergency support block.
+ *
+ * Posted at both stages on purpose. Someone who reached the payment screen with
+ * production down and then abandoned it is not a lost sale to ignore; they are
+ * a company in trouble whose card was declined, and worth a call either way.
+ */
+export async function notifyEmergencyToTeams(payload: {
+  requestId: string;
+  name: string;
+  company?: string | null;
+  phone: string;
+  email: string;
+  summary?: string | null;
+  paid: boolean;
+}): Promise<void> {
+  if (!env.TEAMS_WEBHOOK_URL) return;
+
+  const title = payload.paid
+    ? '💳 PAID emergency block — call them now'
+    : '⏳ Emergency block started — payment not yet complete';
+
+  try {
+    await fetch(env.TEAMS_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        kind: payload.paid ? 'emergency-paid' : 'emergency-pending',
+        requestId: payload.requestId,
+        visitorName: jsonSafe(payload.name),
+        visitorEmail: jsonSafe(payload.email),
+        transcriptText: jsonSafe(payload.summary || 'No description given'),
+        type: 'message',
+        attachments: [
+          {
+            contentType: 'application/vnd.microsoft.card.adaptive',
+            content: {
+              $schema: 'http://adaptivecards.io/schemas/adaptive-card.json',
+              type: 'AdaptiveCard',
+              version: '1.4',
+              msteams: { width: 'Full' },
+              body: [
+                {
+                  type: 'TextBlock',
+                  text: title,
+                  weight: 'Bolder',
+                  size: 'Large',
+                  color: payload.paid ? 'Good' : 'Warning',
+                },
+                {
+                  type: 'FactSet',
+                  facts: [
+                    { title: 'Contact', value: payload.name },
+                    { title: 'Company', value: payload.company || '—' },
+                    { title: 'Phone', value: payload.phone },
+                    { title: 'Email', value: payload.email },
+                  ],
+                },
+                {
+                  type: 'TextBlock',
+                  text: payload.summary || 'No description given',
+                  wrap: true,
+                  spacing: 'Medium',
+                },
+              ],
+              actions: [
+                {
+                  type: 'Action.OpenUrl',
+                  title: 'Call now',
+                  url: `tel:${payload.phone.replace(/[^\d+]/g, '')}`,
+                },
+              ],
+            },
+          },
+        ],
+      }),
+    });
+  } catch (error) {
+    logger.error({ err: error, requestId: payload.requestId }, 'Failed to post emergency notice to Teams');
+  }
+}
+
+/** A free health check request — the SQL Server version is the useful part. */
+export async function notifyHealthCheckToTeams(r: {
+  name: string;
+  company: string;
+  email: string;
+  phone: string;
+  sqlVersion: string;
+  instanceCount?: string;
+  notes?: string;
+}): Promise<void> {
+  if (!env.TEAMS_WEBHOOK_URL) return;
+
+  try {
+    await fetch(env.TEAMS_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        kind: 'health-check',
+        visitorName: jsonSafe(r.name),
+        visitorEmail: jsonSafe(r.email),
+        transcriptText: jsonSafe(r.notes || 'No notes'),
+        type: 'message',
+        attachments: [
+          {
+            contentType: 'application/vnd.microsoft.card.adaptive',
+            content: {
+              $schema: 'http://adaptivecards.io/schemas/adaptive-card.json',
+              type: 'AdaptiveCard',
+              version: '1.4',
+              body: [
+                { type: 'TextBlock', text: '🩺 Free health check requested', weight: 'Bolder', size: 'Large' },
+                {
+                  type: 'FactSet',
+                  facts: [
+                    { title: 'Company', value: r.company },
+                    { title: 'Contact', value: r.name },
+                    { title: 'Phone', value: r.phone },
+                    { title: 'Email', value: r.email },
+                    { title: 'SQL Server', value: r.sqlVersion },
+                    { title: 'Instances', value: r.instanceCount || '—' },
+                  ],
+                },
+                ...(r.notes ? [{ type: 'TextBlock', text: r.notes, wrap: true, spacing: 'Medium' }] : []),
+              ],
+            },
+          },
+        ],
+      }),
+    });
+  } catch (error) {
+    logger.error({ err: error }, 'Failed to post health check request to Teams');
+  }
+}
+
 /** Notify the channel that a new lead came through the contact form. */
 export async function notifyLeadToTeams(lead: {
   name: string;

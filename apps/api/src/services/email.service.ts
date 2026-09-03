@@ -228,6 +228,123 @@ export function renderAdminCode(code: string, name: string, minutes: number): st
   );
 }
 
+interface HealthCheckInput {
+  name: string;
+  company: string;
+  email: string;
+  phone: string;
+  sqlVersion: string;
+  instanceCount?: string;
+  notes?: string;
+}
+
+/**
+ * Acknowledgement to whoever asked for the health check.
+ *
+ * Leads with the script bundle rather than with a thank-you. The whole
+ * proposition is that they read the queries before running them, and the
+ * lead time exists to give them room to do exactly that — so the link is the
+ * most useful thing this email can contain.
+ */
+export function renderHealthCheckAck(
+  r: HealthCheckInput & { earliest: string; leadDays: number },
+): string {
+  const readable = new Date(r.earliest).toLocaleDateString('en-AU', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+  });
+
+  return wrapEmail(
+    'Your free 20-point SQL Server health check',
+    `<p style="margin:0 0 16px;font-size:15px;line-height:1.6;">Thanks ${escapeHtml(r.name)} — we have your request for ${escapeHtml(r.company)} and a senior DBA will be in touch to confirm a time.</p>
+     <p style="margin:0 0 16px;font-size:15px;line-height:1.6;"><strong>Start by reading the scripts.</strong> Every one of the twenty checkpoints is collected by a read-only query, and they are all published so you can review them — and get any change approval you need — before anything runs.</p>
+     <p style="margin:0 0 22px;">
+       <a href="${env.SITE_URL}/onsys-sql-server-health-check.html" style="display:inline-block;background:${BRAND_ORANGE};color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:4px;font-weight:600;font-size:15px;">Open the script bundle</a>
+     </p>
+     <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;font-size:14px;border-collapse:collapse;margin:0 0 16px;">
+       <tr><td style="padding:6px 0;color:#605E5C;">SQL Server version</td><td style="padding:6px 0;text-align:right;">${escapeHtml(r.sqlVersion)}</td></tr>
+       ${r.instanceCount ? `<tr><td style="padding:6px 0;color:#605E5C;">Instances</td><td style="padding:6px 0;text-align:right;">${escapeHtml(r.instanceCount)}</td></tr>` : ''}
+       <tr><td style="padding:6px 0;color:#605E5C;">Earliest session</td><td style="padding:6px 0;text-align:right;">${escapeHtml(readable)}</td></tr>
+     </table>
+     <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#605E5C;">We schedule these about ${r.leadDays} days out on purpose, so there is time to review the scripts properly rather than approving something nobody has read.</p>
+     <p style="margin:0;font-size:14px;line-height:1.6;color:#605E5C;">If production is down right now, do not wait for this — call <strong>${escapeHtml(org.phone)}</strong>.</p>`,
+  );
+}
+
+/** Internal alert with everything a consultant needs before the session. */
+export function renderHealthCheckAlert(r: HealthCheckInput): string {
+  return wrapEmail(
+    'Health check request',
+    `<p style="margin:0 0 16px;font-size:15px;line-height:1.6;"><strong>${escapeHtml(r.company)}</strong> has requested the free 20-point health check.</p>
+     <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;font-size:14px;border-collapse:collapse;margin:0 0 16px;">
+       <tr><td style="padding:6px 0;color:#605E5C;">Contact</td><td style="padding:6px 0;text-align:right;">${escapeHtml(r.name)}</td></tr>
+       <tr><td style="padding:6px 0;color:#605E5C;">Email</td><td style="padding:6px 0;text-align:right;"><a href="mailto:${escapeHtml(r.email)}">${escapeHtml(r.email)}</a></td></tr>
+       <tr><td style="padding:6px 0;color:#605E5C;">Phone</td><td style="padding:6px 0;text-align:right;"><a href="tel:${escapeHtml(r.phone)}">${escapeHtml(r.phone)}</a></td></tr>
+       <tr><td style="padding:6px 0;color:#605E5C;">SQL Server version</td><td style="padding:6px 0;text-align:right;"><strong>${escapeHtml(r.sqlVersion)}</strong></td></tr>
+       <tr><td style="padding:6px 0;color:#605E5C;">Instances</td><td style="padding:6px 0;text-align:right;">${escapeHtml(r.instanceCount || '—')}</td></tr>
+     </table>
+     ${r.notes ? `<p style="margin:0;font-size:14px;line-height:1.6;"><strong>Notes:</strong><br/>${escapeHtml(r.notes)}</p>` : ''}`,
+  );
+}
+
+interface EmergencyRecord {
+  name: string;
+  company: string | null;
+  phone: string;
+  email: string;
+  summary: string | null;
+  hours: number;
+  amountCents: number | null;
+  currency: string;
+}
+
+const money = (cents: number | null, currency: string): string =>
+  cents == null
+    ? '—'
+    : new Intl.NumberFormat('en-AU', { style: 'currency', currency: currency.toUpperCase() }).format(
+        cents / 100,
+      );
+
+/**
+ * Receipt for a prepaid emergency block.
+ *
+ * The phone number is the first thing in it and the largest thing in it. The
+ * customer has just paid because production is down; a receipt that leads with
+ * an invoice reference is a receipt that wastes their next thirty seconds.
+ */
+export function renderEmergencyReceipt(r: EmergencyRecord): string {
+  return wrapEmail(
+    'Your emergency support block is active',
+    `<p style="margin:0 0 8px;font-size:15px;line-height:1.6;">Thanks ${escapeHtml(r.name)} — your ${r.hours}-hour emergency block is paid and active.</p>
+     <p style="margin:0 0 8px;font-size:15px;line-height:1.6;"><strong>Call us now:</strong></p>
+     <p style="margin:0 0 20px;">
+       <a href="tel:${escapeHtml(org.phoneE164)}" style="display:inline-block;background:${BRAND_ORANGE};color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:4px;font-weight:700;font-size:20px;">${escapeHtml(org.phone)}</a>
+     </p>
+     <p style="margin:0 0 16px;font-size:14px;line-height:1.6;">Quote your name or company and we will pick up from there. If you would rather book a scheduled session, use <a href="${env.SITE_URL}/book">${env.SITE_URL}/book</a> and you will get a Teams link by email.</p>
+     <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;font-size:14px;border-collapse:collapse;margin:0 0 16px;">
+       <tr><td style="padding:6px 0;color:#605E5C;">Purchased</td><td style="padding:6px 0;text-align:right;">${r.hours} hours</td></tr>
+       <tr><td style="padding:6px 0;color:#605E5C;">Amount paid</td><td style="padding:6px 0;text-align:right;">${money(r.amountCents, r.currency)} (GST inclusive)</td></tr>
+       <tr><td style="padding:6px 0;color:#605E5C;">Contact</td><td style="padding:6px 0;text-align:right;">${escapeHtml(r.phone)}</td></tr>
+     </table>
+     <p style="margin:0;font-size:13px;line-height:1.6;color:#605E5C;">Hours are consumed against actual work performed. Anything unused is credited against further work or refunded on request — just reply to this email.</p>`,
+  );
+}
+
+/** Internal alert: everything needed to call the customer back immediately. */
+export function renderEmergencyAlert(r: EmergencyRecord): string {
+  return wrapEmail(
+    'Paid emergency support request',
+    `<p style="margin:0 0 16px;font-size:15px;line-height:1.6;"><strong>${escapeHtml(r.company || r.name)}</strong> has paid for a ${r.hours}-hour emergency block. They are expecting a consultant.</p>
+     <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;font-size:14px;border-collapse:collapse;margin:0 0 16px;">
+       <tr><td style="padding:6px 0;color:#605E5C;">Name</td><td style="padding:6px 0;text-align:right;">${escapeHtml(r.name)}</td></tr>
+       <tr><td style="padding:6px 0;color:#605E5C;">Company</td><td style="padding:6px 0;text-align:right;">${escapeHtml(r.company || '—')}</td></tr>
+       <tr><td style="padding:6px 0;color:#605E5C;">Phone</td><td style="padding:6px 0;text-align:right;"><a href="tel:${escapeHtml(r.phone)}">${escapeHtml(r.phone)}</a></td></tr>
+       <tr><td style="padding:6px 0;color:#605E5C;">Email</td><td style="padding:6px 0;text-align:right;"><a href="mailto:${escapeHtml(r.email)}">${escapeHtml(r.email)}</a></td></tr>
+       <tr><td style="padding:6px 0;color:#605E5C;">Paid</td><td style="padding:6px 0;text-align:right;">${money(r.amountCents, r.currency)}</td></tr>
+     </table>
+     ${r.summary ? `<p style="margin:0;font-size:14px;line-height:1.6;"><strong>What is happening:</strong><br/>${escapeHtml(r.summary)}</p>` : ''}`,
+  );
+}
+
 /** Chat transcript emailed to the visitor or the team on request. */
 export function renderChatTranscript(
   messages: Array<{ role: string; content: string; createdAt: Date }>,

@@ -14,6 +14,8 @@ import { contentRouter } from './routes/content.routes';
 import { leadRouter } from './routes/lead.routes';
 import { bookingRouter } from './routes/booking.routes';
 import { chatRouter } from './routes/chat.routes';
+import { emergencyRouter } from './routes/emergency.routes';
+import { healthCheckRouter } from './routes/healthcheck.routes';
 import { authRouter } from './routes/auth.routes';
 import { adminRouter } from './routes/admin.routes';
 
@@ -81,6 +83,16 @@ app.use(
 );
 
 app.use(compression());
+
+/**
+ * Stripe's webhook signature is computed over the exact bytes Stripe sent, so
+ * this route has to see the raw body. It is mounted ahead of express.json()
+ * because once the JSON parser has turned the body into an object the original
+ * bytes are gone and the signature can never verify — which fails as a silent
+ * "invalid signature" rejection of every genuine payment notification.
+ */
+app.use('/api/emergency/webhook', express.raw({ type: 'application/json', limit: '1mb' }));
+
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(cookieParser());
@@ -105,6 +117,8 @@ app.use('/api/content', contentRouter);
 app.use('/api/leads', leadRouter);
 app.use('/api/bookings', bookingRouter);
 app.use('/api/chat', chatRouter);
+app.use('/api/emergency', emergencyRouter);
+app.use('/api/health-check', healthCheckRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/admin', adminRouter);
 

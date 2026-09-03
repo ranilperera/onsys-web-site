@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma';
+import { rankRelated } from '../lib/related';
 import { asyncHandler } from '../middleware/error';
 
 /**
@@ -52,7 +53,7 @@ contentRouter.get(
     const [posts, total] = await Promise.all([
       prisma.post.findMany({
         where,
-        include: { category: true },
+        include: { category: true, author: true },
         orderBy: { publishedAt: 'desc' },
         skip: (page - 1) * perPage,
         take: perPage,
@@ -72,26 +73,82 @@ contentRouter.get(
   asyncHandler(async (req, res) => {
     const post = await prisma.post.findFirst({
       where: { slug: req.params.slug, status: 'PUBLISHED' },
-      include: { category: true, faqs: { orderBy: { order: 'asc' } } },
+      include: { category: true, author: true, faqs: { orderBy: { order: 'asc' } } },
     });
     if (!post) {
       res.status(404).json({ error: 'Post not found' });
       return;
     }
 
-    // Lightweight "related" — same category, most recent, excluding self.
-    const related = await prisma.post.findMany({
-      where: {
-        status: 'PUBLISHED',
-        id: { not: post.id },
-        ...(post.categoryId ? { categoryId: post.categoryId } : {}),
+    /**
+     * Topically related posts, not just recent ones.
+     *
+     * Category alone was too coarse: almost everything sits in "Database", so
+     * the three newest posts appeared under every article and a piece on TDE
+     * recommended an Oracle RMAN guide. Titles are scored on shared
+     * significant words, and recency only breaks ties.
+     *
+     * Done in application code rather than SQL because the corpus is ~50 rows.
+     * Postgres full-text search would be the right answer at 500.
+     */
+    const candidates = await prisma.post.findMany({
+      where: { status: 'PUBLISHED', id: { not: post.id } },
+      select: {
+        slug: true,
+        title: true,
+        excerpt: true,
+        coverImage: true,
+        publishedAt: true,
+        readMinutes: true,
+        categoryId: true,
+        category: { select: { name: true, color: true } },
       },
-      select: { slug: true, title: true, excerpt: true, coverImage: true, publishedAt: true },
       orderBy: { publishedAt: 'desc' },
-      take: 3,
     });
 
+    const related = rankRelated(post, candidates).map(
+      ({ categoryId: _categoryId, ...rest }) => rest,
+    );
+
     res.json({ post, related });
+  }),
+);
+
+/**
+ * One author with their published posts, for /about/[author].
+ *
+ * The page exists so the Person in each article's JSON-LD resolves to
+ * something a search engine can read. A `sameAs` link pointing at a 404 is
+ * worse than no author markup at all.
+ */
+contentRouter.get(
+  '/authors/:slug',
+  asyncHandler(async (req, res) => {
+    const author = await prisma.author.findUnique({
+      where: { slug: req.params.slug },
+      include: {
+        posts: {
+          where: { status: 'PUBLISHED' },
+          select: {
+            slug: true,
+            title: true,
+            excerpt: true,
+            coverImage: true,
+            publishedAt: true,
+            readMinutes: true,
+            category: { select: { name: true, slug: true, color: true } },
+          },
+          orderBy: { publishedAt: 'desc' },
+        },
+      },
+    });
+
+    if (!author) {
+      res.status(404).json({ error: 'Author not found' });
+      return;
+    }
+
+    res.json({ author });
   }),
 );
 

@@ -98,6 +98,52 @@ export const changePasswordSchema = z
     path: ['newPassword'],
   });
 
+/**
+ * Details captured before an emergency block is paid for.
+ *
+ * A phone number is required and an email is not enough: the whole point of
+ * the purchase is that somebody can be called back, and an outage is the worst
+ * possible time to discover we only have an address.
+ */
+export const emergencyRequestSchema = z.object({
+  name: z.string().trim().min(1, 'Please tell us your name').max(120),
+  company: z.string().trim().max(160).optional(),
+  phone: z
+    .string()
+    .trim()
+    .min(6, 'Enter a phone number we can reach you on')
+    .max(40)
+    .regex(/^[\d+()\s-]+$/, 'Enter a phone number using digits, spaces, + or ( )'),
+  email: z.string().trim().email('Enter a valid email address').max(200),
+  /// What is broken. Optional — someone mid-outage should not be made to write
+  /// an essay before they can pay and reach a consultant.
+  summary: z.string().trim().max(2000).optional(),
+});
+
+/**
+ * Free SQL Server health check request.
+ *
+ * The SQL Server version is required, not optional: it decides which of the
+ * twenty checks apply, whether the instance is past end of support, and which
+ * DMVs exist on it. "I'm not sure" is an accepted answer — a prospect who does
+ * not know is exactly who needs the check most, and blocking them on a field
+ * they cannot fill in would lose the lead.
+ */
+export const healthCheckRequestSchema = z.object({
+  name: z.string().trim().min(1, 'Please tell us your name').max(120),
+  company: z.string().trim().min(1, 'Company name').max(160),
+  email: z.string().trim().email('Enter a valid work email address').max(200),
+  phone: z
+    .string()
+    .trim()
+    .min(6, 'A phone number we can reach you on')
+    .max(40)
+    .regex(/^[\d+()\s-]+$/, 'Use digits, spaces, + or ( )'),
+  sqlVersion: z.string().trim().min(1, 'Which SQL Server version?').max(80),
+  instanceCount: z.string().trim().max(40).optional(),
+  notes: z.string().trim().max(2000).optional(),
+});
+
 export const purgeChatSchema = z.object({
   /// Sessions last touched before this many days ago are removed. Floored at 7
   /// so a mistyped 0 cannot wipe conversations that are still open.

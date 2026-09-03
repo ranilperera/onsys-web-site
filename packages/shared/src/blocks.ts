@@ -222,6 +222,70 @@ export const blockSchema = z.discriminatedUnion('type', [
     heading: z.string().optional(),
     body: z.string().optional(),
   }),
+  /**
+   * Prepaid incident block: details, payment, then how to reach us.
+   *
+   * The price lives in Stripe, not here. A number typed into page content is
+   * one that can silently disagree with what the customer is actually charged,
+   * and the checkout is the side that has to be right.
+   */
+  /**
+   * An in-body link from an article to the service it relates to.
+   *
+   * Service links previously appeared only in the global footer, so genuine
+   * practitioner writing converted nothing. Editors drop one of these into a
+   * post to point at the relevant money page — with a descriptive anchor,
+   * which is worth far more than "click here" both to a reader and to a
+   * crawler working out what the target page is about.
+   */
+  /**
+   * Health check request form.
+   *
+   * Captures the SQL Server version alongside the usual contact fields,
+   * because the version decides which of the twenty checks apply and whether
+   * the instance is past end of support — which is often the finding before
+   * anyone runs a query.
+   */
+  z.object({
+    type: z.literal('healthCheckBooking'),
+    eyebrow: z.string().optional(),
+    heading: z.string(),
+    body: z.string().optional(),
+    note: z.string().optional(),
+  }),
+  z.object({
+    type: z.literal('relatedService'),
+    eyebrow: z.string().optional(),
+    heading: z.string(),
+    body: z.string(),
+    cta: linkSchema,
+  }),
+  z.object({
+    type: z.literal('emergencyCheckout'),
+    /**
+     * 'contact' captures details and books a Teams session; 'payment' sends the
+     * same details through Stripe first.
+     *
+     * Kept as a switch rather than two block types because the difference is
+     * one step in the same funnel, and the paid path is wired end to end ready
+     * for prepaid hour bundles.
+     */
+    mode: z.enum(['contact', 'payment']).default('contact'),
+    eyebrow: z.string().optional(),
+    heading: z.string(),
+    body: z.string().optional(),
+    /** Shown beside the form so nobody reaches Stripe unsure what they are buying. */
+    summary: z
+      .object({
+        title: z.string(),
+        rows: z.array(z.object({ label: z.string(), value: z.string() })),
+        note: z.string().optional(),
+      })
+      .optional(),
+    steps: z
+      .array(z.object({ title: z.string(), body: z.string() }))
+      .default([]),
+  }),
 ]);
 
 export type Block = z.infer<typeof blockSchema>;

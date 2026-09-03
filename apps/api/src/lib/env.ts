@@ -88,6 +88,10 @@ const envSchema = z.object({
   BOOKING_MAX_DAYS_AHEAD: z.coerce.number().int().min(1).max(120).default(21),
   /// Keeps a slot clear of an adjacent meeting by this many minutes.
   BOOKING_BUFFER_MINUTES: z.coerce.number().int().min(0).max(60).default(10),
+  /// Days ahead the free health check is scheduled. The lead time is the
+  /// point, not a scheduling limit: the prospect is meant to read the scripts
+  /// and clear change approval first, and a slot tomorrow undercuts that.
+  HEALTHCHECK_LEAD_DAYS: z.coerce.number().int().min(0).max(60).default(7),
 
   // --- Chatbot ---
   OPENAI_API_KEY: z.string().optional(),
@@ -116,6 +120,12 @@ const envSchema = z.object({
   ORG_POSTCODE: z.string().default('3000'),
   ORG_COUNTRY: z.string().default('AU'),
   ORG_BOOKING_URL: z.string().default('/book'),
+
+  /// Stripe — prepaid emergency support blocks. The amount lives in the Price
+  /// object, never in this repo, so the page and the charge cannot disagree.
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_EMERGENCY_PRICE_ID: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
   /// Client portal (DBPulse). Incidents are directed here for tracking, but
   /// only once it is actually live — pointing a visitor mid-outage at a portal
   /// that is still hidden behind a flag is worse than not mentioning it.
@@ -157,6 +167,15 @@ export const graphConfigured = Boolean(
 );
 
 export const teamsConfigured = Boolean(env.TEAMS_WEBHOOK_URL || (env.TEAMS_TEAM_ID && env.TEAMS_CHANNEL_ID));
+
+/**
+ * All three are required together. A key without a price cannot charge, and a
+ * price without a webhook secret takes money we never confirm — so the feature
+ * stays off until the set is complete rather than half-working.
+ */
+export const stripeConfigured = Boolean(
+  env.STRIPE_SECRET_KEY && env.STRIPE_EMERGENCY_PRICE_ID && env.STRIPE_WEBHOOK_SECRET,
+);
 
 /**
  * Booking needs the same app registration as Graph email plus a target

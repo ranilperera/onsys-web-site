@@ -94,7 +94,12 @@ model Post {
   categoryId String?
   category   Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
+  /// Denormalised byline, kept so a post always renders one even if its
+  /// Author row is removed. The relation is what drives the Person schema.
   authorName String        @default("Onsys Technologies")
+  authorId   String?
+  author     Author?       @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
   readMinutes Int          @default(5)
   coverImage String?
 
@@ -119,7 +124,42 @@ model Post {
 
   @@index([status, publishedAt])
   @@index([categoryId])
+  @@index([authorId])
   @@map("posts")
+}
+
+/// Byline behind every post.
+///
+/// Exists so articles carry a Person in their JSON-LD rather than the
+/// Organization. Search engines resolve a named human with a consistent
+/// footprint across LinkedIn and the wider web into an entity; a company name
+/// in an author slot resolves to nothing, and E-E-A-T signals depend on the
+/// difference.
+///
+/// `name` is the only field a byline renders, so switching from a handle to a
+/// real person's name later is one edit here — no schema, route or markup
+/// change follows from it.
+model Author {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  /// Job title shown under the byline, e.g. "Principal DBA".
+  role        String?
+  bio         String?  @db.Text
+  photo       String?
+  /// Certifications worth stating: "Microsoft Certified: Azure Database Administrator Associate".
+  credentials String[] @default([])
+  /// Emitted as schema.org sameAs. Without at least one of these the Person
+  /// node is unverifiable and does the entity-resolution job poorly.
+  linkedIn    String?
+  website     String?
+
+  posts       Post[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("authors")
 }
 
 /// FAQ entries power both on-page accordions and FAQPage JSON-LD (AEO).
@@ -270,6 +310,9 @@ enum LeadSource {
   CONTACT_FORM
   CHAT
   NEWSLETTER
+  /// Came in through the emergency page — worth reporting on separately,
+  /// since these are companies running production without an agreement.
+  EMERGENCY
 }
 
 enum LeadStatus {
@@ -338,6 +381,47 @@ model User {
   updatedAt    DateTime @updatedAt
 
   @@map("users")
+}
+
+enum EmergencyStatus {
+  /// Details captured, checkout not completed
+  PENDING
+  PAID
+  CANCELLED
+  FAILED
+}
+
+/// A prepaid emergency support block.
+///
+/// The row is written before Stripe is involved, so an abandoned checkout still
+/// leaves the enquiry visible to the team — someone with a production outage
+/// who gave up at the payment screen is exactly who should be called back.
+model EmergencyRequest {
+  id          String          @id @default(cuid())
+  name        String
+  company     String?
+  phone       String
+  email       String
+  summary     String?         @db.Text
+
+  hours       Int             @default(4)
+  /// Charged amount in the smallest currency unit, recorded as Stripe reported
+  /// it. Never recomputed from the page: the receipt has to match the charge.
+  amountCents Int?
+  currency    String          @default("aud")
+
+  status      EmergencyStatus @default(PENDING)
+  stripeSessionId       String? @unique
+  stripePaymentIntentId String?
+  paidAt      DateTime?
+
+  ipHash      String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([status, createdAt])
+  @@index([email])
+  @@map("emergency_requests")
 }
 
 /// A password accepted, second factor still outstanding.
