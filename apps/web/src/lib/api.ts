@@ -46,6 +46,30 @@ export interface CategoryRecord {
   _count?: { posts: number };
 }
 
+export interface AuthorRecord {
+  id: string;
+  slug: string;
+  name: string;
+  role: string | null;
+  bio: string | null;
+  photo: string | null;
+  credentials: string[];
+  linkedIn: string | null;
+  website: string | null;
+}
+
+export interface AuthorWithPosts extends AuthorRecord {
+  posts: Array<{
+    slug: string;
+    title: string;
+    excerpt: string | null;
+    coverImage: string | null;
+    publishedAt: string | null;
+    readMinutes: number;
+    category: { name: string; slug: string; color: string } | null;
+  }>;
+}
+
 export interface PostRecord {
   id: string;
   slug: string;
@@ -53,6 +77,9 @@ export interface PostRecord {
   excerpt: string | null;
   bodyHtml: string;
   authorName: string;
+  /// Null on posts written before the Author model existed, or if the row was
+  /// removed — authorName is what keeps a byline on the page either way.
+  author?: AuthorRecord | null;
   readMinutes: number;
   coverImage: string | null;
   category: CategoryRecord | null;
@@ -192,6 +219,9 @@ export const getPosts = async (params: { page?: number; category?: string } = {}
 
 export const getPost = async (slug: string) =>
   await apiGet<{ post: PostRecord; related: PostSummary[] }>(`/posts/${slug}`);
+
+export const getAuthor = async (slug: string): Promise<AuthorWithPosts | null> =>
+  (await apiGet<{ author: AuthorWithPosts }>(`/authors/${slug}`))?.author ?? null;
 
 export const getCategories = async (): Promise<CategoryRecord[]> =>
   (await apiGet<{ categories: CategoryRecord[] }>('/categories'))?.categories ?? [];

@@ -92,75 +92,103 @@ export const siteConfig = {
   locale: 'en_AU',
 } as const;
 
+/** Keys of the mega menus below. A nav item carrying one opens that panel. */
+export type MegaMenuKey = 'database' | 'services';
+
+export interface MainNavItem {
+  label: string;
+  href: string;
+  /** Present only on items that open a mega menu. */
+  menu?: MegaMenuKey;
+}
+
 export const navigation = {
   main: [
     { label: 'Home', href: '/' },
     { label: 'Products', href: '/products' },
-    { label: 'Services', href: '#', mega: true },
+    { label: 'Database', href: '/sql-server-dba-services', menu: 'database' },
+    { label: 'Services', href: '/expertise', menu: 'services' },
     { label: 'Expertise', href: '/expertise' },
     { label: 'Pricing', href: '/pricing-and-plans' },
     { label: 'Contact', href: '/contact' },
-  ],
+  ] satisfies MainNavItem[],
+
   /**
-   * Services mega menu.
+   * Two mega menus rather than one.
    *
-   * Column titles mirror the four categories published on onsys.com.au, so the
-   * navigation matches the language customers already associate with Onsys.
-   * Items whose topic is a section of a larger page deep-link to that section's
-   * anchor rather than dumping the visitor at the top of a shared page.
+   * A single "Services" panel had grown to twelve database links against four
+   * in each other column — a wall of text on desktop and a very long scroll on
+   * mobile, where the whole panel is one accordion. Splitting on the line the
+   * business actually sells across balances the columns and puts the database
+   * work, which is the specialisation, at the front of the navigation rather
+   * than three levels into it.
+   *
+   * Each menu is keyed so the header can open one at a time. Column counts are
+   * kept to 2-3 with roughly equal lengths; a column past about six items stops
+   * being scannable and becomes a list you read.
    */
-  mega: [
-    {
-      title: 'Database',
-      links: [
-        { label: 'Remote Database Support', href: '/remote-database-support', sub: '24/7 cover from $1,500/month' },
-        { label: 'Managed Database Services', href: '/managed-database-services', sub: '24/7 monitoring & ITIL support' },
-        { label: 'Remote On-Call DBA', href: '/on-call-dba-services', sub: 'Standby cover from $100/instance' },
-        { label: 'Emergency Database Support', href: '/emergency-database-support', sub: 'Outage response, answered 24/7' },
-        // Absorbs Performance Tuning and Database Health Checks — both pointed
-        // at the same section of the same page. The terms live in the sub-label.
-        { label: 'Database Consultancy', href: '/database-consultancy', sub: 'Advisory, tuning & health checks' },
-        { label: 'Upgrades, Migrations & DR', href: '/database-upgrades-migrations-dr', sub: 'Version moves, clustering & failover' },
-        { label: 'Free SQL Server Health Check', href: '/free-20-point-sql-server-health-check', sub: '20 points, one instance, no charge' },
-      ],
-    },
-    {
-      title: 'Infrastructure & Cloud',
-      links: [
-        { label: 'Managed IT Services', href: '/managed-it-services', sub: 'Outsourced IT from $4,500/month' },
-        { label: 'Cloud Consultancy & Support', href: '/cloud-consultancy', sub: 'Strategy, architecture & FinOps' },
-        // One entry rather than three identical links to /expertise.
-        { label: 'Cloud Migrations', href: '/cloud-migrations', sub: 'Azure, AWS & Oracle Cloud (OCI)' },
-        { label: 'System Administration', href: '/system-administration', sub: 'Windows, Linux, M365 & identity' },
-        { label: 'Network & Firewalls', href: '/network-and-firewalls', sub: 'Cisco, Fortinet, Palo Alto' },
-        { label: 'Virtualization & Storage', href: '/virtualization-and-storage', sub: 'VMware, NetApp, Dell EMC' },
-      ],
-    },
-    {
-      title: 'Software, Data & AI',
-      links: [
-        { label: 'Custom Software Development', href: '/custom-software-development', sub: 'Offshore & augmented teams' },
-        { label: 'Mobile App Development', href: '/mobile-app-development', sub: 'iOS, Android, Flutter' },
-        { label: 'Integration Services', href: '/integration-services', sub: 'ETL & automated data pipelines' },
-        { label: 'AI Development & Solutions', href: '/artificial-intelligence-solutions', sub: 'Applied AI & automation' },
-      ],
-    },
-    {
-      // Ordered the way a buyer progresses: see what is happening, protect the
-      // endpoint, protect the data and code, then prove it to an auditor.
-      title: 'Cyber Security',
-      links: [
-        { label: 'Managed Security Services', href: '/managed-security-services', sub: '24/7 SOC, SIEM & threat hunting' },
-        { label: 'Managed EDR', href: '/managed-endpoint-detection-and-response', sub: 'SentinelOne, with ransomware rollback' },
-        { label: 'Data & Application Security', href: '/data-and-application-security', sub: 'Classification, DLP & secure code' },
-        { label: 'GRC & Compliance', href: '/grc-and-compliance', sub: 'ISO 27001, Essential Eight, SOC 2' },
-      ],
-    },
-  ],
+  menus: {
+    database: [
+      {
+        title: 'SQL Server',
+        links: [
+          { label: 'SQL Server DBA Services', href: '/sql-server-dba-services', sub: 'The hub: what a DBA actually does' },
+          { label: 'Managed SQL Server Support', href: '/managed-sql-server-support', sub: 'From $150 per instance per month' },
+          { label: 'Free SQL Server Health Check', href: '/free-20-point-sql-server-health-check', sub: '20 points, one instance, no charge' },
+          { label: 'SQL Server DBA Melbourne', href: '/sql-server-dba-melbourne', sub: 'Local DBAs, on site when it helps' },
+          { label: 'SQL Server 2016 End of Support', href: '/sql-server-2016-end-of-support', sub: 'Support ended 15 July 2026' },
+        ],
+      },
+      {
+        title: 'Database services',
+        links: [
+          { label: 'Remote Database Support', href: '/remote-database-support', sub: '24/7 cover from $1,500/month' },
+          { label: 'Managed Database Services', href: '/managed-database-services', sub: '24/7 monitoring & ITIL support' },
+          { label: 'Remote On-Call DBA', href: '/on-call-dba-services', sub: 'Standby cover from $100/instance' },
+          { label: 'Emergency Database Support', href: '/emergency-database-support', sub: 'Outage response, answered 24/7' },
+          { label: 'Database Consultancy', href: '/database-consultancy', sub: 'Advisory, tuning & health checks' },
+          { label: 'Upgrades, Migrations & DR', href: '/database-upgrades-migrations-dr', sub: 'Version moves, clustering & failover' },
+        ],
+      },
+    ],
+    services: [
+      {
+        title: 'Infrastructure & Cloud',
+        links: [
+          { label: 'Managed IT Services', href: '/managed-it-services', sub: 'Outsourced IT from $4,500/month' },
+          { label: 'Cloud Consultancy & Support', href: '/cloud-consultancy', sub: 'Strategy, architecture & FinOps' },
+          { label: 'Cloud Migrations', href: '/cloud-migrations', sub: 'Azure, AWS & Oracle Cloud (OCI)' },
+          { label: 'System Administration', href: '/system-administration', sub: 'Windows, Linux, M365 & identity' },
+          { label: 'Network & Firewalls', href: '/network-and-firewalls', sub: 'Cisco, Fortinet, Palo Alto' },
+          { label: 'Virtualization & Storage', href: '/virtualization-and-storage', sub: 'VMware, NetApp, Dell EMC' },
+        ],
+      },
+      {
+        title: 'Software, Data & AI',
+        links: [
+          { label: 'Custom Software Development', href: '/custom-software-development', sub: 'Offshore & augmented teams' },
+          { label: 'Mobile App Development', href: '/mobile-app-development', sub: 'iOS, Android, Flutter' },
+          { label: 'Integration Services', href: '/integration-services', sub: 'ETL & automated data pipelines' },
+          { label: 'AI Development & Solutions', href: '/artificial-intelligence-solutions', sub: 'Applied AI & automation' },
+        ],
+      },
+      {
+        title: 'Cyber Security',
+        links: [
+          { label: 'Managed Security Services', href: '/managed-security-services', sub: '24/7 SOC, SIEM & threat hunting' },
+          { label: 'Managed EDR', href: '/managed-endpoint-detection-and-response', sub: 'SentinelOne, with ransomware rollback' },
+          { label: 'Data & Application Security', href: '/data-and-application-security', sub: 'Classification, DLP & secure code' },
+          { label: 'GRC & Compliance', href: '/grc-and-compliance', sub: 'ISO 27001, Essential Eight, SOC 2' },
+        ],
+      },
+    ],
+  },
+
   footer: {
     Services: [
+      { label: 'SQL Server DBA Services', href: '/sql-server-dba-services' },
+      { label: 'Managed SQL Server Support', href: '/managed-sql-server-support' },
       { label: 'Remote Database Support', href: '/remote-database-support' },
-      { label: 'Managed Services', href: '/managed-database-services' },
       { label: 'On-Call DBA Support', href: '/on-call-dba-services' },
       { label: 'Database Consultancy', href: '/database-consultancy' },
       { label: 'Upgrades, Migrations & DR', href: '/database-upgrades-migrations-dr' },
@@ -183,6 +211,7 @@ export const navigation = {
       { label: 'Blog', href: '/blog' },
     ],
     Legal: [
+      { label: 'Who Can Access Your Database', href: '/who-can-access-your-database' },
       { label: 'Privacy Policy', href: '/privacy' },
       { label: 'Terms of Use', href: '/terms' },
       { label: 'Disclaimer', href: '/disclaimer' },

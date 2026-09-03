@@ -93,7 +93,13 @@ export default async function BlogPost({ params }: Props) {
             />
             <div className="article-meta">
               {post.category && <span className="cat-pill">{post.category.name}</span>}
-              <span>{post.authorName}</span>
+              {post.author ? (
+                <Link href={`/about/${post.author.slug}`} className="article-byline">
+                  {post.author.name}
+                </Link>
+              ) : (
+                <span>{post.authorName}</span>
+              )}
               <span aria-hidden="true">·</span>
               {post.publishedAt && (
                 <time dateTime={post.publishedAt}>
@@ -128,14 +134,47 @@ export default async function BlogPost({ params }: Props) {
               </div>
             )}
 
-            <div className="article-share">
-              <span style={{ fontWeight: 600, color: 'var(--navy)', fontSize: 13.5 }}>Found this useful?</span>
-              <Link className="btn btn-outline" href="/contact" style={{ padding: '8px 16px', fontSize: 13 }}>
-                Ask us a question
-              </Link>
-              <Link className="btn btn-outline" href="/blog" style={{ padding: '8px 16px', fontSize: 13 }}>
-                More guides
-              </Link>
+            {post.author && (
+              <aside className="author-box">
+                <div className="author-box-head">
+                  <span className="eyebrow">Written by</span>
+                  <Link href={`/about/${post.author.slug}`}>{post.author.name}</Link>
+                  {post.author.role && <span className="author-box-role">{post.author.role}</span>}
+                </div>
+                {post.author.bio && <p>{post.author.bio}</p>}
+                {post.author.credentials.length > 0 && (
+                  <ul className="author-credentials">
+                    {post.author.credentials.map((c) => (
+                      <li key={c}>{c}</li>
+                    ))}
+                  </ul>
+                )}
+                <Link className="lnk" href={`/about/${post.author.slug}`}>
+                  All articles by {post.author.name} →
+                </Link>
+              </aside>
+            )}
+
+            {/* WP5.2: the primary action is the free health check, not the
+                contact form. A specific, free, scoped offer converts far better
+                than "get in touch" — and that page previously received no
+                internal links from any article at all. */}
+            <div className="article-cta">
+              <div>
+                <h2>Want this checked on your own instance?</h2>
+                <p>
+                  Our free 20-point SQL Server health check covers one instance — configuration,
+                  backups, security and patch currency — with a written report. No obligation.
+                </p>
+              </div>
+              <div className="article-cta-actions">
+                <Link className="btn btn-primary" href="/free-20-point-sql-server-health-check">
+                  Book the free health check
+                </Link>
+                <Link className="btn btn-outline" href="/contact">
+                  Ask a question instead
+                </Link>
+              </div>
             </div>
           </div>
         </section>

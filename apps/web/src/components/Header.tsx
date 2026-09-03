@@ -13,13 +13,30 @@ import { siteConfig, navigation } from '@/lib/config';
  */
 export function Header() {
   const [navOpen, setNavOpen] = useState(false);
-  const [megaOpen, setMegaOpen] = useState(false);
+  /**
+   * Which mega menu is expanded on mobile, by key — not a boolean.
+   *
+   * There are two panels now, and a shared boolean would open both at once,
+   * doubling the scroll length on exactly the screen where that hurts most.
+   */
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+
+  /**
+   * Which desktop panel is suppressed after a click inside it.
+   *
+   * The panel opens on :hover, and a client-side navigation does not move the
+   * cursor — so after clicking a link the pointer is still over the trigger,
+   * :hover is still true, and the menu hangs over the page just navigated to
+   * until the mouse happens to move away. Suppressing it until the pointer
+   * leaves and comes back is what a full page load used to do for free.
+   */
+  const [suppressed, setSuppressed] = useState<string | null>(null);
   const pathname = usePathname();
 
   // Close everything on navigation.
   useEffect(() => {
     setNavOpen(false);
-    setMegaOpen(false);
+    setOpenMenu(null);
   }, [pathname]);
 
   /**
@@ -64,7 +81,7 @@ export function Header() {
     const onResize = () => {
       if (window.innerWidth > 1024) {
         setNavOpen(false);
-        setMegaOpen(false);
+        setOpenMenu(null);
       }
     };
     window.addEventListener('resize', onResize);
@@ -83,10 +100,16 @@ export function Header() {
     return () => document.removeEventListener('keydown', onKey);
   }, [navOpen]);
 
-  const handleMegaTrigger = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
+  /**
+   * Below 1024px there is no hover, so the trigger toggles its accordion
+   * instead of navigating. Above it, the panel is CSS hover-driven and the
+   * click falls through to the section hub — a top-level nav item that cannot
+   * be followed is a dead end for keyboard and touch users alike.
+   */
+  const handleMegaTrigger = useCallback((e: React.MouseEvent<HTMLAnchorElement>, key: string) => {
     if (window.innerWidth <= 1024) {
       e.preventDefault();
-      setMegaOpen((v) => !v);
+      setOpenMenu((current) => (current === key ? null : key));
     }
   }, []);
 
@@ -141,66 +164,76 @@ export function Header() {
           <div className={`nav-panel${navOpen ? ' open' : ''}`} id="navPanel">
             <nav className="mainnav" aria-label="Main navigation">
               <ul>
-                <li>
-                  <Link href="/" className={isActive('/') ? 'active' : undefined}>
-                    Home
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/products" className={isActive('/products') ? 'active' : undefined}>
-                    Products
-                  </Link>
-                </li>
-                <li className={`has-mega${megaOpen ? ' open' : ''}`}>
-                  <a
-                    href="#"
-                    className="mega-trigger"
-                    onClick={handleMegaTrigger}
-                    aria-expanded={megaOpen}
-                    aria-haspopup="true"
-                  >
-                    Services{' '}
-                    <span className="caret" aria-hidden="true">
-                      ▾
-                    </span>
-                  </a>
-                  <div className="megamenu">
-                    {navigation.mega.map((col) => (
-                      <div className="mm-col" key={col.title}>
-                        <h5>{col.title}</h5>
-                        {col.links.map((link) => (
-                          <Link
-                            key={link.label}
-                            href={link.href}
-                            style={
-                              'highlight' in link && link.highlight
-                                ? { color: 'var(--orange-dark)', marginTop: 6 }
-                                : undefined
-                            }
-                          >
-                            {link.label}
-                            {link.sub ? <small>{link.sub}</small> : null}
-                          </Link>
+                {navigation.main.map((item) => {
+                  const columns = item.menu
+                    ? navigation.menus[item.menu as keyof typeof navigation.menus]
+                    : null;
+
+                  if (!columns) {
+                    return (
+                      <li key={item.label}>
+                        <Link href={item.href} className={isActive(item.href) ? 'active' : undefined}>
+                          {item.label}
+                        </Link>
+                      </li>
+                    );
+                  }
+
+                  const isOpen = openMenu === item.menu;
+                  const isSuppressed = suppressed === item.menu;
+
+                  return (
+                    <li
+                      key={item.label}
+                      className={`has-mega${isOpen ? ' open' : ''}${isSuppressed ? ' suppressed' : ''}`}
+                      onMouseLeave={() => setSuppressed((c) => (c === item.menu ? null : c))}
+                    >
+                      {/* A real link, not href="#". On desktop the panel opens
+                          on hover and this still navigates to the section hub;
+                          below 1024px the click is intercepted to expand the
+                          accordion instead, because there is no hover there. */}
+                      <Link
+                        href={item.href}
+                        className={`mega-trigger${isActive(item.href) ? ' active' : ''}`}
+                        onClick={(e) => handleMegaTrigger(e, item.menu!)}
+                        onMouseDown={() => {
+                          if (window.innerWidth > 1024) setSuppressed(item.menu!);
+                        }}
+                        aria-expanded={isOpen}
+                        aria-haspopup="true"
+                      >
+                        {item.label}{' '}
+                        <span className="caret" aria-hidden="true">
+                          ▾
+                        </span>
+                      </Link>
+
+                      <div className="megamenu" style={{ '--mm-cols': columns.length } as React.CSSProperties}>
+                        {columns.map((col) => (
+                          <div className="mm-col" key={col.title}>
+                            <h5>{col.title}</h5>
+                            {col.links.map((link) => (
+                              <Link
+                                key={link.label}
+                                href={link.href}
+                                onClick={(e) => {
+                                  setSuppressed(item.menu!);
+                                  setOpenMenu(null);
+                                  // Focus would otherwise stay on a link inside
+                                  // a panel that is about to be hidden.
+                                  e.currentTarget.blur();
+                                }}
+                              >
+                                {link.label}
+                                {link.sub ? <small>{link.sub}</small> : null}
+                              </Link>
+                            ))}
+                          </div>
                         ))}
                       </div>
-                    ))}
-                  </div>
-                </li>
-                <li>
-                  <Link href="/expertise" className={isActive('/expertise') ? 'active' : undefined}>
-                    Expertise
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/pricing-and-plans" className={isActive('/pricing-and-plans') ? 'active' : undefined}>
-                    Pricing
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/contact" className={isActive('/contact') ? 'active' : undefined}>
-                    Contact
-                  </Link>
-                </li>
+                    </li>
+                  );
+                })}
               </ul>
             </nav>
             {siteConfig.portalEnabled && (

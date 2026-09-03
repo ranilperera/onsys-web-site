@@ -31,12 +31,26 @@ const STATIC_REDIRECTS: Record<string, string> = {
   '/shop': '/pricing-and-plans',
   '/cart': '/pricing-and-plans',
   '/checkout': '/pricing-and-plans',
-  // The three plan pages map onto the plan table they were split out of.
-  '/remote-database-support-plan-a': '/pricing-and-plans#database-plans',
-  '/remote-database-support-plan-b': '/pricing-and-plans#database-plans',
-  '/remote-database-support-plan-c': '/pricing-and-plans#database-plans',
+  // The three plan pages now land on the SQL Server plan page rather than the
+  // general pricing table — same three plans, but a page whose title, H1 and
+  // opening sentence all say SQL Server, which is what they were ranking for.
+  '/remote-database-support-plan-a': '/managed-sql-server-support#plans',
+  '/remote-database-support-plan-b': '/managed-sql-server-support#plans',
+  '/remote-database-support-plan-c': '/managed-sql-server-support#plans',
+  // sql-server-support-plans was merged into managed-sql-server-support: two
+  // pages selling the same three plans to the same buyer would compete in the
+  // index and split whatever ranking either earned.
+  '/sql-server-support-plans': '/managed-sql-server-support',
+  '/sql-server-dba': '/sql-server-dba-services',
+  '/sql-server-support': '/managed-sql-server-support',
+  '/how-we-govern-offshore-dba-access': '/who-can-access-your-database',
   '/custom-support-plan': '/pricing-and-plans#engagement-options',
   // Cost-saving article that ranked #7 for the AU pricing query.
+  // The indexed URL is "remote", not "managed" — as originally written this
+  // entry matched nothing and the ranking page kept 404ing. The misspelling is
+  // kept as an alias: it costs one map entry and covers any link built from
+  // the same mistake.
+  '/how-to-save-with-onsys-remote-database-services': '/pricing-and-plans',
   '/how-to-save-with-onsys-managed-database-services': '/pricing-and-plans',
   // WordPress taxonomy archives.
   '/category/database': '/blog',
@@ -175,5 +189,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   // Skip Next internals and static assets — they never need a redirect check.
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|logo.png|sitemap.xml|robots.txt|llms.txt).*)'],
+  // .well-known is excluded alongside llms.txt: the rewrite that serves it
+  // must not be preceded by redirect or trailing-slash logic.
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|logo.png|sitemap.xml|robots.txt|llms.txt|\.well-known).*)'],
 };

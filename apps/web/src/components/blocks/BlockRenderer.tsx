@@ -3,6 +3,8 @@ import Image from 'next/image';
 import type { Block } from '@onsys/shared';
 import { siteConfig } from '@/lib/config';
 import { FaqAccordion } from './FaqAccordion';
+import { EmergencyCheckout } from './EmergencyCheckout';
+import { HealthCheckBooking } from './HealthCheckBooking';
 import { ContactForm } from '../ContactForm';
 import { HeroRotator } from '../HeroRotator';
 
@@ -542,6 +544,42 @@ function BlockSwitch({ block, index }: { block: Block; index: number }) {
             <ContactForm heading={block.heading} body={block.body} />
           </div>
         </section>
+      );
+
+    case 'healthCheckBooking':
+      return (
+        <HealthCheckBooking
+          eyebrow={block.eyebrow}
+          heading={block.heading}
+          body={block.body}
+          note={block.note}
+        />
+      );
+
+    case 'relatedService':
+      return (
+        <section className="section">
+          <div className="wrap">
+            <aside className="related-service">
+              {block.eyebrow && <span className="eyebrow">{block.eyebrow}</span>}
+              <h2>{block.heading}</h2>
+              <p>{block.body}</p>
+              <Cta label={block.cta.label} href={block.cta.href} variant="btn-primary" />
+            </aside>
+          </div>
+        </section>
+      );
+
+    case 'emergencyCheckout':
+      return (
+        <EmergencyCheckout
+          mode={block.mode}
+          eyebrow={block.eyebrow}
+          heading={block.heading}
+          body={block.body}
+          summary={block.summary}
+          steps={block.steps}
+        />
       );
 
     default:

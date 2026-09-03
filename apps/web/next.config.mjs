@@ -50,6 +50,20 @@ const nextConfig = {
       { protocol: 'https', hostname: 'onsys.com.au' },
     ],
   },
+  /**
+   * llms.txt is served from two paths.
+   *
+   * llmstxt.org puts it at the site root, but crawlers increasingly look under
+   * /.well-known/ (RFC 8615) as the conventional home for machine-readable
+   * metadata. A rewrite rather than a second route handler, so there is one
+   * implementation and the two can never drift — and a rewrite, not a redirect,
+   * so a client that finds it under /.well-known gets the content rather than a
+   * 301 it may not follow.
+   */
+  async rewrites() {
+    return [{ source: '/.well-known/llms.txt', destination: '/llms.txt' }];
+  },
+
   async headers() {
     /**
      * `next dev` runs React Fast Refresh and the webpack HMR client, both of

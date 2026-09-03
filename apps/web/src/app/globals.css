@@ -50,8 +50,10 @@ nav.mainnav > ul > li > a{font-size:14.5px; color:#3B3A39; font-weight:600; disp
 nav.mainnav > ul > li > a:hover, nav.mainnav > ul > li > a.active{color:var(--navy);}
 nav.mainnav > ul > li > a .caret{font-size:10px; transition:.15s;}
 
-.megamenu{background:#fff; display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:20px;}
-.mm-col h5{font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--orange); margin-bottom:12px; font-weight:700;}
+/* Column count comes from the menu itself (--mm-cols, set inline), so a
+   two-column panel is not stretched across the width a four-column one needed. */
+.megamenu{background:#fff; display:grid; grid-template-columns:repeat(var(--mm-cols,3),minmax(0,1fr)); gap:20px 28px;}
+.mm-col h5{font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--orange); margin-bottom:10px; font-weight:700; padding-bottom:8px; border-bottom:1px solid var(--gray-light);}
 .mm-col a{display:block; font-size:13.5px; color:#3B3A39; font-weight:600; padding:7px 0;}
 .mm-col a:hover{color:var(--navy);}
 .mm-col a small{display:block; font-weight:400; color:var(--gray); font-size:11.5px; margin-top:1px;}
@@ -69,9 +71,22 @@ nav.mainnav > ul > li > a .caret{font-size:10px; transition:.15s;}
   li.has-mega .megamenu{
     position:absolute; top:100%; left:50%; transform:translateX(-50%) translateY(6px);
     border:1px solid var(--gray-light); border-radius:10px; box-shadow:0 24px 48px -16px rgba(14,51,106,0.25);
-    padding:26px; width:820px; opacity:0; visibility:hidden; transition:.15s; z-index:70;
+    padding:26px; opacity:0; visibility:hidden; transition:.15s; z-index:70;
+    /* Sized from the column count rather than fixed at the old four-column
+       width, which left a two-column panel half empty. */
+    width:calc(var(--mm-cols,3) * 218px + 52px); max-width:calc(100vw - 48px);
   }
-  li.has-mega:hover .megamenu{opacity:1; visibility:visible; transform:translateX(-50%) translateY(0);}
+  li.has-mega:hover .megamenu,
+  /* Keyboard users get the panel too — without this, tabbing to the trigger
+     opens nothing and every link inside stays unreachable. */
+  li.has-mega:focus-within .megamenu{opacity:1; visibility:visible; transform:translateX(-50%) translateY(0);}
+
+  /* Held shut after a click inside it. A client-side navigation leaves the
+     cursor exactly where it was, so :hover is still true and the panel would
+     sit over the new page until the mouse moved. Cleared on mouseleave.
+     Specificity (0,3,1) beats the rules above at (0,2,1). */
+  li.has-mega.suppressed:hover .megamenu,
+  li.has-mega.suppressed:focus-within .megamenu{opacity:0; visibility:hidden;}
 }
 
 /* ===== Hero (home, with video) ===== */
@@ -336,14 +351,44 @@ section[id]{scroll-margin-top:calc(var(--header-h) + 24px);}
 .blog-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:24px;}
 .blog-card{border:1px solid var(--gray-light); border-radius:10px; overflow:hidden; background:#fff; display:flex; flex-direction:column; transition:.2s;}
 .blog-card:hover{box-shadow:0 14px 34px -14px rgba(14,51,106,0.28); transform:translateY(-2px);}
-.blog-cover{height:150px; display:flex; align-items:center; justify-content:center; position:relative;}
-.blog-cover svg{width:42px; height:42px;}
-.blog-cover .cat-tag{position:absolute; top:14px; left:14px; background:rgba(255,255,255,0.92); color:var(--navy); font-size:10.5px; font-weight:700; padding:5px 12px; border-radius:999px; text-transform:uppercase; letter-spacing:.03em;}
-.blog-body{padding:22px; flex:1; display:flex; flex-direction:column;}
+/* The coloured panel carries the headline. It was previously an empty block of
+   category colour occupying the top third of the card, which pushed the title —
+   the only thing anyone scans a listing for — down below it. */
+.blog-cover{
+  position:relative; display:flex; flex-direction:column; justify-content:flex-end;
+  min-height:172px; padding:16px 20px 18px;
+  background:var(--navy); text-decoration:none;
+  isolation:isolate;
+}
+/* Darkens the lower half so white type clears AA on every category colour, not
+   just the navy ones. Orange (#D87600) is the binding case: white on it is
+   3.2:1, which fails normal-text AA; through this scrim it is 8.3:1. */
+.blog-cover::after{
+  content:''; position:absolute; inset:0; z-index:-1;
+  background:linear-gradient(to bottom, rgba(0,0,0,0) 30%, rgba(0,0,0,.45) 100%);
+}
+.blog-cover .cat-tag{
+  align-self:flex-start; margin-bottom:auto;
+  background:rgba(255,255,255,.92); color:var(--navy);
+  font-size:10.5px; font-weight:700; padding:5px 12px; border-radius:999px;
+  text-transform:uppercase; letter-spacing:.03em;
+}
+.blog-cover-title{
+  color:#fff; font-size:17px; line-height:1.32; margin:14px 0 0;
+  text-wrap:balance;
+  /* Four lines is enough for the longest real title; beyond that the cards in
+     a row stop lining up and the grid looks broken. */
+  display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden;
+}
+.blog-card:hover .blog-cover-title{text-decoration:underline; text-underline-offset:3px;}
+.blog-cover:focus-visible{outline:3px solid var(--orange); outline-offset:-3px;}
+
+.blog-body{padding:20px 22px 22px; flex:1; display:flex; flex-direction:column;}
 .blog-body h3{font-size:16.5px; margin-bottom:10px; line-height:1.35;}
 .blog-body p{font-size:13.5px; color:var(--gray); margin-bottom:16px; flex:1;}
 .blog-meta{font-size:11.5px; color:var(--gray); margin-bottom:10px; text-transform:uppercase; letter-spacing:.03em;}
 .blog-body .lnk{color:var(--orange-dark); font-weight:700; font-size:13.5px;}
+.blog-card:hover .blog-body .lnk{text-decoration:underline;}
 
 /* ===== Article (blog detail) ===== */
 .article-wrap{max-width:740px; margin:0 auto;}
@@ -446,7 +491,9 @@ footer li a:hover{color:var(--navy);}
   nav.mainnav > ul{flex-direction:column; align-items:stretch; gap:0; padding:0 28px;}
   nav.mainnav > ul > li{border-bottom:1px solid var(--gray-light);}
   nav.mainnav > ul > li > a{padding:16px 0; justify-content:space-between;}
-  li.has-mega .megamenu{display:none; grid-template-columns:1fr; gap:18px; padding:0 0 18px;}
+  /* One column on mobile whatever the desktop count, and the inline
+     --mm-cols must not win here. */
+  li.has-mega .megamenu{display:none; grid-template-columns:1fr !important; width:auto; gap:18px; padding:0 0 18px;}
   li.has-mega.open .megamenu{display:grid;}
   li.has-mega.open > a .caret{transform:rotate(180deg);}
   .navcta{flex-direction:column; align-items:stretch; padding:20px 28px 0; gap:12px;}
@@ -589,6 +636,98 @@ footer li a:hover{color:var(--navy);}
 @media(max-width:480px){
   .chat-panel{bottom:0; right:0; left:0; width:100%; max-width:100%; height:100%; max-height:100%; border-radius:0; border:none;}
   .chat-launcher{bottom:16px; right:16px;}
+}
+
+/* ===== Blog conversion (WP5) ===== */
+.article-cta{border:1px solid var(--gray-light); border-left:4px solid var(--orange); border-radius:10px; background:#FFF9F2; padding:24px 26px; margin:32px 0 24px;}
+.article-cta h2{font-size:19px; margin:0 0 8px; color:var(--navy);}
+.article-cta p{font-size:14.5px; line-height:1.65; color:#5C3200; margin:0 0 18px;}
+.article-cta-actions{display:flex; gap:12px; flex-wrap:wrap;}
+
+.related-service{border:1px solid var(--gray-light); border-left:4px solid var(--navy); border-radius:10px; background:#F7F9FC; padding:22px 24px; max-width:740px; margin:0 auto;}
+.related-service .eyebrow{margin-bottom:8px;}
+.related-service h2{font-size:18px; margin:0 0 8px;}
+.related-service p{font-size:14.5px; line-height:1.65; color:#3B3A39; margin:0 0 16px;}
+
+/* ===== Author identity ===== */
+.article-byline{color:inherit; font-weight:600; text-decoration:underline; text-underline-offset:2px;}
+.article-byline:hover{color:#fff;}
+
+.author-box{border:1px solid var(--gray-light); border-radius:10px; background:#FAFBFD; padding:20px 22px; margin:32px 0 24px;}
+.author-box-head{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:10px;}
+.author-box-head .eyebrow{margin:0;}
+.author-box-head a{font-size:16px; font-weight:700; color:var(--navy);}
+.author-box-role{font-size:13px; color:#605E5C;}
+.author-box p{font-size:14px; line-height:1.65; color:#3B3A39; margin:0 0 12px;}
+.author-box .lnk{font-size:13.5px; font-weight:700; color:var(--orange-dark);}
+
+.author-profile{display:flex; gap:28px; align-items:flex-start; flex-wrap:wrap;}
+.author-photo{border-radius:50%; flex-shrink:0;}
+.author-detail{flex:1; min-width:280px;}
+.author-bio{font-size:16px; line-height:1.7; color:#3B3A39; max-width:68ch;}
+.author-credentials{list-style:none; margin:14px 0 0; padding:0; display:flex; flex-wrap:wrap; gap:8px;}
+.author-credentials li{font-size:12px; font-weight:600; color:var(--navy); background:#EAF1FB; border:1px solid #C7DAF5; border-radius:999px; padding:4px 12px;}
+.author-links{display:flex; gap:16px; margin:16px 0 0;}
+.author-links a{font-size:13.5px; font-weight:700; color:var(--orange-dark);}
+
+/* ===== Emergency prepaid block ===== */
+.emergency-grid{display:grid; grid-template-columns:1.35fr 1fr; gap:32px; align-items:start;}
+.emergency-form{background:#fff; border:1px solid var(--gray-light); border-radius:12px; padding:26px 28px;}
+.emergency-form h3{font-size:16px; margin:0 0 18px; color:var(--navy);}
+.emergency-form select{border:1px solid var(--gray-light); border-radius:8px; padding:11px 12px; font-family:inherit; font-size:14px; background:#fff; width:100%;}
+.emergency-form select:focus{outline:2px solid var(--blue-light); outline-offset:1px;}
+.emergency-form .btn{margin-top:6px;}
+.emergency-fineprint{font-size:12.5px; color:#605E5C; line-height:1.55; margin:14px 0 0;}
+
+.emergency-aside{display:flex; flex-direction:column; gap:18px;}
+.emergency-summary{background:var(--navy); color:#fff; border-radius:12px; padding:24px 26px;}
+.emergency-summary h3{color:#fff; font-size:16px; margin:0 0 16px;}
+.emergency-summary dl{margin:0; display:flex; flex-direction:column; gap:0;}
+/* Label left, value right — values wrap onto their own line rather than being
+   squeezed into a narrow column, since these are sentences, not amounts. */
+.emergency-summary dl > div{display:flex; justify-content:space-between; align-items:baseline; gap:20px; padding:11px 0; border-bottom:1px solid rgba(255,255,255,.14); font-size:14px;}
+.emergency-summary dl > div:last-child{border-bottom:0; padding-bottom:0;}
+.emergency-summary dt{max-width:none;}
+.emergency-summary dt{color:#C9D6EA; flex:0 0 auto;}
+.emergency-summary dd{margin:0; font-weight:600; text-align:right; line-height:1.45;}
+/* Only a priced summary has a total to emphasise. Scoped to the modifier so an
+   information panel does not render whatever happens to be last as if it were
+   an amount due. */
+.emergency-summary.with-total dd{font-variant-numeric:tabular-nums;}
+.emergency-summary.with-total dl > div:last-child{padding-top:14px; font-size:17px; font-weight:700;}
+.emergency-summary.with-total dl > div:last-child dt{color:#fff;}
+.emergency-note{font-size:12.5px; line-height:1.6; color:#C9D6EA; margin:16px 0 0;}
+
+.emergency-steps{
+  list-style:none; margin:0; padding:22px 24px; counter-reset:estep;
+  display:flex; flex-direction:column; gap:18px;
+  background:#fff; border:1px solid var(--gray-light); border-radius:12px;
+}
+.emergency-steps li{display:grid; grid-template-columns:32px minmax(0,1fr); gap:14px; align-items:start;}
+.emergency-steps li::before{
+  counter-increment:estep; content:counter(estep);
+  width:32px; height:32px; border-radius:50%;
+  background:var(--orange); color:#fff;
+  font-weight:700; font-size:14px; line-height:1;
+  display:flex; align-items:center; justify-content:center;
+  /* Nudged so the digit sits on the first line of the title, not above it. */
+  margin-top:-2px;
+}
+/* One grid cell holding both lines, so the body cannot fall into the counter
+   track on the following row. min-width:0 lets it shrink inside the grid
+   rather than forcing the column wider than the card. */
+.emergency-step-text{min-width:0;}
+.emergency-steps strong{display:block; font-size:15px; color:var(--navy); margin-bottom:4px; line-height:1.35;}
+.emergency-steps span{display:block; font-size:13.5px; line-height:1.6; color:#605E5C;}
+
+.emergency-result{text-align:center; max-width:640px;}
+.emergency-result h2{margin-bottom:12px;}
+.emergency-result p{color:#605E5C; line-height:1.6; margin-bottom:20px;}
+.emergency-result .btn-lg{font-size:19px; padding:16px 36px;}
+.emergency-alt{font-size:13.5px; margin-top:22px;}
+
+@media(max-width:900px){
+  .emergency-grid{grid-template-columns:1fr; gap:24px;}
 }
 
 /* ===== Admin console ===== */

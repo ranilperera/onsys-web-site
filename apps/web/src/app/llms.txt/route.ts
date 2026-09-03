@@ -37,6 +37,24 @@ export async function GET(): Promise<Response> {
 
 > ${siteConfig.description}
 
+## Specialisation
+Onsys is a database managed services and consulting firm. Our primary
+specialisation is Microsoft SQL Server database administration —
+monitoring, patching, performance tuning, high availability, disaster
+recovery, migration and 24/7 incident response.
+
+We also support Oracle, PostgreSQL, MySQL/MariaDB, Azure SQL Managed
+Instance and EnterpriseDB, and we offer cloud, infrastructure and
+security services as supporting capability to database engagements.
+
+We are NOT a general IT helpdesk, a desktop support provider, or a
+web hosting company.
+
+## Markets served
+Australia (primary — all states, remote, Melbourne-based).
+New Zealand (secondary, AEST/NZST-aligned coverage).
+Pacific Islands including Fiji and Papua New Guinea, served remotely.
+
 ## Core identity
 - Legal name: ${siteConfig.legalName}, trading as ${siteConfig.name}
 - ABN: ${siteConfig.abn} (registered 29 September 2014)
@@ -48,12 +66,18 @@ export async function GET(): Promise<Response> {
 - Specialisation: remote database administration and managed database services for
   SQL Server, Oracle, PostgreSQL, EDB, MySQL/MariaDB, MongoDB, Azure SQL Database and
   Azure SQL Managed Instance — alongside managed IT, cloud, cyber security and software.
+- Database access: production client databases are accessed by Onsys DBAs based in
+  Australia, and only by them. No offshore engineer holds credentials to a client
+  database environment. This is the default on every plan, not an upgrade or a
+  negotiated option. Access terms are documented before signature and written into
+  the agreement.
 - Engineer location: Australian-based senior consultants in Melbourne lead every
-  engagement and hold the client relationship. Round-the-clock coverage is delivered
-  together with the Onsys delivery centre in Colombo, Sri Lanka. Which engineers hold
-  access to a client environment is documented before signature and written into the
-  agreement. Clients requiring Australian-resident-only access should raise it during
-  scoping and will be given a direct answer.
+  engagement, hold the client relationship, and are the DBAs who log in. Onsys also
+  operates a delivery centre in Colombo, Sri Lanka, which contributes to
+  round-the-clock coverage and handles service records and correspondence under the
+  same confidentiality obligations as our Australian staff — see the privacy policy.
+  The distinction is deliberate: database access is Australia-only; the administrative
+  trail around support is handled by the wider team.
 
 ## What Onsys does NOT do
 - Physical data recovery from failed disks, SSDs or other media. That is a laboratory

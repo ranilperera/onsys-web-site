@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const { pages, posts, categories } = await getSitemapData();
+  const { pages, posts } = await getSitemapData();
 
   // Only listed once the portal is live. Advertising a sign-in page for a
   // service that is not running yet is a broken promise to a crawler.
@@ -53,11 +53,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  const categoryEntries: MetadataRoute.Sitemap = categories.map((c) => ({
-    url: `${siteConfig.url}/blog?category=${c.slug}`,
-    changeFrequency: 'weekly' as const,
-    priority: 0.5,
-  }));
-
-  return [...staticEntries, ...portalEntry, ...pageEntries, ...postEntries, ...categoryEntries];
+  // Category filters are deliberately absent. `/blog?category=x` is a faceted
+  // view of /blog that canonicalises back to it, so listing one asks a crawler
+  // to index a URL we have simultaneously told it not to. Several categories
+  // are empty as well, which would put "no posts published yet" in the index.
+  return [...staticEntries, ...portalEntry, ...pageEntries, ...postEntries];
 }

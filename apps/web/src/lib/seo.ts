@@ -114,7 +114,13 @@ export function organizationSchema(): Record<string, unknown> {
       },
     ],
     sameAs: Object.values(siteConfig.social).filter((v) => v !== '#'),
-    areaServed: { '@type': 'Country', name: 'Australia' },
+    // WP2.2: llms.txt already claims New Zealand coverage, and a schema that
+    // says Australia only contradicts it. Two entries rather than one, because
+    // an assistant reconciling the two sources should find them agreeing.
+    areaServed: [
+      { '@type': 'Country', name: 'Australia' },
+      { '@type': 'Country', name: 'New Zealand' },
+    ],
     // Third-party recognition is one of the few entity signals an assistant
     // can verify externally, so it is worth stating explicitly.
     award: [
@@ -142,6 +148,15 @@ export function organizationSchema(): Record<string, unknown> {
       'Cloud migration',
       'Custom software development',
       'Artificial intelligence',
+      // WP2.3: the phrases buyers actually search, rather than only the
+      // product names. These are the queries the SQL Server silo targets.
+      'SQL Server Always On Availability Groups',
+      'SQL Server performance tuning',
+      'SQL Server licensing',
+      'Transparent Data Encryption',
+      'Database disaster recovery',
+      'APRA CPS 234',
+      'ACSC Essential Eight',
     ],
   };
 }
@@ -289,7 +304,13 @@ export function offerCatalogSchema(page: PageRecord): Record<string, unknown> | 
     serviceType: 'Managed IT and database support',
     description: page.seoDescription || page.lede || '',
     provider: { '@id': `${siteConfig.url}/#organization` },
-    areaServed: { '@type': 'Country', name: 'Australia' },
+    // WP2.2: llms.txt already claims New Zealand coverage, and a schema that
+    // says Australia only contradicts it. Two entries rather than one, because
+    // an assistant reconciling the two sources should find them agreeing.
+    areaServed: [
+      { '@type': 'Country', name: 'Australia' },
+      { '@type': 'Country', name: 'New Zealand' },
+    ],
     hasOfferCatalog: {
       '@type': 'OfferCatalog',
       name: 'Support plans and rates',
@@ -371,8 +392,79 @@ export function serviceSchema(page: PageRecord): Record<string, unknown> {
     description: page.seoDescription || page.lede || '',
     url: absoluteUrl(`/${page.slug}`),
     provider: { '@id': `${siteConfig.url}/#organization` },
-    areaServed: { '@type': 'Country', name: 'Australia' },
+    // WP2.2: llms.txt already claims New Zealand coverage, and a schema that
+    // says Australia only contradicts it. Two entries rather than one, because
+    // an assistant reconciling the two sources should find them agreeing.
+    areaServed: [
+      { '@type': 'Country', name: 'Australia' },
+      { '@type': 'Country', name: 'New Zealand' },
+    ],
     serviceType: page.title,
+  };
+}
+
+/**
+ * The `author` value for an article.
+ *
+ * A Person, not the Organization. Search engines resolve a named human with a
+ * consistent footprint into an entity that expertise signals can attach to; a
+ * company name in the author slot resolves to nothing, so the writing does no
+ * E-E-A-T work at all.
+ *
+ * `@id` points at the author page so every article references one shared node
+ * rather than restating an unconnected Person on each URL.
+ */
+function authorNode(post: PostRecord): Record<string, unknown> {
+  const author = post.author;
+
+  // No Author row — a post predating the model, or one whose author was
+  // removed. Fall back to the denormalised byline rather than emitting a
+  // Person whose `@id` is a page that would 404.
+  if (!author) {
+    return { '@type': 'Person', name: post.authorName };
+  }
+
+  const profileUrl = absoluteUrl(`/about/${author.slug}`);
+  const sameAs = [author.linkedIn, author.website].filter(Boolean) as string[];
+
+  return {
+    '@type': 'Person',
+    '@id': `${profileUrl}#person`,
+    name: author.name,
+    url: profileUrl,
+    ...(author.role ? { jobTitle: author.role } : {}),
+    ...(author.photo ? { image: absoluteUrl(author.photo) } : {}),
+    ...(sameAs.length ? { sameAs } : {}),
+    worksFor: { '@id': `${siteConfig.url}/#organization` },
+  };
+}
+
+/** Standalone Person node for the author page itself. */
+export function personSchema(author: {
+  slug: string;
+  name: string;
+  role: string | null;
+  bio: string | null;
+  photo: string | null;
+  credentials: string[];
+  linkedIn: string | null;
+  website: string | null;
+}): Record<string, unknown> {
+  const profileUrl = absoluteUrl(`/about/${author.slug}`);
+  const sameAs = [author.linkedIn, author.website].filter(Boolean) as string[];
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    '@id': `${profileUrl}#person`,
+    name: author.name,
+    url: profileUrl,
+    ...(author.role ? { jobTitle: author.role } : {}),
+    ...(author.bio ? { description: author.bio } : {}),
+    ...(author.photo ? { image: absoluteUrl(author.photo) } : {}),
+    ...(author.credentials.length ? { hasCredential: author.credentials } : {}),
+    ...(sameAs.length ? { sameAs } : {}),
+    worksFor: { '@id': `${siteConfig.url}/#organization` },
   };
 }
 
@@ -387,7 +479,7 @@ export function articleSchema(post: PostRecord): Record<string, unknown> {
     url,
     datePublished: post.publishedAt,
     dateModified: post.updatedAt,
-    author: { '@type': 'Organization', name: post.authorName, url: siteConfig.url },
+    author: authorNode(post),
     publisher: { '@id': `${siteConfig.url}/#organization` },
     mainEntityOfPage: { '@type': 'WebPage', '@id': url },
     ...(post.coverImage ? { image: absoluteUrl(post.coverImage) } : {}),
@@ -424,13 +516,45 @@ export function howToSchema(opts: {
 }
 
 /** Extract `<h2 id="...">` headings from post HTML to auto-generate HowTo steps. */
+/**
+ * Heading shapes that mean "this is one step in a procedure".
+ *
+ * The original matcher accepted only "Step 1 …", which almost no post actually
+ * uses — so the HowTo markup was written, wired up, and never emitted once.
+ * These cover how the existing tutorials are really written:
+ *
+ *   Step 1: Create the master key      → explicit
+ *   1. Create the master key           → numbered
+ *   1) Create the master key           → numbered
+ *   Creating the master key            → gerund, the common house style
+ *
+ * Deliberately not "any H2": a post whose headings are questions is a FAQ, and
+ * marking it up as a procedure would be describing the page as something it is
+ * not.
+ */
+const STEP_HEADING_PATTERNS: RegExp[] = [
+  /^step\s*\d+/i,
+  /^\d+[.)]\s+\S/,
+  /^(part|phase|stage)\s*\d+/i,
+];
+
+/** Gerund openers — "Creating…", "Configuring…", "Enabling the certificate". */
+const GERUND_HEADING = /^[A-Z][a-z]+ing\s+\S/;
+
+function isStepHeading(name: string): boolean {
+  if (STEP_HEADING_PATTERNS.some((p) => p.test(name))) return true;
+  // A question is a FAQ entry, never a step, whatever else it looks like.
+  if (name.endsWith('?')) return false;
+  return GERUND_HEADING.test(name);
+}
+
 export function extractSteps(html: string): Array<{ name: string; text: string }> {
   const steps: Array<{ name: string; text: string }> = [];
   const headingRegex = /<h2[^>]*>(.*?)<\/h2>([\s\S]*?)(?=<h2|$)/g;
 
   for (const match of html.matchAll(headingRegex)) {
     const name = match[1].replace(/<[^>]+>/g, '').trim();
-    if (!/^step\s*\d/i.test(name)) continue;
+    if (!isStepHeading(name)) continue;
 
     const text = match[2]
       .replace(/<[^>]+>/g, ' ')
@@ -440,5 +564,10 @@ export function extractSteps(html: string): Array<{ name: string; text: string }
 
     if (name && text) steps.push({ name, text });
   }
-  return steps;
+
+  // Two headings is not a procedure. Emitting HowTo for a post with a single
+  // gerund heading would claim a structure the article does not have, and
+  // Google treats inaccurate HowTo as a markup violation rather than a near
+  // miss.
+  return steps.length >= 3 ? steps : [];
 }

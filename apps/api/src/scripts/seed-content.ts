@@ -67,6 +67,9 @@ const homeBlocks: Block[] = [
   {
     type: 'quicklinks',
     items: [
+      // WP7.4: the SQL Server hub gets a link from the homepage, first in the
+      // row. It is the silo's entry point and had nothing pointing at it.
+      { label: 'SQL Server DBA', href: '/sql-server-dba-services', icon: '#s-managed', color: '#EAF1FB' },
       { label: 'Remote DBA', href: '/managed-database-services', icon: '#s-managed', color: '#EAF1FB' },
       { label: 'Managed IT', href: '/managed-it-services', icon: '#s-consult', color: '#E7F5EC' },
       { label: 'Cloud & Migration', href: '/cloud-migrations', icon: '#s-cloud', color: '#FFF1E0' },
@@ -76,9 +79,12 @@ const homeBlocks: Block[] = [
     ],
   },
   {
+    // WP7.4: the H1 is a slogan carrying no keyword. This is the first H2 on
+    // the page and names what Onsys actually sells, so the homepage has a
+    // keyword-bearing heading without rewriting the brand line above it.
     type: 'stats',
     eyebrow: 'Why teams move to Onsys',
-    heading: 'Enterprise-grade cover, without the enterprise headcount',
+    heading: 'SQL Server DBA services and 24/7 database support, Australia-wide',
     stats: [
       { value: 'Up to 50%', label: 'Lower DBA & IT operating cost' },
       { value: '24/7', label: 'Monitoring, support and on-call cover' },
@@ -1287,7 +1293,7 @@ const emergencyBlocks: Block[] = [
     heading: 'From your call to service restored',
     body: 'The first priority is getting you back online. Root cause analysis follows once the bleeding has stopped.',
     steps: [
-      { title: 'You call, we answer', body: 'The support line is answered 24 hours a day, including weekends and public holidays. Have your instance name, the error and the time it started ready.' },
+      { title: 'You reach us', body: 'Agreement holders call their support line and their contracted SLA applies. Everyone else sends the form below or calls — either way a senior consultant is alerted immediately.' },
       { title: 'Senior DBA triage', body: 'A certified consultant assesses the failure, confirms the blast radius and tells you honestly what is recoverable and what is not before work begins.' },
       { title: 'Stabilise and restore', body: 'We work over secure remote access, alongside your team rather than around them, to get the service back and protect against further data loss.' },
       { title: 'Root cause and report', body: 'Once you are stable you get a written incident report with the cause, what we changed, and what to fix so it does not happen again.' },
@@ -1297,26 +1303,59 @@ const emergencyBlocks: Block[] = [
     type: 'checkList',
     anchor: 'what-you-get',
     eyebrow: 'How it works',
-    heading: 'No contract required to make the call',
-    body: 'You do not need an existing agreement to get help in an outage. Work is billed against the published remote consultancy rate, and we tell you the likely cost before we start.',
+    heading: 'How it works without an agreement',
+    body: 'Clients on a support agreement hold a guaranteed response time and a lower rate, because they have paid to reserve our capacity in advance. Without one, help is offered at the ad-hoc rate and subject to a consultant being free — we cannot promise the same rate or the same response to everyone at once.',
     items: [
-      'Answered 24/7 by Australian-based senior consultants',
-      'Certified DBAs only — no first-line triage layer to get through',
-      'Secure remote access established at the start of the call',
+      'Tell us what is happening and a consultant is assigned when one is free',
+      'Subject to resource availability — no contracted response time without an agreement',
+      'Certified Australian-based DBAs only, no first-line triage layer',
+      'Secure remote access established at the start of the session',
       'We work with your team, so knowledge stays in your business',
       'Written incident report with root cause after resolution',
-      'Honest assessment up front — including when the answer is that data is not recoverable',
+      'Honest assessment up front — including when data is not recoverable',
+      'Billed against actual work performed, with the likely cost agreed before we start',
     ],
     sidebar: {
       title: 'At a glance',
       rows: [
-        { label: 'Availability', value: '24 / 7 / 365' },
-        { label: 'Rate', value: '$150 / hour' },
-        { label: 'Minimum', value: '4 hours' },
-        { label: 'Existing plan clients', value: 'Your contracted SLA applies' },
-        { label: 'Prices shown', value: 'GST exclusive' },
+        { label: 'Rate', value: '$180 / hour + GST' },
+        { label: 'Minimum engagement', value: '4 hours' },
+        { label: 'Availability', value: 'Subject to a consultant being free' },
+        { label: 'Response time', value: 'No SLA without an agreement' },
+        { label: 'Agreement holders', value: 'Lower rate and a contracted SLA' },
       ],
     },
+  },
+  {
+    type: 'emergencyCheckout',
+    mode: 'contact',
+    eyebrow: 'Get help now',
+    heading: 'Three steps to a consultant',
+    body: 'Tell us what is happening, book a Teams session, and we confirm a consultant. Nothing is charged through this form — we agree the scope and the cost with you before any work starts.',
+    summary: {
+      title: 'What it costs',
+      rows: [
+        { label: 'Rate', value: '$180 / hour + GST' },
+        { label: 'Minimum engagement', value: '4 hours' },
+        { label: 'Response', value: 'We aim to allocate a DBA within 4 hours' },
+        { label: 'Availability', value: 'Subject to a consultant being free' },
+      ],
+      note: 'The 4-hour target is what we aim for, not a contracted SLA — a support agreement is what makes a response time guaranteed. Work is billed against actual hours and invoiced afterwards; we confirm the likely cost before starting, and if we cannot help we say so first.',
+    },
+    steps: [
+      {
+        title: 'Tell us what is happening',
+        body: 'Name, company, phone and email, plus whatever detail you have. This alerts a senior consultant immediately.',
+      },
+      {
+        title: 'Book a Teams session',
+        body: 'Pick a time and you get a Teams link by email, with screen sharing for the diagnosis. Or just call us — the line is answered 24/7.',
+      },
+      {
+        title: 'We confirm and start',
+        body: `A consultant confirms availability and the likely cost, then works over secure remote access alongside your team.`,
+      },
+    ],
   },
   {
     type: 'platformChips',
@@ -1381,22 +1420,22 @@ const emergencyBlocks: Block[] = [
       },
       {
         title: 'No existing agreement',
-        body: 'We will connect you with the next available senior consultant and start as soon as access is in place — but without a plan there is no contracted response time. Billed at $150 per hour, four-hour minimum.',
-        tag: 'Best effort',
-        link: { label: 'Avoid this next time', href: '/on-call-dba-services' },
+        body: 'Work is charged at $180 per hour plus GST with a four-hour minimum, and we assign the next available senior consultant. There is no contracted response time, and assignment depends on a consultant being free — agreement holders are served first, because they have paid to reserve that capacity.',
+        tag: 'Subject to availability',
+        link: { label: 'Request a consultant', href: '#get-help-now' },
       },
     ],
   },
   {
     type: 'ctaBand',
-    heading: 'Production down right now?',
-    body: 'Call the support line — it is answered 24 hours a day, every day. If it is urgent but not critical, send the details and a consultant will come back to you.',
+    heading: 'Already on a support agreement?',
+    body: 'Your contracted SLA applies and none of the above is needed — call your support line and we respond within the time you hold. Not sure what you are covered for? Call and we will tell you.',
     cta: { label: `Call ${org.phone}`, href: `tel:${org.phoneE164}` },
   },
   {
     type: 'contactForm',
-    heading: 'Not critical enough to call?',
-    body: 'Describe what is happening and a senior consultant will get back to you. For anything affecting production right now, please use the phone.',
+    heading: 'Not an emergency?',
+    body: 'Describe what is happening and a senior consultant will come back to you within one business day — no block required. For anything affecting production right now, purchase a block above or call us.',
   },
 ];
 
@@ -3782,34 +3821,91 @@ export interface SeedPage {
  * "what does a SQL Server health check include?" cannot cite a page that never
  * lists the items, so they are enumerated here as one extractable fact each.
  */
+/**
+ * Free 20-point SQL Server health check.
+ *
+ * Every point is derivable from a read-only script — that is the constraint
+ * that shapes the list. The earlier version promised "restore verification",
+ * "recovery model vs stated RPO" and "whether a failover has ever been tested",
+ * none of which a query can answer. The first two are now the closest thing a
+ * script can actually prove (restore *history* from msdb, and log backup
+ * *cadence*), and the third is the synchronisation state a DMV really reports.
+ *
+ * Host-level checks are new: OS build, CPU, RAM and disk come from PowerShell,
+ * because an instance sized against the wrong amount of memory, or sitting on a
+ * 4 KB allocation unit, is a finding no T-SQL will ever surface.
+ *
+ * The scripts ship as a downloadable bundle at
+ * /onsys-sql-server-health-check.html so a prospect can read every query before
+ * running it — the only honest way to ask for access to someone's production.
+ */
 const healthCheckBlocks: Block[] = [
+  {
+    type: 'richText',
+    html: `
+<p>The <strong>free 20-point SQL Server health check</strong> is a read-only assessment of one SQL Server instance. Every checkpoint is collected by a script you can read first, run yourself, and keep. We analyse the output and send a written report rating all twenty points, with no obligation to engage us afterwards.</p>`,
+  },
   {
     type: 'steps',
     anchor: 'the-20-points',
     eyebrow: 'What we check',
     heading: 'The 20 points, in full',
-    body: 'Every check below runs against a live instance using read-only access. You get the findings whether or not you engage us afterwards.',
+    body: 'Every point below is collected by a read-only script — nothing writes, nothing changes configuration, and nothing reads your business data. Points 1 and 2 use PowerShell on the host; the rest are T-SQL.',
     steps: [
-      { title: 'Backup coverage', body: 'Every database is checked for a current full backup, and for log backups where the recovery model requires them. Databases with no backup at all are the single most common finding.' },
-      { title: 'Restore verification', body: 'We look for evidence that a restore has actually been tested. An untested backup is a hypothesis, not a recovery plan.' },
-      { title: 'Recovery model vs stated RPO', body: 'Simple recovery caps your worst-case data loss at the last full backup. We check the model matches the loss you have actually agreed to tolerate.' },
-      { title: 'Corruption checks', body: 'When DBCC CHECKDB last ran cleanly on each database, and whether it is scheduled. Corruption found late is often corruption already inside every backup you hold.' },
-      { title: 'Version and patch level', body: 'Build number against the Microsoft support lifecycle, so you know which instances are past end of support or missing security updates.' },
-      { title: 'Instance memory configuration', body: 'Max server memory against physical RAM. Left at the default, SQL Server will contend with the operating system for memory.' },
-      { title: 'Parallelism settings', body: 'MAXDOP and cost threshold for parallelism against your core count and workload type — still at defaults on most estates we review.' },
-      { title: 'tempdb configuration', body: 'File count, equal sizing and autogrowth. Misconfigured tempdb is one of the cheapest large performance wins available.' },
-      { title: 'Data and log file growth', body: 'Autogrowth increments, percentage-based growth and unconstrained log files that can fill a volume without warning.' },
-      { title: 'Index health', body: 'Fragmentation levels, duplicate and unused indexes, and the write cost they impose on every insert.' },
-      { title: 'Missing index pressure', body: 'What the optimiser has been asking for, weighted by impact — treated as evidence to review, never applied blindly.' },
-      { title: 'Statistics currency', body: 'How stale the statistics are and whether auto-update is keeping pace with the volume of change on the largest tables.' },
-      { title: 'Wait statistics', body: 'The instance top waits, which tell you what the server is actually spending its time waiting for rather than what you assume it is.' },
-      { title: 'Blocking and long-running queries', body: 'Current blocking chains and the queries with the worst cumulative duration, reads and CPU.' },
-      { title: 'Deadlock frequency', body: 'Deadlocks recorded in the system health session, with the pattern behind the repeat offenders.' },
-      { title: 'Storage latency', body: 'Read and write stall figures per file, which separate a slow query problem from a slow disk problem.' },
-      { title: 'SQL Agent job health', body: 'Failed and long-running jobs, jobs with no failure notification configured, and jobs still owned by departed staff accounts.' },
-      { title: 'Privileged access review', body: 'Who holds sysadmin, which logins are orphaned, and which accounts have privileges nobody can now justify.' },
-      { title: 'Authentication and encryption', body: 'Authentication mode, the state of the sa account, and whether TDE and connection encryption are in place where the data classification calls for it.' },
-      { title: 'High availability readiness', body: 'Always On, failover clustering, mirroring or log shipping configuration — and whether a failover has ever been tested.' },
+      { title: 'Host and operating system', body: 'OS version and build, CPU cores and model, physical RAM, uptime and the active power plan. A host left on the Balanced power plan throttles CPU frequency, which looks like a database problem and is not.' },
+      { title: 'Disk capacity and layout', body: 'Free space per volume, media type, and the NTFS allocation unit size. SQL Server data volumes should be formatted at 64 KB; the 4 KB default costs measurable throughput and stays invisible until somebody checks.' },
+      { title: 'Version, edition and patch level', body: 'Build number, edition and cumulative update, checked against the Microsoft lifecycle so you know whether the instance is still supported and what the edition limits you to.' },
+      { title: 'Instance configuration', body: 'Max server memory, MAXDOP and cost threshold for parallelism against the CPU and RAM actually present, including NUMA layout. Still at defaults on most estates we review.' },
+      { title: 'tempdb configuration', body: 'File count, equal sizing, autogrowth and current space use. Unequal tempdb files cause allocation contention that presents as a query problem.' },
+      { title: 'Database inventory and options', body: 'Every database with its size, recovery model and compatibility level, plus the options that quietly cause trouble: auto-close, auto-shrink, and any page verify setting other than CHECKSUM.' },
+      { title: 'Backup coverage', body: 'Last full, differential and log backup per database, with the age of each. Databases with no backup at all are the single most common finding in this check.' },
+      { title: 'Restore history', body: 'Restores actually performed on this instance, read from msdb. A script cannot prove a backup is restorable — but it can show whether anyone has ever tried, which is the question worth asking.' },
+      { title: 'Log backup cadence', body: 'How often log backups really run across the last seven days, and the average interval between them. That interval is your genuine worst-case data loss, whatever the recovery objective says on paper.' },
+      { title: 'Integrity checks', body: 'When DBCC CHECKDB last completed cleanly on each database. Corruption found late is often corruption already inside every backup you hold.' },
+      { title: 'High availability configuration', body: 'Always On, failover clustering, mirroring and log shipping — what exists, and whether replicas are synchronising right now, including the redo queue depth on each.' },
+      { title: 'File growth settings', body: 'Percentage-based autogrowth and unconstrained log files. A 10% growth increment on a 200 GB file is a 20 GB pause the first time it fires, usually at the worst possible moment.' },
+      { title: 'Storage latency', body: 'Average read and write stall per file since startup. This is what separates a slow query problem from a slow disk problem, and the two get confused constantly.' },
+      { title: 'Wait statistics', body: 'What the instance is actually waiting on, with idle and benign waits filtered out — so you see where the time goes rather than where you assume it goes.' },
+      { title: 'Index health', body: 'Fragmentation on indexes large enough to matter, plus indexes nobody reads that every insert still has to maintain. Collected in LIMITED mode, which is safe during business hours.' },
+      { title: 'Missing index pressure', body: 'What the optimiser has been asking for, weighted by impact. Evidence to review, never applied as written — it suggests one index per query with no regard for the ones already there.' },
+      { title: 'Statistics currency', body: 'How stale the statistics are and how many rows have changed since. Stale statistics produce bad plans that look exactly like a hardware problem.' },
+      { title: 'Expensive queries and blocking', body: 'The queries costing the most CPU and reads across the instance, anything blocking at the time of collection, and the deadlocks recorded by the always-on system health session.' },
+      { title: 'SQL Agent job health', body: 'Failed and long-running jobs, jobs with no failure notification configured at all, and jobs still owned by accounts belonging to people who have left.' },
+      { title: 'Security and encryption', body: 'Who holds sysadmin, the state of the sa account, which surface-area features are enabled, TDE status, and whether connections are actually encrypted in transit.' },
+    ],
+  },
+  {
+    type: 'cardGrid',
+    anchor: 'the-scripts',
+    eyebrow: 'Read it before you run it',
+    heading: 'The scripts are yours before you commit to anything',
+    body: 'Nobody should run a script against production because a supplier sent it to them. So the whole bundle is published up front — read every query, decide whether you are comfortable, and only then talk to us.',
+    centered: true,
+    altBackground: true,
+    columns: 3,
+    cards: [
+      {
+        title: 'Download and read the scripts',
+        body: 'All twenty checkpoints, with the exact PowerShell and T-SQL we run and a note on what each one looks for. Nothing writes, nothing changes configuration, and nothing touches your business data.',
+        tag: 'Open bundle',
+        icon: '#s-code',
+        coverColor: '#EAF1FB',
+        link: { label: 'Open the script bundle', href: '/onsys-sql-server-health-check.html' },
+      },
+      {
+        title: 'Run it yourself, or with us',
+        body: 'Run the bundle in your own change window and send the output, or join a screen share and we run it together while you watch. Either way, no external login to your instance is needed.',
+        tag: 'Your call',
+        icon: '#s-shield',
+        coverColor: '#E7F5EC',
+      },
+      {
+        title: 'About 20 minutes to collect',
+        body: 'The queries are read-only and safe to run during business hours. The analysis is our time, not yours — you spend twenty minutes collecting, then get the report.',
+        tag: '~20 minutes',
+        icon: '#s-managed',
+        coverColor: '#FFF1E0',
+      },
     ],
   },
   {
@@ -3819,22 +3915,22 @@ const healthCheckBlocks: Block[] = [
     heading: 'What you receive',
     body: 'A written report you own, whether or not you become a client.',
     items: [
-      'A findings report rating each of the 20 points, with the evidence behind every rating.',
+      'A findings report rating each of the 20 points, with the script output behind every rating.',
       'A prioritised remediation list separating what is urgent from what is merely untidy.',
-      'An estimate of effort for each remediation item so you can budget or schedule it internally.',
-      'A 30-minute walkthrough call with the senior DBA who ran the check.',
-      'The raw query output, so your own team can reproduce every finding.',
+      'An estimate of effort for each item, so you can budget or schedule it internally.',
+      'A 30-minute walkthrough call with the senior DBA who analysed the output.',
+      'The script bundle itself, so your team can re-run any check whenever they want.',
       'No obligation to engage Onsys for the remediation — plenty of clients do it themselves.',
     ],
     sidebar: {
       title: 'At a glance',
       rows: [
         { label: 'Cost', value: 'Free, one instance' },
-        { label: 'Time to run', value: 'About 2 hours' },
+        { label: 'Your time', value: 'About 20 minutes' },
         { label: 'Report delivered', value: 'Within 3 business days' },
-        { label: 'Access needed', value: 'Read-only, no data leaves site' },
-        { label: 'Production impact', value: 'None — read-only queries' },
-        { label: 'Obligation', value: 'None' },
+        { label: 'Access needed', value: 'None — you run the scripts' },
+        { label: 'Production impact', value: 'None, read-only queries' },
+        { label: 'Lead time to book', value: 'About one week' },
       ],
     },
   },
@@ -3843,18 +3939,20 @@ const healthCheckBlocks: Block[] = [
     anchor: 'how-it-works',
     eyebrow: 'How it works',
     heading: 'How we work with you',
+    body: 'Four steps, and you keep control of your own instance throughout.',
     steps: [
-      { title: 'Book a time', body: 'Pick a 30-minute slot. We confirm which instance you want reviewed and what your change process requires.' },
-      { title: 'Grant read-only access', body: 'A read-only login for the duration, or a screen-share session if your policy does not permit external logins at all.' },
-      { title: 'We run the checks', body: 'About two hours against a live instance. The queries are read-only and safe to run during business hours.' },
-      { title: 'You get the report', body: 'Within three business days, followed by a walkthrough call with the DBA who ran it.' },
+      { title: 'Request a slot', body: 'Tell us the company, a contact and which SQL Server version you are running. We confirm a Teams session about a week out, which gives you time to review the scripts and clear any internal change approval.' },
+      { title: 'Read the scripts', body: 'The full bundle is published on this page. Review it with whoever needs to sign off — nobody should be approving a script they have not read.' },
+      { title: 'Collect the data', body: 'Run the bundle yourself and send the output, or join the Teams session and run it with us while you watch. About twenty minutes either way.' },
+      { title: 'Get the report', body: 'We analyse the output and send a written report rating all twenty points within three business days, followed by a walkthrough call.' },
     ],
   },
   {
-    type: 'ctaBand',
+    type: 'healthCheckBooking',
+    eyebrow: 'Request your health check',
     heading: 'Book your free 20-point SQL Server health check',
-    body: 'One instance, no charge, no obligation. Most clients book the walkthrough call within a week of the report.',
-    cta: { label: 'Book the free health check', href: org.bookingUrl },
+    body: 'One instance, no charge, no obligation. Tell us what you are running and we will confirm a Teams session — usually about a week out, so you have time to review the scripts and clear any change approval first.',
+    note: 'Sessions are scheduled around a week ahead so there is time to review the scripts. If production is down right now, this is the wrong page — call us instead.',
   },
 ];
 
@@ -3864,6 +3962,527 @@ const healthCheckBlocks: Block[] = [
  * australia" and 404ed on the new platform, so this rebuilds it rather than
  * redirecting the equity away.
  */
+/**
+ * SQL Server DBA services — the silo hub (WP6).
+ *
+ * Every figure here is taken from the plan and rate data already published on
+ * /pricing-and-plans rather than written fresh, so the hub cannot quote a
+ * number the pricing page contradicts.
+ *
+ * The opening richText is deliberately a 40–60 word direct answer: definition
+ * first, then the differentiator with a number in it. That is the shape an
+ * answer engine can lift verbatim, and it is what the "In today's data-driven
+ * world" opener this replaces could never provide.
+ */
+const sqlServerDbaBlocks: Block[] = [
+  {
+    type: 'richText',
+    html: `
+<p><strong>SQL Server DBA services</strong> are the ongoing administration of Microsoft SQL Server by specialists rather than in-house staff — monitoring, patching, backup verification, performance tuning, high availability and incident response. Onsys runs SQL Server estates for Australian organisations from $1,500 a month, with a response time of one to two hours, 24 hours a day.</p>`,
+  },
+  {
+    type: 'cardGrid',
+    anchor: 'what-we-do',
+    eyebrow: 'What a SQL Server DBA actually does',
+    heading: 'The work that keeps an instance healthy',
+    body: 'Most SQL Server problems are preventable, and most preventable problems come from the same handful of neglected disciplines. These are the ones we run for you.',
+    centered: true,
+    altBackground: false,
+    columns: 3,
+    cards: [
+      { title: 'Monitoring and alerting', body: 'Agent jobs, blocking, waits, disk and log growth watched continuously — with the alert going to an on-call DBA rather than into an inbox nobody reads overnight.', icon: '#s-managed', coverColor: '#EAF1FB' },
+      { title: 'Backup and restore testing', body: 'A backup that has never been restored is an assumption. We verify restores rather than reporting that the job succeeded.', icon: '#s-ha', coverColor: '#E7F5EC' },
+      { title: 'Patching and version currency', body: 'Cumulative updates and service packs applied on a schedule you approve, with rollback planned before the change window opens.', icon: '#s-shield', coverColor: '#FFF1E0' },
+      { title: 'Performance tuning', body: 'Query plans, indexing, statistics and configuration — addressing the cause rather than adding hardware to a workload that does not need it.', icon: '#s-etl', coverColor: '#F3F2F1' },
+      { title: 'High availability', body: 'Always On availability groups, failover clustering and log shipping: built, tested and — critically — failed over on purpose before you need it in anger.', icon: '#s-consult', coverColor: '#EAF1FB' },
+      { title: 'Security and compliance', body: 'Privileged access, Transparent Data Encryption, auditing and configuration hardening, mapped to the Essential Eight where that is what you report against.', icon: '#s-shield', coverColor: '#E7F5EC' },
+    ],
+  },
+  {
+    type: 'steps',
+    anchor: 'how-we-start',
+    eyebrow: 'How we work with you',
+    heading: 'How an engagement starts',
+    body: 'No long discovery project before anything useful happens. The first tangible output is a written assessment of your instance, and it is free.',
+    steps: [
+      { title: 'Free 20-point health check', body: 'One instance, assessed against 20 checkpoints covering configuration, backups, security and patch currency. You get the written report whether or not you engage us.' },
+      { title: 'Scope and plan', body: 'We agree which instances are covered, what the response time needs to be, and which plan fits the estate. No lock-in contract on any of them.' },
+      { title: 'Onboard and baseline', body: 'Secure remote access, monitoring configured, and a documented baseline of how the estate performs before we change anything.' },
+      { title: 'Run and report', body: 'Continuous cover with a monthly or daily health-check report, depending on plan, showing findings and recommendations rather than green ticks.' },
+    ],
+  },
+  {
+    type: 'platformChips',
+    anchor: 'versions',
+    eyebrow: 'Coverage',
+    heading: 'SQL Server versions and topologies we support',
+    body: 'Current and legacy versions, on-premises and in the cloud — including the versions that are out of support and cannot simply be upgraded this quarter.',
+    groups: [
+      {
+        title: 'Versions',
+        chips: [
+          { label: 'SQL Server 2022', color: '#CC2927' },
+          { label: 'SQL Server 2019', color: '#CC2927' },
+          { label: 'SQL Server 2017', color: '#CC2927' },
+          { label: 'SQL Server 2016', color: '#A4373A' },
+          { label: 'SQL Server 2012 & 2014', color: '#A4373A' },
+          { label: 'SQL Server 2008 / R2', color: '#605E5C' },
+        ],
+      },
+      {
+        title: 'High availability & recovery',
+        chips: [
+          { label: 'Always On availability groups', color: '#CC2927' },
+          { label: 'Failover cluster instances', color: '#A4373A' },
+          { label: 'Log shipping', color: '#605E5C' },
+          { label: 'Transactional replication', color: '#605E5C' },
+          { label: 'Transparent Data Encryption', color: '#0E7C4A' },
+        ],
+      },
+      {
+        title: 'Where it runs',
+        chips: [
+          { label: 'On-premises', color: '#605E5C' },
+          { label: 'VMware & Hyper-V', color: '#607078' },
+          { label: 'Azure SQL Managed Instance', color: '#0078D4' },
+          { label: 'Azure SQL Database', color: '#0078D4' },
+          { label: 'SQL Server on Azure VMs', color: '#0078D4' },
+          { label: 'Amazon RDS for SQL Server', color: '#FF9900' },
+        ],
+      },
+    ],
+  },
+  {
+    type: 'cardGrid',
+    anchor: 'plans',
+    eyebrow: 'What it costs',
+    heading: 'Per-instance, the maths is the point',
+    body: 'Monthly plans are priced by estate size, not by ticket. Plan A covers up to 10 SQL Server instances for $1,500 a month — $150 per instance — which is where most comparisons with per-instance pricing come apart.',
+    centered: true,
+    altBackground: true,
+    columns: 3,
+    cards: [
+      { title: '24/7 DBA Plan A', body: 'Up to 10 SQL Server instances and 5 TB. Two-hour response SLA, 10 service hours a month, monthly health check. $150 per instance per month.', tag: '$1,500/mo', link: { label: 'Full inclusions', href: '/pricing-and-plans#database-plans' } },
+      { title: '24/7 DBA Plan B', body: 'Adds 4 MySQL or PostgreSQL instances and 20 TB. One-hour SLA, 20 service hours, automated alerting configured.', tag: '$3,000/mo', link: { label: 'Full inclusions', href: '/pricing-and-plans#database-plans' } },
+      { title: '24/7 DBA Plan C', body: '25 SQL Server, 4 MySQL/PostgreSQL and 6 Oracle instances, 50 TB. One-hour SLA, 50 service hours, daily health checks.', tag: '$7,500/mo', link: { label: 'Full inclusions', href: '/pricing-and-plans#database-plans' } },
+    ],
+  },
+  {
+    type: 'checkList',
+    anchor: 'why-onsys',
+    eyebrow: 'Why Onsys',
+    heading: 'What you get that an in-house hire cannot cover',
+    body: 'A single DBA takes leave, sleeps, and knows one set of platforms. A team does not.',
+    items: [
+      'Certified Australian-based senior DBAs, with no first-line triage layer to get through',
+      'Cover at 2am, on public holidays, and while your DBA is on annual leave',
+      'Response from one hour on Plans B and C, two hours on Plan A',
+      'Included service hours each month, so routine work does not become a separate invoice',
+      'No lock-in contract on any plan — monthly, rolling',
+      'We work alongside your team rather than around them, so knowledge stays in your business',
+    ],
+    sidebar: {
+      title: 'At a glance',
+      rows: [
+        { label: 'Plans from', value: '$1,500 / month' },
+        { label: 'Per instance', value: 'From $150 / month' },
+        { label: 'Response', value: 'One to two hours, 24/7' },
+        { label: 'Ad-hoc consultancy', value: '$150 / hour' },
+        { label: 'Prices shown', value: 'GST exclusive' },
+      ],
+    },
+  },
+  {
+    type: 'ctaBand',
+    heading: 'Start with the free health check',
+    body: 'Twenty checkpoints across one SQL Server instance, with a written report and no obligation. It is the fastest way to find out whether your estate needs us at all.',
+    cta: { label: 'Book your free health check', href: '/free-20-point-sql-server-health-check' },
+  },
+];
+
+/**
+ * Managed SQL Server support (WP6).
+ *
+ * `managed-sql-server-support` and `sql-server-support-plans` are merged into
+ * this one page, as requested. Two pages selling the same three plans to the
+ * same buyer would compete with each other in the index and split whatever
+ * ranking either earned.
+ *
+ * The pricing block is deliberately a real `pricing` block rather than cards,
+ * so offerCatalogSchema() picks the plans up as Offer nodes automatically.
+ * Every figure matches /pricing-and-plans; the per-instance maths is the only
+ * thing computed here, because that is the comparison competitors avoid making.
+ */
+const managedSqlServerBlocks: Block[] = [
+  {
+    type: 'richText',
+    html: `
+<p><strong>Managed SQL Server support</strong> is a fixed monthly fee for the ongoing administration of your SQL Server estate — monitoring, patching, backup verification, tuning and incident response — instead of hiring and covering a DBA yourself. Onsys plans start at $1,500 a month excluding GST for up to ten instances, which is $150 per instance.</p>`,
+  },
+  {
+    type: 'pricing',
+    anchor: 'plans',
+    eyebrow: 'Plans',
+    heading: 'Three plans, priced by estate rather than by ticket',
+    body: 'Every plan is 24/7, includes service hours, and runs month to month with no lock-in. The difference between them is estate size, response time and how often you get reported to.',
+    altBackground: false,
+    columns: 3,
+    note: 'All prices exclude GST. Service hours cover routine and project work; anything beyond them is billed at the plan rate of $140 per hour. Instance counts are the covered maximum, not a commitment to use them.',
+    plans: [
+      {
+        name: '24/7 DBA Plan A',
+        price: '$1,500',
+        unit: 'per month',
+        featured: false,
+        description: 'Up to 10 SQL Server instances and 5 TB — $150 per instance.',
+        featuresTitle: "What's included",
+        features: [
+          'Up to 10 SQL Server instances, 5 TB total',
+          'Two-hour response SLA, 24/7/365',
+          '10 included service hours a month',
+          'Monthly health-check report with findings',
+          '24/7 proactive monitoring and alerting',
+          'Backup verification and restore testing',
+        ],
+        cta: { label: 'Discuss Plan A', href: '/contact' },
+      },
+      {
+        name: '24/7 DBA Plan B',
+        price: '$3,000',
+        unit: 'per month',
+        featured: true,
+        description: 'Adds MySQL and PostgreSQL cover, and a one-hour SLA.',
+        featuresTitle: 'Everything in Plan A, plus',
+        features: [
+          'Adds 4 MySQL or PostgreSQL instances, 20 TB total',
+          'One-hour response SLA, 24/7/365',
+          '20 included service hours a month',
+          'Automated alerting configured for your estate',
+          'Monthly health-check report',
+        ],
+        cta: { label: 'Discuss Plan B', href: '/contact' },
+      },
+      {
+        name: '24/7 DBA Plan C',
+        price: '$7,500',
+        unit: 'per month',
+        featured: false,
+        description: 'Large mixed estates, including Oracle, with daily reporting.',
+        featuresTitle: 'Everything in Plan B, plus',
+        features: [
+          '25 SQL Server, 4 MySQL/PostgreSQL and 6 Oracle instances',
+          '50 TB total capacity covered',
+          'One-hour response SLA, 24/7/365',
+          '50 included service hours a month',
+          'Daily health checks rather than monthly',
+        ],
+        cta: { label: 'Discuss Plan C', href: '/contact' },
+      },
+    ],
+  },
+  {
+    type: 'cardGrid',
+    anchor: 'per-instance',
+    eyebrow: 'Comparing quotes',
+    heading: 'Read the per-instance number, not the headline',
+    body: 'Managed SQL Server support is usually advertised as a monthly figure without saying how many instances it covers. That makes a cheap-looking plan easy to build and hard to compare.',
+    centered: true,
+    altBackground: true,
+    columns: 3,
+    cards: [
+      { title: 'Divide before you compare', body: 'A plan at $999 a month covering 3 instances is $333 each. Plan A at $1,500 covering 10 is $150 each. The bigger headline number is less than half the price per instance.', icon: '#s-etl', coverColor: '#EAF1FB' },
+      { title: 'Ask what a ticket costs', body: 'Plans priced per incident reward a provider for your estate being unstable. Ours include service hours, so a quiet month is a good month for both of us.', icon: '#s-consult', coverColor: '#E7F5EC' },
+      { title: 'Check what the SLA measures', body: 'A response SLA that starts when a human notices is not a response SLA. Ours starts when the alert fires — one hour on Plans B and C, two on Plan A.', icon: '#s-emergency', coverColor: '#FFF1E0' },
+    ],
+  },
+  {
+    type: 'checkList',
+    anchor: 'included',
+    eyebrow: 'Included on every plan',
+    heading: 'What managed support covers',
+    body: 'The same disciplines on every plan. What changes between them is estate size, response time and reporting frequency.',
+    items: [
+      '24/7 monitoring of agent jobs, blocking, waits, disk and log growth',
+      'Cumulative updates and service packs applied on a schedule you approve',
+      'Backup verification with restore testing, not just job-success reporting',
+      'Performance tuning: query plans, indexing, statistics and configuration',
+      'High availability support — Always On, failover clustering, log shipping',
+      'Security hardening, privileged access review and encryption configuration',
+      'Named Australian-based DBAs holding all database access',
+      'No lock-in contract — every plan runs month to month',
+    ],
+    sidebar: {
+      title: 'At a glance',
+      rows: [
+        { label: 'From', value: '$1,500 / month' },
+        { label: 'Per instance', value: 'From $150 / month' },
+        { label: 'Response SLA', value: 'One to two hours, 24/7' },
+        { label: 'Overage rate', value: '$140 / hour' },
+        { label: 'Contract', value: 'Rolling, no lock-in' },
+      ],
+    },
+  },
+  {
+    type: 'ctaBand',
+    heading: 'Not sure which plan fits your estate?',
+    body: 'Start with the free 20-point health check on one instance. It tells us the size and shape of the estate, and tells you what condition it is actually in.',
+    cta: { label: 'Book the free health check', href: '/free-20-point-sql-server-health-check' },
+  },
+];
+
+/**
+ * Who can access your database (WP6).
+ *
+ * Every claim here comes from one of two places: the onshore-only access
+ * commitment given by the business, or the existing privacy policy. Nothing
+ * about named accounts, just-in-time elevation, session recording or a control
+ * mapping to APP 8 / CPS 230 appears, because none of that has been confirmed —
+ * and on this page in particular, a plausible-sounding invented control is a
+ * legal exposure rather than a copy error.
+ */
+const databaseAccessBlocks: Block[] = [
+  {
+    type: 'richText',
+    html: `
+<p><strong>Your production databases are accessed by Onsys DBAs based in Australia, and only by them.</strong> No offshore engineer holds credentials to a client database. That is the default on every plan — not an upgrade, and not something you have to negotiate during scoping.</p>`,
+  },
+  {
+    type: 'checkList',
+    anchor: 'the-commitment',
+    eyebrow: 'The commitment',
+    heading: 'What we are actually promising',
+    body: 'Stated plainly, because "we take security seriously" answers nothing. This is the question every procurement review asks about a remote DBA provider, and it deserves a specific answer rather than a reassuring one.',
+    items: [
+      'Database access is held by Australian-based Onsys DBAs only',
+      'Offshore team members do not hold credentials to client database environments',
+      'The people who log in are the same senior consultants who hold your engagement',
+      'Access is established over secure remote connections agreed at onboarding',
+      'You can ask at any time who currently holds access, and we will tell you',
+    ],
+    sidebar: {
+      title: 'The short answer',
+      rows: [
+        { label: 'Database access', value: 'Australian-based DBAs only' },
+        { label: 'Offshore database access', value: 'None' },
+        { label: 'Where our DBAs are', value: 'Melbourne' },
+        { label: 'Applies to', value: 'Every plan, by default' },
+      ],
+    },
+  },
+  {
+    type: 'cardGrid',
+    anchor: 'the-distinction',
+    eyebrow: 'Being precise',
+    heading: 'Database access is not the same as support records',
+    body: 'Onsys does operate a delivery centre in Colombo, and we would rather explain exactly where the line sits than let you find the word "offshore" somewhere else and wonder what it meant.',
+    centered: true,
+    altBackground: true,
+    columns: 2,
+    cards: [
+      {
+        title: 'Your databases — Australia only',
+        body: 'Logging into an instance, running a query, restoring a backup, changing a configuration. This is done by Australian-based DBAs. No offshore engineer holds credentials to it.',
+        icon: '#s-shield',
+        coverColor: '#E7F5EC',
+      },
+      {
+        title: 'Service records — as our privacy policy states',
+        body: 'Tickets, correspondence and service history are handled by the wider Onsys team, which includes our Colombo delivery centre, under the same confidentiality obligations as our Australian staff. That is disclosed in our privacy policy and has always been.',
+        icon: '#s-consult',
+        coverColor: '#EAF1FB',
+        link: { label: 'Read the privacy policy', href: '/privacy' },
+      },
+    ],
+  },
+  {
+    type: 'cardGrid',
+    anchor: 'questions-to-ask',
+    eyebrow: 'Due diligence',
+    heading: 'What to ask any DBA provider, including us',
+    body: 'If a vendor cannot answer these in writing before you sign, that is your answer. Ask us the same questions and hold us to the replies.',
+    centered: true,
+    altBackground: false,
+    columns: 3,
+    cards: [
+      { title: 'Who exactly holds credentials?', body: 'Named individuals and their location, not "our support team". Ask for it in writing, and ask what happens when one of them leaves.', icon: '#s-shield', coverColor: '#FFF1E0' },
+      { title: 'What happens when access changes?', body: 'How you are told that someone new has access, or that someone has lost it. Silent changes to an access list are the problem, not the changes themselves.', icon: '#s-managed', coverColor: '#EAF1FB' },
+      { title: 'What is written into the agreement?', body: 'A commitment that lives only on a website is a marketing claim. Ask for the access terms to appear in the contract you actually sign.', icon: '#s-consult', coverColor: '#E7F5EC' },
+    ],
+  },
+  {
+    type: 'ctaBand',
+    heading: 'Want this confirmed in writing before you go further?',
+    body: 'Ask us during scoping and the access terms go into your agreement. If the answer we give you here is not the answer you need, we would rather know at that point than after signature.',
+    cta: { label: 'Talk to a senior consultant', href: '/contact' },
+  },
+];
+
+/**
+ * SQL Server 2016 end of support (WP6).
+ *
+ * Dates verified against Microsoft's own lifecycle page, not from memory:
+ * https://learn.microsoft.com/en-us/lifecycle/products/sql-server-2016
+ *
+ * Note the brief said 14 July 2026; Microsoft's published extended end date is
+ * 15 July 2026 (7/15/2026, Pacific Time). 14 July 2021 is the *mainstream* end
+ * date, which is where that number came from.
+ */
+const sqlServer2016Blocks: Block[] = [
+  {
+    type: 'richText',
+    html: `
+<p><strong>Microsoft extended support for SQL Server 2016 ended on 15 July 2026.</strong> Instances still running it receive no security updates, so every vulnerability found from that date onward stays open unless you buy Extended Security Updates. If you are running SQL Server 2016 today, you are running unpatched database software in production right now.</p>`,
+  },
+  {
+    type: 'stats',
+    eyebrow: 'The dates that matter',
+    heading: 'Where SQL Server 2016 sits in its lifecycle',
+    stats: [
+      { value: '1 Jun 2016', label: 'Released' },
+      { value: '14 Jul 2021', label: 'Mainstream support ended' },
+      { value: '15 Jul 2026', label: 'Extended support ended' },
+      { value: '17 Jul 2029', label: 'Last day of Year 3 ESUs' },
+    ],
+  },
+  {
+    type: 'checkList',
+    anchor: 'what-it-means',
+    eyebrow: 'What changes',
+    heading: 'What ending support actually means',
+    body: 'The instance keeps running. That is what makes this risk easy to defer — nothing breaks on the day, and the exposure accumulates quietly.',
+    items: [
+      'No security updates, so newly disclosed vulnerabilities stay unpatched',
+      'No bug fixes, and no Microsoft support case you can raise when something goes wrong',
+      'Patch currency findings against the ACSC Essential Eight, which expects vendor-supported software',
+      'Questions from auditors, insurers and enterprise customers reviewing your supply chain',
+      'Compatibility drift as tooling, drivers and cloud services drop support for older versions',
+    ],
+    sidebar: {
+      title: 'Verify it yourself',
+      rows: [
+        { label: 'Source', value: 'Microsoft Lifecycle' },
+        { label: 'Extended end', value: '15 July 2026' },
+        { label: 'Required level', value: 'Service Pack 3' },
+        { label: 'ESUs available', value: 'Three years, to July 2029' },
+      ],
+    },
+  },
+  {
+    type: 'cardGrid',
+    anchor: 'options',
+    eyebrow: 'Your options',
+    heading: 'Three routes, and the honest trade-off in each',
+    body: 'Which one is right depends on the application sitting on top, not on the database. We assess that before recommending anything.',
+    centered: true,
+    altBackground: true,
+    columns: 3,
+    cards: [
+      {
+        title: 'Upgrade in place',
+        body: 'Move to SQL Server 2019 or 2022 on the same or new hardware. The cleanest outcome and usually the cheapest over three years — but it needs application compatibility testing, and that is the work most teams underestimate.',
+        tag: 'Usually best',
+        coverColor: '#E7F5EC',
+        icon: '#s-ha',
+      },
+      {
+        title: 'Move to Azure SQL Managed Instance',
+        body: 'Removes the version treadmill entirely, because Microsoft patches the platform. Best fit when the application can tolerate the small set of T-SQL differences, and when you want out of the upgrade cycle for good.',
+        tag: 'No more upgrades',
+        coverColor: '#EAF1FB',
+        icon: '#s-cloud',
+      },
+      {
+        title: 'Buy Extended Security Updates',
+        body: 'Keeps security patches coming for up to three more years while you plan properly. A bridge, not a destination — the cost rises each year and the version still ages. Confirm current ESU pricing and eligibility with your licensing partner.',
+        tag: 'Buys time',
+        coverColor: '#FFF1E0',
+        icon: '#s-shield',
+      },
+    ],
+  },
+  {
+    type: 'steps',
+    anchor: 'how-we-help',
+    eyebrow: 'How we help',
+    heading: 'How an upgrade actually runs',
+    body: 'Most failed upgrades fail on application compatibility, not on the database move. So that is what we test first.',
+    steps: [
+      { title: 'Assess what you are running', body: 'Every SQL Server instance, its version, patch level, edition and the applications depending on it. Our free 20-point health check covers one instance and gives you the written baseline.' },
+      { title: 'Test compatibility', body: 'Database Experimentation Assistant and compatibility level testing against a restored copy, so surprises happen in a test environment rather than during your change window.' },
+      { title: 'Plan the move and the rollback', body: 'A migration plan with a tested rollback, agreed downtime, and a decision point where we stop if the tests say stop.' },
+      { title: 'Execute and verify', body: 'The migration itself, then verification against the baseline from step one — so "it worked" is a measurement rather than an opinion.' },
+    ],
+  },
+  {
+    type: 'ctaBand',
+    heading: 'Still on SQL Server 2016?',
+    body: 'Start with the free 20-point health check. It tells you the patch level, the edition and what is depending on the instance — which is what any upgrade decision needs before it can be made.',
+    cta: { label: 'Book the free health check', href: '/free-20-point-sql-server-health-check' },
+  },
+];
+
+/**
+ * SQL Server DBA Melbourne (WP6).
+ *
+ * The only locally-specific claims here are the ones the business gave: the
+ * DBAs are in Melbourne and will attend on site where it helps. That plus the
+ * real CBD address is genuine local content; inventing suburb lists or client
+ * names would make this the templated city page the brief warned against.
+ */
+const melbourneBlocks: Block[] = [
+  {
+    type: 'richText',
+    html: `
+<p><strong>Onsys is a Melbourne SQL Server DBA practice.</strong> Our database administrators are based in Melbourne, our office is at ${org.postalAddress}, and we will come to you when a problem is better solved in the room. Most work is remote — but "remote" should not mean nobody will ever turn up.</p>`,
+  },
+  {
+    type: 'checkList',
+    anchor: 'why-local',
+    eyebrow: 'Why a local DBA matters',
+    heading: 'What being in Melbourne actually changes',
+    body: 'Plenty of remote DBA providers serve Australia from another timezone. Here is where being in the same city is worth something, and where it honestly is not.',
+    items: [
+      'Your business hours are our business hours — no waiting overnight for a reply',
+      'Incident calls at 2am AEST are answered by someone for whom it is 2am, not a handover note',
+      'We attend on site when it helps: migration cutovers, DR tests, workshops, procurement reviews',
+      'Face-to-face scoping before you commit, if you would rather meet than take a call',
+      'Australian-based DBAs hold all database access — see who can access your database',
+      'For most day-to-day administration, remote is genuinely better: faster to start, nothing to schedule',
+    ],
+    sidebar: {
+      title: 'Where we are',
+      rows: [
+        { label: 'Office', value: org.address.street },
+        { label: 'City', value: `${org.address.locality} ${org.address.region} ${org.address.postalCode}` },
+        { label: 'DBAs based in', value: 'Melbourne' },
+        { label: 'On-site visits', value: 'Yes, where it helps' },
+        { label: 'Phone', value: org.phone },
+      ],
+    },
+  },
+  {
+    type: 'cardGrid',
+    anchor: 'when-we-visit',
+    eyebrow: 'On site',
+    heading: 'When we come to you',
+    body: 'We will not pretend every task needs a visit. These are the ones where being in the room genuinely changes the outcome.',
+    centered: true,
+    altBackground: true,
+    columns: 3,
+    cards: [
+      { title: 'Migration cutovers', body: 'A go-live weekend with your team, your application owners and your infrastructure people in one place, making decisions in minutes rather than over email.', icon: '#s-ha', coverColor: '#EAF1FB' },
+      { title: 'DR tests and workshops', body: 'Failover rehearsals and architecture sessions work better face to face, because the useful conversation is the one that happens after the formal agenda.', icon: '#s-consult', coverColor: '#E7F5EC' },
+      { title: 'Procurement and audit reviews', body: 'When your board, auditor or insurer wants to meet the people who hold access to your production databases, we will be there.', icon: '#s-shield', coverColor: '#FFF1E0' },
+    ],
+  },
+  {
+    type: 'ctaBand',
+    heading: 'Melbourne-based, and happy to meet',
+    body: `Call ${org.phone} or book a consultation. If a coffee in the CBD is more useful than a Teams call, say so and we will come to you.`,
+    cta: { label: 'Book a consultation', href: org.bookingUrl },
+  },
+];
+
 const remoteSupportBlocks: Block[] = [
   {
     type: 'cardGrid',
@@ -3957,7 +4576,7 @@ export const pages: SeedPage[] = [
     // part of this string.
     seoTitle: 'Remote DBA Services Australia | 24/7 DBA Support',
     seoDescription:
-      '24/7 remote DBA support for Australian businesses across SQL Server, Oracle, PostgreSQL and MySQL. Plans from $1,500/month ex-GST, no lock-in.',
+      'Australian SQL Server DBA support from $1,500/month ex-GST. 24/7 cover, response from one hour, Melbourne-based. Free 20-point SQL Server health check.',
     navOrder: 1,
     blocks: homeBlocks,
     /**
@@ -4085,7 +4704,7 @@ export const pages: SeedPage[] = [
       { label: 'Book a Free Consultation', href: org.bookingUrl },
       { label: 'See DBA plans', href: '/pricing-and-plans#database-plans' },
     ],
-    seoTitle: 'On-Call DBA Support Australia | From $100/Instance',
+    seoTitle: 'Standby SQL Server DBA Cover | $100 Per Instance | Onsys',
     seoDescription:
       'Standby DBA cover from $100 per instance per month with a 2-hour response SLA, 24/7. Pay only for the call-outs you use. SQL Server, Oracle, PostgreSQL.',
     navOrder: 2,
@@ -4104,24 +4723,29 @@ export const pages: SeedPage[] = [
   {
     slug: 'emergency-database-support',
     title: 'Emergency Database Support',
-    heading: 'Emergency database support',
-    eyebrow: 'Outage response · answered 24/7',
-    lede: `Production down, data at risk, or a restore that will not complete? Call ${org.phone} and speak to an Australian-based senior DBA — any hour, any day, with or without an existing agreement.`,
+    heading: 'SQL Server down? Emergency DBA support, 24/7',
+    eyebrow: 'Outage response · subject to availability',
+    lede: `Production down, data at risk, or a restore that will not complete? Clients on a support agreement call their line and their SLA applies. Without one, tell us what is happening and we assign the next available Australian-based senior DBA — charged at $180 per hour plus GST, subject to availability.`,
     heroImage: '/images/hero-db-emergency.jpg',
     heroCtas: [
+      { label: 'Get help now', href: '#get-help-now' },
       { label: `Call ${org.phone}`, href: `tel:${org.phoneE164}` },
-      { label: 'Book a Consultation', href: org.bookingUrl },
     ],
-    seoTitle: 'Emergency DBA Support Australia | 24/7 Response',
+    // WP7.2: "emergency database support australia" returns civil emergency
+    // management results — NEMA, Wikipedia — so the old title competed for a
+    // query this page cannot win. Retargeted onto what a DBA actually types.
+    seoTitle: 'SQL Server Down? 24/7 Emergency DBA Australia',
     seoDescription:
-      'Production database down? Call 1800 431 416 for 24/7 emergency DBA response across SQL Server, Oracle, PostgreSQL and MySQL. No existing contract needed.',
+      'Production database down? Get an Australian senior DBA on SQL Server, Oracle, PostgreSQL or MySQL at $180/hr + GST, four-hour minimum, subject to availability. No agreement required.',
     navOrder: 3,
     blocks: emergencyBlocks,
     faqs: [
       { question: 'What counts as a database emergency?', answer: 'Anything where production is down, degraded or at risk of data loss: an instance that will not start, corruption or a failed restore, deleted or encrypted data, a failed upgrade, a failover that did not work, or severe blocking that has taken the application offline.' },
-      { question: 'How much does emergency database support cost?', answer: 'Emergency work is billed at the published remote consultancy rate of $150 per hour with a four-hour minimum, GST exclusive. Clients on a monthly DBA plan draw on their included service hours first, then $140 per hour. We tell you the likely cost before work starts.' },
+      { question: 'How much does emergency database support cost?', answer: 'Without a support agreement, emergency work is charged at $180 per hour plus GST with a four-hour minimum. Clients on a monthly DBA plan draw on their included service hours first and then pay $140 per hour, and on-call subscribers pay $150 per hour, because both have already paid to reserve our capacity. We agree the likely cost with you before work starts.' },
       { question: 'Do you guarantee a response time for emergency calls?', answer: 'A guaranteed response time applies if you already hold an agreement: one hour on DBA Plans B and C, two hours on Plan A, and two hours on an on-call subscription. Without a plan there is no contracted SLA — we connect you to the next available senior consultant and start as soon as access is in place.' },
-      { question: 'Can you help if we are not an existing client?', answer: 'Yes. You do not need a contract to call. We take the details, establish secure remote access and begin work at $150 per hour with a four-hour minimum. Most clients set up an on-call subscription afterwards so the next incident carries a guaranteed response time.' },
+      { question: 'Can you help if we are not an existing client?', answer: 'Yes, subject to a consultant being available. Send us your details or call, and we assign the next free senior consultant at $180 per hour plus GST with a four-hour minimum. There is no contracted response time without an agreement — clients who hold one are served first, because they have paid in advance to reserve that capacity. Most clients set up an on-call subscription afterwards so the next incident carries a guaranteed response.' },
+      { question: 'Why is the rate higher without an agreement?', answer: 'Because clients on an agreement pay every month to reserve our capacity, and it would not be fair to charge them the same as someone calling once. The agreement rate is lower and carries a guaranteed response time; the ad-hoc rate is higher and carries none. That is the way round it should be.' },
+      { question: 'Do we pay anything before you look at it?', answer: 'No. Send us the details or call, and a consultant assesses the situation and confirms the likely cost before any work begins. If we conclude we cannot help, we tell you and there is nothing to pay.' },
       { question: 'Which database platforms do you support in an outage?', answer: 'SQL Server 2008 to 2022, Oracle 10g to 23ai, PostgreSQL, EDB, MySQL, MariaDB, MongoDB, Azure SQL Database and Azure SQL Managed Instance — running on-premises, on VMware or Hyper-V, or in Azure, AWS and Oracle Cloud.' },
       { question: 'Can you recover a corrupted or accidentally deleted database?', answer: 'Often, but it depends entirely on the failure mode and what backups exist. A senior DBA assesses recoverability early in the call and tells you honestly what can and cannot be retrieved, rather than billing hours against an outcome that is not achievable.' },
       { question: 'What information do you need when we call?', answer: 'The instance or server name, the exact error message, when the problem started, and what changed beforehand — a patch, a deployment, a restart or a storage event. Someone who can approve remote access should be available, as that is usually the first blocker.' },
@@ -4664,12 +5288,16 @@ export const pages: SeedPage[] = [
     navOrder: 3,
     blocks: healthCheckBlocks,
     faqs: [
-      { question: 'Is the SQL Server health check really free?', answer: 'Yes — one instance, no charge, no obligation and no requirement to engage us afterwards. You keep the report and the raw query output either way. We offer it because roughly half the environments we review turn out to have a finding serious enough that the owner wants help fixing it, and the other half tell someone we were straight with them.' },
-      { question: 'How long does a SQL Server health check take?', answer: 'About two hours of read-only checks against the live instance, which can run during business hours without affecting production. The written report follows within three business days, and we walk you through it on a 30-minute call.' },
-      { question: 'What access do you need for the health check?', answer: 'A read-only login with VIEW SERVER STATE and db_datareader on the system databases is enough for every one of the 20 checks. If your policy does not allow external logins at all, we run the same checks over a screen-share while a member of your team drives. No data leaves your environment.' },
-      { question: 'What do we get at the end of it?', answer: 'A findings report rating each of the 20 points with the evidence behind it, a prioritised remediation list with effort estimates, the raw query output so your team can reproduce every finding, and a 30-minute walkthrough with the DBA who ran the check.' },
-      { question: 'Will the health check affect production performance?', answer: 'No. Every check is a read-only query against system views and dynamic management views. Nothing is written, no configuration is changed, and no maintenance window is required.' },
+      { question: 'Is the SQL Server health check really free?', answer: 'Yes — one instance, no charge, no obligation and no requirement to engage us afterwards. You keep the report and the scripts either way. We offer it because roughly half the environments we review turn out to have a finding serious enough that the owner wants help fixing it, and the other half tell someone we were straight with them.' },
+      { question: 'How long does a SQL Server health check take?', answer: 'About twenty minutes of your time. The data collection is a set of read-only scripts you run yourself, or that we run together on a screen share while you watch. Analysing the output is our time, not yours — the written report follows within three business days, and we walk you through it on a 30-minute call.' },
+      { question: 'What access do you need for the health check?', answer: 'None. You run the scripts and send us the output, so we never need a login to your instance at all. If you would rather we drove, we do it on a screen share while you watch. The scripts need a login with VIEW SERVER STATE and VIEW ANY DEFINITION, plus a local Windows session on the host for the two PowerShell checks — sysadmin is not required.' },
+      { question: 'What do we get at the end of it?', answer: 'A findings report rating each of the 20 points with the script output behind every rating, a prioritised remediation list with effort estimates, the script bundle itself so your team can re-run any check whenever they like, and a 30-minute walkthrough with the DBA who analysed it.' },
+      { question: 'Will the health check affect production performance?', answer: 'No. Every check is a read-only query against system views and dynamic management views, plus read-only PowerShell for the host and disk checks. Nothing is written, no configuration is changed, no business data is read, and no maintenance window is required. Index fragmentation is collected in LIMITED mode, which samples rather than reading every page.' },
       { question: 'Can you health check Oracle, PostgreSQL or MySQL instead?', answer: 'Yes, though the free offer covers SQL Server. Oracle, PostgreSQL, EDB and MySQL health checks are run as a fixed-price engagement — usually a half day per instance at $150 per hour, quoted before the work starts.' },
+      { question: 'Can we see the scripts before agreeing to anything?', answer: 'Yes — they are published in full at /onsys-sql-server-health-check.html before you speak to anybody. Every PowerShell command and every T-SQL query we run is there, with a note on what each one looks for. Nobody should approve a script they have not read, least of all one a supplier sent them.' },
+      { question: 'Why is there a week of lead time?', answer: 'So you can actually read the scripts and get whatever change approval your organisation requires. Booking a session for tomorrow would produce a meeting where nobody has reviewed anything, which helps neither of us. If production is down right now this is the wrong process entirely — call 1800 431 416.' },
+      { question: 'Do we have to send you data?', answer: 'Only the script output, and only if you want to. The queries return configuration, counters and metadata — file sizes, wait statistics, backup dates, login names — never rows from your tables. If you would rather send nothing at all, we run the scripts together on a screen share and take notes as we go.' },
+      { question: 'Which SQL Server versions can you check?', answer: 'SQL Server 2012 and later for the full set. Most checks work on 2008 R2 as well, with a handful of DMVs unavailable — the script bundle notes which ones and gives the older alternative. Azure SQL Managed Instance is covered; Azure SQL Database omits the host and disk checks, since there is no host you control.' },
       { question: 'Do you have to be in Melbourne to book one?', answer: 'No. The check is run remotely, so we cover organisations anywhere in Australia and New Zealand. Our consultants are Melbourne-based and work Australian business hours, with 24/7 cover available on a support plan.' },
     ],
   },
@@ -4677,6 +5305,130 @@ export const pages: SeedPage[] = [
     // Rebuilt from the legacy WordPress URL that ranked ~#9 for "oracle dba
     // support australia". The audit's guidance is to win the head term
     // geo-qualified rather than compete for it bare.
+    slug: 'managed-sql-server-support',
+    title: 'Managed SQL Server Support',
+    heading: 'Managed SQL Server support',
+    eyebrow: 'Fixed monthly cover · no lock-in',
+    lede: 'Fixed-fee SQL Server administration for Australian organisations — 24/7 monitoring, patching, backup verification, tuning and incident response. From $1,500 a month for up to ten instances, which is $150 each.',
+    heroImage: '/images/hero-db-managed.jpg',
+    heroCtas: [
+      { label: 'Free 20-point health check', href: '/free-20-point-sql-server-health-check' },
+      { label: 'Compare the plans', href: '#plans' },
+    ],
+    seoTitle: 'Managed SQL Server Support | $150 Per Instance',
+    seoDescription:
+      'Managed SQL Server support from $1,500/month for 10 instances — $150 each. 24/7 monitoring, one-hour response SLA, Australian DBAs, no lock-in contract.',
+    navOrder: 7,
+    blocks: managedSqlServerBlocks,
+    faqs: [
+      { question: 'How much does managed SQL Server support cost?', answer: 'Onsys plans start at $1,500 per month excluding GST for up to 10 SQL Server instances and 5 TB — $150 per instance. Plan B is $3,000 and adds MySQL/PostgreSQL cover with a one-hour SLA; Plan C is $7,500 and covers 25 SQL Server, 4 MySQL/PostgreSQL and 6 Oracle instances with daily health checks. Every plan includes service hours and runs month to month.' },
+      { question: 'What is included in managed SQL Server support?', answer: '24/7 monitoring and alerting, cumulative update and service pack patching on an approved schedule, backup verification with restore testing, performance tuning, high availability support, security hardening, and included service hours each month. Every plan is delivered by named Australian-based DBAs who hold all database access.' },
+      { question: 'How does this compare with a cheaper per-instance quote?', answer: 'Divide before comparing. A plan advertised at $999 a month covering three instances is $333 per instance; Plan A at $1,500 covering ten is $150. Also check what the response SLA measures — a clock that starts when a person notices the alert is not a response SLA — and whether service hours are included or every ticket is billable.' },
+      { question: 'What happens if we use more than the included service hours?', answer: 'Additional work is billed at the plan rate of $140 per hour, which is lower than our standard $150 consultancy rate and considerably lower than the $180 ad-hoc emergency rate. We tell you before hours are exceeded, not after.' },
+      { question: 'Is there a lock-in contract?', answer: 'No. All three plans run on a rolling monthly basis. If the service is not worth what you are paying, the correct response is to be able to leave, and we would rather compete on that basis.' },
+      { question: 'Who holds access to our SQL Server instances?', answer: 'Australian-based Onsys DBAs, and only them. No offshore engineer holds credentials to a client database environment, on any plan. We will confirm the access terms in writing during scoping and write them into your agreement.' },
+    ],
+  },
+  {
+    slug: 'who-can-access-your-database',
+    title: 'Who Can Access Your Database',
+    heading: 'Who can access your database',
+    eyebrow: 'Access governance · stated plainly',
+    lede: 'Your production databases are accessed by Onsys DBAs based in Australia, and only by them. No offshore engineer holds credentials to a client database — on every plan, by default, not as an upgrade.',
+    heroImage: '/images/hero-security.jpg',
+    heroCtas: [
+      { label: 'Ask us in writing', href: '/contact' },
+      { label: 'SQL Server DBA services', href: '/sql-server-dba-services' },
+    ],
+    seoTitle: 'Who Accesses Your Database? Australian DBAs Only',
+    seoDescription:
+      'Onsys database access is held by Australian-based DBAs only — no offshore credentials, on every plan by default. What to ask any remote DBA provider.',
+    navOrder: 8,
+    blocks: databaseAccessBlocks,
+    faqs: [
+      { question: 'Is it safe to give an external company access to our production SQL Server?', answer: 'It is safe when you know exactly who holds credentials, where they are, and what happens when that list changes — and when those terms are written into the agreement rather than only onto a website. At Onsys, production database access is held by Australian-based DBAs only, and we will confirm the access terms in writing during scoping.' },
+      { question: 'Do offshore staff have access to our databases?', answer: 'No. Onsys DBAs based in Australia hold database access. Offshore team members do not hold credentials to client database environments. Onsys does operate a delivery centre in Colombo, and the wider team there handles service records and correspondence under the same confidentiality obligations as our Australian staff — that is disclosed in our privacy policy.' },
+      { question: 'What is the difference between database access and service records?', answer: 'Database access means logging into an instance: running queries, restoring backups, changing configuration. That is Australian-based DBAs only. Service records means tickets, correspondence and service history — the administrative trail around your support, which the wider Onsys team handles. We keep the distinction explicit rather than letting the word "offshore" sit unexplained.' },
+      { question: 'Can the access terms go into our contract?', answer: 'Yes, and we would encourage it. A commitment that lives only on a website is a marketing claim. Raise it during scoping and the access terms are written into the agreement you sign.' },
+      { question: 'How do we know who currently holds access?', answer: 'Ask, and we will tell you. You can request the current list at any point in the engagement, and we would rather you did — a provider who is uncomfortable answering that question is telling you something.' },
+    ],
+  },
+  {
+    slug: 'sql-server-2016-end-of-support',
+    title: 'SQL Server 2016 End of Support',
+    heading: 'SQL Server 2016 end of support',
+    eyebrow: 'Support ended 15 July 2026',
+    lede: 'Extended support for SQL Server 2016 ended on 15 July 2026. Instances still running it get no security updates — so every vulnerability found since then stays open. Here are your options, and the honest trade-off in each.',
+    heroImage: '/images/hero-db-upgrade.jpg',
+    heroCtas: [
+      { label: 'Free 20-point health check', href: '/free-20-point-sql-server-health-check' },
+      { label: `Call ${org.phone}`, href: `tel:${org.phoneE164}` },
+    ],
+    seoTitle: 'SQL Server 2016 End of Support | What To Do Now',
+    seoDescription:
+      'SQL Server 2016 extended support ended 15 July 2026. What it means for security and Essential Eight patch currency, your three options, and how upgrades run.',
+    navOrder: 9,
+    blocks: sqlServer2016Blocks,
+    faqs: [
+      { question: 'When did SQL Server 2016 support end?', answer: 'Mainstream support ended on 14 July 2021 and extended support ended on 15 July 2026, according to Microsoft’s published lifecycle. Service Pack 3 was the level required to remain supported up to that date. Extended Security Updates are available for up to three further years, with Year 3 ending 17 July 2029.' },
+      { question: 'What happens if we keep running SQL Server 2016?', answer: 'The instance keeps working — nothing breaks on the day, which is what makes this easy to defer. What stops is security updates, so any vulnerability disclosed after 15 July 2026 remains unpatched. You also lose access to Microsoft support cases, and you will fail patch-currency expectations under the ACSC Essential Eight and most enterprise supply-chain reviews.' },
+      { question: 'Should we upgrade to SQL Server 2022 or move to Azure SQL Managed Instance?', answer: 'It depends on the application, not the database. Upgrading in place is usually cheapest over three years and keeps everything familiar. Azure SQL Managed Instance removes the upgrade treadmill permanently because Microsoft patches the platform, but needs the application to tolerate a small set of T-SQL differences. We test compatibility before recommending either.' },
+      { question: 'What are Extended Security Updates and should we buy them?', answer: 'ESUs are paid security patches that continue after extended support ends — up to three years, with Year 3 running to 17 July 2029. They are a bridge, not a destination: cost rises each year and the version keeps ageing. Sensible when a migration is genuinely planned and dated; expensive when used to avoid making a decision. Confirm current pricing and eligibility with your licensing partner.' },
+      { question: 'How long does a SQL Server upgrade take?', answer: 'The database migration itself is usually a single change window. The work is the compatibility testing before it — that is where the time goes and where failed upgrades fail. We assess the estate, test against a restored copy, and plan a rollback before touching production.' },
+      { question: 'Can you upgrade SQL Server without downtime?', answer: 'Near-zero downtime is achievable with Always On availability groups or log shipping, moving the workload to the upgraded instance and cutting over. Whether it is worth the additional complexity depends on what an hour of downtime actually costs you — we will tell you honestly when it is not.' },
+    ],
+  },
+  {
+    slug: 'sql-server-dba-melbourne',
+    title: 'SQL Server DBA Melbourne',
+    heading: 'SQL Server DBA services in Melbourne',
+    eyebrow: 'Melbourne-based DBAs · on site when it helps',
+    lede: `Our SQL Server database administrators are based in Melbourne, our office is at ${org.postalAddress}, and we will come and meet you when that is more useful than a call. Most work is remote — but remote should not mean nobody ever turns up.`,
+    heroImage: '/images/hero-about.jpg',
+    heroCtas: [
+      { label: 'Book a consultation', href: org.bookingUrl },
+      { label: `Call ${org.phone}`, href: `tel:${org.phoneE164}` },
+    ],
+    seoTitle: 'SQL Server DBA Melbourne | On-Site When Needed',
+    seoDescription:
+      'Melbourne-based SQL Server DBAs, office in the CBD on Little Collins Street. Remote administration from $1,500/month, with on-site attendance when it helps.',
+    navOrder: 10,
+    blocks: melbourneBlocks,
+    faqs: [
+      { question: 'Are your SQL Server DBAs actually in Melbourne?', answer: `Yes. Our database administrators are based in Melbourne and our office is at ${org.postalAddress}. Australian-based DBAs hold all client database access — no offshore engineer holds credentials to a client database.` },
+      { question: 'Will you come to our office?', answer: 'Yes, where it helps. Migration cutovers, DR test days, architecture workshops and procurement or audit reviews are all better in the room. Day-to-day administration is faster remotely, so we do not pretend otherwise — but if you would rather meet, say so and we will come to you.' },
+      { question: 'Do we have to be in Melbourne to use Onsys?', answer: 'No. We support organisations across every Australian state remotely, plus New Zealand and the Pacific Islands. Being Melbourne-based means AEST business hours and the option of an on-site visit; it is not a requirement.' },
+      { question: 'How much does a Melbourne SQL Server DBA cost?', answer: 'Monthly plans start at $1,500 excluding GST for up to 10 SQL Server instances — $150 per instance. Ad-hoc consultancy is $150 per hour with a four-hour minimum. On-site attendance in the Melbourne metropolitan area is arranged as part of the engagement rather than billed as a separate call-out.' },
+    ],
+  },
+  {
+    slug: 'sql-server-dba-services',
+    title: 'SQL Server DBA Services',
+    heading: 'SQL Server DBA services',
+    eyebrow: 'Microsoft SQL Server · Australia-wide, remote',
+    lede: 'Specialist SQL Server administration for Australian organisations — monitoring, patching, tuning, high availability and 24/7 incident response, from $1,500 a month with no lock-in contract.',
+    heroImage: '/images/hero-db-managed.jpg',
+    heroCtas: [
+      { label: 'Free 20-point health check', href: '/free-20-point-sql-server-health-check' },
+      { label: `Call ${org.phone}`, href: `tel:${org.phoneE164}` },
+    ],
+    seoTitle: 'SQL Server DBA Services Australia | From $1,500/mo',
+    seoDescription:
+      'SQL Server DBA services across Australia from $1,500/month — $150 per instance. 24/7 monitoring, response from one hour, Melbourne-based. Free health check.',
+    navOrder: 1,
+    blocks: sqlServerDbaBlocks,
+    faqs: [
+      { question: 'What are SQL Server DBA services?', answer: 'SQL Server DBA services are the ongoing administration of Microsoft SQL Server by specialists rather than in-house staff: monitoring and alerting, patching, backup and restore verification, performance tuning, high availability, security hardening and incident response. Onsys delivers this remotely for Australian organisations from $1,500 per month excluding GST.' },
+      { question: 'How much do SQL Server DBA services cost in Australia?', answer: 'Onsys plans start at $1,500 per month excluding GST for up to 10 SQL Server instances — $150 per instance. Plan B is $3,000 and Plan C is $7,500, covering larger estates and shorter response times. Ad-hoc consultancy is $150 per hour with a four-hour minimum, and emergency work without an agreement is $180 per hour.' },
+      { question: 'Is outsourcing a DBA cheaper than hiring one?', answer: 'For most estates, yes. A single in-house DBA cannot cover 24 hours a day, takes leave, and knows one set of platforms. A monthly plan costs a fraction of a salary, includes service hours, and gives you a team with cover at 2am and on public holidays. Where it does not stack up is a very large estate needing someone on site daily — we will say so.' },
+      { question: 'What response time do you guarantee for SQL Server?', answer: 'One hour on 24/7 DBA Plans B and C, and two hours on Plan A, around the clock including weekends and public holidays. The clock starts when the alert fires, not when someone notices it. Without a support agreement there is no contracted response time.' },
+      { question: 'Which SQL Server versions do you support?', answer: 'SQL Server 2008 and R2 through to 2022, on-premises and in the cloud — including versions past their support end date, which we can keep running safely while an upgrade is planned. We also cover Azure SQL Database, Azure SQL Managed Instance, SQL Server on Azure VMs and Amazon RDS for SQL Server.' },
+      { question: 'Do you need access to our production SQL Server?', answer: 'Yes, over secure remote access established at the start of the engagement, using named accounts rather than shared credentials. We work alongside your team rather than around them, and every change is documented so the knowledge stays in your business.' },
+      { question: 'Can you help with Always On availability groups?', answer: 'Yes — design, build, and the part most estates skip, which is testing a failover on purpose before you need one in anger. We also handle failover cluster instances, log shipping, replication and Transparent Data Encryption across availability groups.' },
+      { question: 'Do we have to sign a long contract?', answer: 'No. All monthly plans run on a rolling basis with no lock-in. Consultancy is hourly with a four-hour minimum, and fixed-price projects carry no ongoing commitment once the work is complete.' },
+    ],
+  },
+  {
     slug: 'remote-database-support',
     title: 'Remote Database Support',
     heading: 'Remote database support in Australia',

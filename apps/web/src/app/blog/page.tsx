@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getPosts, getCategories } from '@/lib/api';
+import { BlogCard } from '@/components/BlogCard';
 import { buildMetadata, breadcrumbSchema } from '@/lib/seo';
 import { siteConfig } from '@/lib/config';
 import { Breadcrumb } from '@/components/Breadcrumb';
@@ -77,15 +78,22 @@ export default async function BlogIndex({ searchParams }: Props) {
             <Link className={`filter-chip${!category ? ' active' : ''}`} href="/blog">
               All
             </Link>
-            {categories.map((c) => (
-              <Link
-                key={c.slug}
-                className={`filter-chip${category === c.slug ? ' active' : ''}`}
-                href={`/blog?category=${c.slug}`}
-              >
-                {c.name}
-              </Link>
-            ))}
+            {/* Empty categories are hidden rather than rendered as chips that
+                lead to "No posts published yet". The count is a published-only
+                count from the API, so a category holding nothing but drafts is
+                correctly treated as empty. A category with no count at all is
+                shown — an older API response should not blank the filter row. */}
+            {categories
+              .filter((c) => c._count === undefined || c._count.posts > 0)
+              .map((c) => (
+                <Link
+                  key={c.slug}
+                  className={`filter-chip${category === c.slug ? ' active' : ''}`}
+                  href={`/blog?category=${c.slug}`}
+                >
+                  {c.name}
+                </Link>
+              ))}
           </nav>
 
           {posts.length === 0 ? (
@@ -95,39 +103,7 @@ export default async function BlogIndex({ searchParams }: Props) {
           ) : (
             <div className="blog-grid">
               {posts.map((post) => (
-                <article className="blog-card" key={post.slug}>
-                  <div
-                    className="blog-cover"
-                    style={{ background: post.category?.color ?? 'var(--navy)' }}
-                  >
-                    {post.category && <span className="cat-tag">{post.category.name}</span>}
-                    <svg aria-hidden="true">
-                      <use href="#s-managed" />
-                    </svg>
-                  </div>
-                  <div className="blog-body">
-                    {post.publishedAt && (
-                      <div className="blog-meta">
-                        <time dateTime={post.publishedAt}>
-                          {new Date(post.publishedAt).toLocaleDateString('en-AU', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                          })}
-                        </time>
-                        {' · '}
-                        {post.readMinutes} min read
-                      </div>
-                    )}
-                    <h2 style={{ fontSize: 16.5, marginBottom: 10 }}>
-                      <Link href={`/blog/${post.slug}`}>{post.title}</Link>
-                    </h2>
-                    <p>{post.excerpt}</p>
-                    <Link className="lnk" href={`/blog/${post.slug}`}>
-                      Read article ›
-                    </Link>
-                  </div>
-                </article>
+                <BlogCard key={post.slug} post={post} />
               ))}
             </div>
           )}
