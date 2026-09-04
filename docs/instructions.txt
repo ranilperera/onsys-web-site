@@ -47,3 +47,111 @@ Don't edit the database directly with SQL. It works until the next npm run seed,
 Don't reach for the admin console for pages. PUT /api/admin/pages/:id exists in admin.routes.ts, but there's no page editor in the UI — admin only has the dashboard, posts, leads, chat and login. Anything written through that endpoint has the same overwrite problem.
 
 If you'd like a page editor in the admin console so content changes don't need a deploy, that's a real piece of work but the API half already exists — say the word and I'll scope it.
+
+
+cd /opt/onsys
+git pull
+docker compose -f docker-compose.prod.yml up -d --build api
+docker compose -f docker-compose.prod.yml exec api npm run seed -w @onsys/api
+docker compose -f docker-compose.prod.yml exec api npm run embeddings:build -w @onsys/api -- --all
+docker compose -f docker-compose.prod.yml up -d --force-recreate web
+
+=============================================
+
+
+1. Add the new environment variables
+
+ssh onsyswebuer@vm-aueast-onsys-web-04
+cd /opt/onsys
+nano .env
+Add these — all optional, each degrades independently:
+
+
+# Health check booking lead time (days). Default 7.
+HEALTHCHECK_LEAD_DAYS=7
+
+# Client portal — leave unset until DBPulse is live
+ORG_PORTAL_ENABLED=false
+
+# Stripe — leave ALL THREE unset for now. The emergency page no longer
+# takes payment; the endpoint stays wired for prepaid hour bundles.
+# STRIPE_SECRET_KEY=
+# STRIPE_EMERGENCY_PRICE_ID=
+# STRIPE_WEBHOOK_SECRET=
+Also confirm this is present, since the disclaimer and privacy pages cite it:
+
+
+grep ORG_LEGAL_NAME .env    # should be: ORG_LEGAL_NAME=Onsys Pty Ltd
+2. Pull, build, migrate
+
+cd /opt/onsys
+git pull
+docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yml logs -f api | grep -i migrat
+Three migrations apply on API startup: add_emergency_requests, add_emergency_lead_source, add_author. Wait for them before continuing.
+
+3. Content and data
+Order matters — seed before embeddings:
+
+
+C="docker compose -f docker-compose.prod.yml exec api"
+
+# New pages, rewritten health check, retargeted titles, legal name fix
+$C npm run seed -w @onsys/api
+
+# Author identity — dry run first
+$C npm run seed:author -w @onsys/api -- --dry-run
+$C npm run seed:author -w @onsys/api -- --role="Your Title"
+
+# ~49 dead blog URLs from the WordPress migration
+$C npm run redirects:blog -w @onsys/api -- --dry-run
+$C npm run redirects:blog -w @onsys/api
+
+# Title suffixes + sitemap lastmod; reports placeholder text, changes none
+$C npm run fix:imported -w @onsys/api -- --dry-run
+$C npm run fix:imported -w @onsys/api
+
+# Content changed, so this is the --all case
+$C npm run embeddings:build -w @onsys/api -- --all
+
+# Clear the on-disk fetch cache
+docker compose -f docker-compose.prod.yml up -d --force-recreate web
+4. Point HAProxy at the real health check
+
+=======================
+
+To create or reset the account
+create:admin upserts by email — same command either way. PowerShell eats the flags, so you need --%:
+
+
+npm run create:admin --% -- --email=ranil@onsys.com.au --name="Ranil Perera" --role=ADMIN
+Or, if that misbehaves, call the script directly:
+
+
+cd apps\api
+npx tsx src/scripts/create-admin.ts --email=ranil@onsys.com.au --name="Ranil Perera" --role=ADMIN
+It prompts for the password — minimum 12 characters. Leave --password off so it stays out of your shell history.
+
+To create a second account instead, just use a different email. --role=EDITOR gives content access without user management.
+
+Signing in is now two steps
+Your .env has all three GRAPH_* values set, so the second-factor email will actually send to ranil@onsys.com.au:
+
+http://localhost:3000/admin/login — email + password
+A 6-digit code arrives by email; enter it
+If the email doesn't turn up, the code is also written to the API console — I made that dev-only on purpose, so it never happens in production:
+
+
+[warn] Email not configured — admin code logged for local development only
+Both your Postgres (5433, healthy) and API (200 on /health) are already up, so nothing else to start.
+
+Optional: skip the email round-trip
+Once you're in, My account → Set up authenticator app gives you a QR code and 10 recovery codes — faster than waiting for an email every login.
+
+Or enrol from the CLI without logging in first:
+
+
+npm run setup:mfa --% -- --email=ranil@onsys.com.au
+That draws the QR in your terminal. It's the same break-glass path you'll want on the VM, so it's worth testing here first.
+
+Then /admin/posts/new is the new editor, ready for a ChatGPT paste.

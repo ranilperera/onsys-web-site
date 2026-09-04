@@ -67,6 +67,18 @@ nav.mainnav > ul > li > a .caret{font-size:10px; transition:.15s;}
 .btn-white{background:#fff; color:var(--navy);}
 .btn-block{width:100%;}
 
+/* Seven items need roughly 980px, and the desktop bar starts at 1025px — so it
+   fits, but with under 50px to spare once the logo and padding are counted.
+   That margin is thinner than the variation between font fallbacks, so the
+   narrow end of the desktop range gets a light tightening rather than risking
+   a second line. Tightened, not hidden: naming every service line in the bar
+   is the point. */
+@media(min-width:1025px) and (max-width:1100px){
+  nav.mainnav > ul{gap:20px;}
+  nav.mainnav > ul > li > a{font-size:14px;}
+  .logo img{max-width:190px; height:auto;}
+}
+
 @media(min-width:1025px){
   li.has-mega .megamenu{
     position:absolute; top:100%; left:50%; transform:translateX(-50%) translateY(6px);
@@ -670,6 +682,30 @@ footer li a:hover{color:var(--navy);}
 .author-links{display:flex; gap:16px; margin:16px 0 0;}
 .author-links a{font-size:13.5px; font-weight:700; color:var(--orange-dark);}
 
+/* ===== Admin rich text editor ===== */
+.rte{border:1px solid var(--gray-light); border-radius:10px; overflow:hidden; background:#fff;}
+.rte-toolbar{display:flex; flex-wrap:wrap; gap:4px; padding:8px 10px; background:#FAFBFD; border-bottom:1px solid var(--gray-light);}
+.rte-toolbar button{border:1px solid transparent; background:none; border-radius:6px; padding:6px 10px; font-size:12.5px; font-weight:600; color:#3B3A39; cursor:pointer; font-family:inherit; line-height:1;}
+.rte-toolbar button:hover{background:#fff; border-color:var(--gray-light); color:var(--navy);}
+.rte-toolbar button.active{background:var(--navy); border-color:var(--navy); color:#fff;}
+.rte-note{margin:0; padding:8px 14px; font-size:12.5px; color:#0B5C2E; background:#DFF6E7; border-bottom:1px solid #BFE8CF;}
+
+/* The editing surface also carries .article-body, so it renders in the
+   published article's own styles — what you edit is what readers see. */
+.rte-surface{padding:24px 26px; min-height:420px; max-height:70vh; overflow-y:auto; outline:none;}
+.rte-surface:focus{box-shadow:inset 0 0 0 2px var(--blue-light);}
+.rte-surface:empty::before{content:attr(data-placeholder); color:#A19F9D;}
+/* max-width on .article-body centres prose at reading width; inside the editor
+   that would leave the toolbar looking detached from the text. */
+.rte-surface.article-body{max-width:none;}
+
+.rte-source{width:100%; min-height:420px; border:0; padding:18px 20px; font-family:ui-monospace,Consolas,monospace; font-size:13px; line-height:1.6; resize:vertical; outline:none;}
+.rte-help{font-size:12.5px; color:var(--gray); line-height:1.55; margin:0; padding:12px 16px; border-top:1px solid var(--gray-light); background:#FAFBFD;}
+
+/* .form-row / .form-field already carry the two-column layout, labels and
+   input styling used across the site's forms — the admin editor reuses them
+   rather than restating a near-identical set that would drift. */
+
 /* ===== Emergency prepaid block ===== */
 .emergency-grid{display:grid; grid-template-columns:1.35fr 1fr; gap:32px; align-items:start;}
 .emergency-form{background:#fff; border:1px solid var(--gray-light); border-radius:12px; padding:26px 28px;}
@@ -766,6 +802,15 @@ footer li a:hover{color:var(--navy);}
 .lead-status.contacted{background:#EAF1FB; color:var(--navy);}
 .lead-status.qualified{background:#DFF6E7; color:#0B5C2E;}
 .lead-status.closed{background:#F3F2F1; color:#605E5C;}
+
+.status-select{border:1px solid transparent; border-radius:999px; padding:4px 26px 4px 10px; font-size:11px; font-weight:700; letter-spacing:.03em; text-transform:uppercase; font-family:inherit; cursor:pointer; appearance:none;
+  /* The chevron is inlined rather than a background-image file: one request
+     fewer, and it inherits nothing that could go missing. */
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5L6 8l3-3.5' fill='none' stroke='%23605E5C' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 8px center; background-size:11px;}
+.status-select:hover{border-color:var(--gray-light);}
+.status-select:focus-visible{outline:2px solid var(--blue-light); outline-offset:1px;}
+.status-select:disabled{opacity:.55; cursor:wait;}
 
 /* Chat purge */
 .purge-control{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
@@ -1023,4 +1068,25 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   .portal-section{padding:28px 0 52px;}
   .portal-card{padding:26px 20px 24px;}
   .portal-card h1{font-size:22px;}
+}
+
+/* ===== Admin: page & footer editors ===== */
+/* Alias so a card's heading can be labelled explicitly rather than relying on
+   it being the first h2 in the section. */
+.admin-card-title{font-size:18px; margin:0 0 14px;}
+
+/* One block in the page editor's stack. The inset background separates a
+   block's own fields from the page-level fields around them, which otherwise
+   read as one long undifferentiated form. */
+.block-editor{border:1px solid var(--gray-light); border-radius:8px; padding:16px 18px; margin-bottom:16px; background:#FAFBFD;}
+.block-editor-head{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:12px;}
+.block-editor-head strong{font-size:13px; color:var(--navy); letter-spacing:.01em;}
+
+/* Grouped admin navigation. The separator is a border rather than a character
+   so it never lands at the start of a wrapped line. */
+.admin-nav-group{display:flex; gap:18px; flex-wrap:wrap; padding-right:18px; border-right:1px solid var(--gray-light);}
+.admin-nav-group:last-child{border-right:0; padding-right:0;}
+
+@media(max-width:720px){
+  .admin-nav-group{border-right:0; padding-right:0; width:100%;}
 }

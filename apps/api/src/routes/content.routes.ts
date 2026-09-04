@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma';
 import { rankRelated } from '../lib/related';
+import { groupFooterLinks } from '@onsys/shared';
 import { asyncHandler } from '../middleware/error';
 
 /**
@@ -190,5 +191,26 @@ contentRouter.get(
       select: { fromPath: true, toPath: true, statusCode: true },
     });
     res.json({ redirects });
+  }),
+);
+
+/**
+ * Footer navigation, grouped and ordered ready to render.
+ *
+ * Grouping here rather than in the web app keeps the ordering rule — group
+ * name, then explicit order — in one place, and means the footer component
+ * does no work beyond iterating what it is given. An empty table returns an
+ * empty object, which the web app treats as "fall back to the built-in list"
+ * rather than rendering a footer with no links in it.
+ */
+contentRouter.get(
+  '/nav/footer',
+  asyncHandler(async (_req, res) => {
+    const links = await prisma.navLink.findMany({
+      where: { visible: true },
+      select: { group: true, groupOrder: true, label: true, href: true, order: true },
+    });
+
+    res.json({ groups: groupFooterLinks(links) });
   }),
 );

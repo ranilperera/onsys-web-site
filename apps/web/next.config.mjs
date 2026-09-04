@@ -20,7 +20,7 @@ const rootEnv = fs.existsSync(rootEnvPath) ? parseEnv(fs.readFileSync(rootEnvPat
 const ORG_KEYS = [
   'NAME', 'SHORT_NAME', 'LEGAL_NAME', 'ABN', 'ACN', 'EMAIL', 'PHONE', 'PHONE_E164',
   'STREET', 'LOCALITY', 'REGION', 'POSTCODE', 'COUNTRY', 'BOOKING_URL',
-  'DESCRIPTION', 'TAGLINE', 'LOGO', 'LINKEDIN', 'FACEBOOK', 'TWITTER', 'YOUTUBE',
+  'DESCRIPTION', 'TAGLINE', 'LOGO', 'LOGO_HEADER', 'LINKEDIN', 'FACEBOOK', 'TWITTER', 'YOUTUBE',
 ];
 const orgEnv = Object.fromEntries(
   ORG_KEYS
@@ -28,6 +28,18 @@ const orgEnv = Object.fromEntries(
     .filter(([, v]) => v)
     .map(([k, v]) => [`NEXT_PUBLIC_ORG_${k}`, v]),
 );
+
+/**
+ * Shared secret for /api/revalidate, taken from the root .env for local dev.
+ *
+ * Set on process.env rather than through `env` below: `env` values are inlined
+ * into the build output, and a secret does not belong there. In Docker this is
+ * supplied by the compose `environment:` block instead, because a standalone
+ * build loads a serialised config and does not re-run this file at runtime.
+ */
+if (!process.env.REVALIDATE_SECRET && rootEnv.REVALIDATE_SECRET) {
+  process.env.REVALIDATE_SECRET = rootEnv.REVALIDATE_SECRET;
+}
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {

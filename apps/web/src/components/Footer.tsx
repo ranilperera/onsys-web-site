@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { siteConfig, navigation } from '@/lib/config';
+import { siteConfig } from '@/lib/config';
+import { getFooterNav } from '@/lib/api';
 
 const socialIcons: Record<string, string> = {
   linkedin:
@@ -20,7 +21,10 @@ const socialLabels: Record<string, string> = {
   youtube: 'YouTube',
 };
 
-export function Footer() {
+export async function Footer() {
+  // Admin-managed; falls back to the built-in list if the API is unreachable.
+  const footerGroups = await getFooterNav();
+
   return (
     <footer>
       <div className="wrap">
@@ -54,7 +58,7 @@ export function Footer() {
             </div>
           </div>
 
-          {Object.entries(navigation.footer).map(([heading, links]) => (
+          {Object.entries(footerGroups).map(([heading, links]) => (
             <div key={heading}>
               <h4>{heading}</h4>
               <ul>

@@ -513,3 +513,33 @@ enum BookingStatus {
   /// Graph rejected the event. Kept so staff can follow up by hand.
   FAILED
 }
+
+/// A link in the site footer, editable from the admin console.
+///
+/// The footer used to be a literal in the web app's config, which meant every
+/// wording change was a code change and a redeploy. Rows here replace that
+/// list; the config literal survives only as the fallback used when the API is
+/// unreachable, so a failed request degrades to the old footer rather than to
+/// no footer at all.
+model NavLink {
+  id      String  @id @default(cuid())
+  /// Column heading it appears under, e.g. "Services". Free text so a new
+  /// column can be created without a migration.
+  group      String
+  /// Position of the whole column in the footer. Held on every link rather
+  /// than in a second table: ordering by the group name alone would put
+  /// Company before Services, which is not the order the footer reads in.
+  groupOrder Int    @default(0)
+  label   String
+  href    String
+  /// Position within the group. Gaps are fine — only the ordering matters.
+  order   Int     @default(0)
+  /// Lets a link be retired without losing its wording and position.
+  visible Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([group, order])
+  @@map("nav_links")
+}

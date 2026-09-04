@@ -1,4 +1,4 @@
-import { siteConfig } from './config';
+import { siteConfig, navigation } from './config';
 import { blockSchema, type Block } from '@onsys/shared';
 
 /**
@@ -132,11 +132,32 @@ export class ContentUnavailableError extends Error {
 /** True while `next build` runs, when no API is expected to exist. */
 const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build';
 
-async function apiGet<T>(path: string, revalidate = REVALIDATE_SECONDS): Promise<T | null> {
+/**
+ * Cache tags let a save in the admin console purge exactly the entries it
+ * invalidated, instead of everyone waiting out the revalidate timer. The
+ * timer stays as the backstop for when the purge call cannot be delivered.
+ */
+export const cacheTags = {
+  page: (slug: string) => `page:${slug}`,
+  pageList: 'pages',
+  post: (slug: string) => `post:${slug}`,
+  postList: 'posts',
+  author: (slug: string) => `author:${slug}`,
+  categories: 'categories',
+  footerNav: 'nav:footer',
+  sitemap: 'sitemap',
+  redirects: 'redirects',
+} as const;
+
+async function apiGet<T>(
+  path: string,
+  revalidate = REVALIDATE_SECONDS,
+  tags: string[] = [],
+): Promise<T | null> {
   let res: Response;
   try {
     res = await fetch(`${serverApiBase}/api/content${path}`, {
-      next: { revalidate },
+      next: { revalidate, tags },
       headers: { Accept: 'application/json' },
     });
   } catch (error) {
@@ -192,13 +213,18 @@ function normaliseBlocks(raw: unknown, context: string): Block[] {
 }
 
 export const getPage = async (slug: string): Promise<PageRecord | null> => {
-  const page = (await apiGet<{ page: PageRecord }>(`/pages/${slug}`))?.page ?? null;
+  const page =
+    (await apiGet<{ page: PageRecord }>(`/pages/${slug}`, REVALIDATE_SECONDS, [
+      cacheTags.page(slug),
+    ]))?.page ?? null;
   if (!page) return null;
   return { ...page, blocks: normaliseBlocks(page.blocks, `/${slug}`) };
 };
 
 export const getPages = async (): Promise<Array<Pick<PageRecord, 'slug' | 'title'>>> =>
-  (await apiGet<{ pages: Array<Pick<PageRecord, 'slug' | 'title'>> }>('/pages'))?.pages ?? [];
+  (await apiGet<{ pages: Array<Pick<PageRecord, 'slug' | 'title'>> }>('/pages', REVALIDATE_SECONDS, [
+    cacheTags.pageList,
+  ]))?.pages ?? [];
 
 export const getPosts = async (params: { page?: number; category?: string } = {}) => {
   const qs = new URLSearchParams();
@@ -210,7 +236,7 @@ export const getPosts = async (params: { page?: number; category?: string } = {}
     (await apiGet<{
       posts: PostSummary[];
       pagination: { page: number; perPage: number; total: number; totalPages: number };
-    }>(`/posts${query ? `?${query}` : ''}`)) ?? {
+    }>(`/posts${query ? `?${query}` : ''}`, REVALIDATE_SECONDS, [cacheTags.postList])) ?? {
       posts: [],
       pagination: { page: 1, perPage: 12, total: 0, totalPages: 0 },
     }
@@ -218,23 +244,63 @@ export const getPosts = async (params: { page?: number; category?: string } = {}
 };
 
 export const getPost = async (slug: string) =>
-  await apiGet<{ post: PostRecord; related: PostSummary[] }>(`/posts/${slug}`);
+  await apiGet<{ post: PostRecord; related: PostSummary[] }>(`/posts/${slug}`, REVALIDATE_SECONDS, [
+    cacheTags.post(slug),
+  ]);
 
 export const getAuthor = async (slug: string): Promise<AuthorWithPosts | null> =>
-  (await apiGet<{ author: AuthorWithPosts }>(`/authors/${slug}`))?.author ?? null;
+  (await apiGet<{ author: AuthorWithPosts }>(`/authors/${slug}`, REVALIDATE_SECONDS, [
+    cacheTags.author(slug),
+  ]))?.author ?? null;
 
 export const getCategories = async (): Promise<CategoryRecord[]> =>
-  (await apiGet<{ categories: CategoryRecord[] }>('/categories'))?.categories ?? [];
+  (await apiGet<{ categories: CategoryRecord[] }>('/categories', REVALIDATE_SECONDS, [
+    cacheTags.categories,
+  ]))?.categories ?? [];
 
 export const getSitemapData = async () =>
   (await apiGet<{
     pages: Array<{ slug: string; updatedAt: string }>;
     posts: Array<{ slug: string; updatedAt: string; publishedAt: string | null }>;
     categories: Array<{ slug: string }>;
-  }>('/sitemap', 3600)) ?? { pages: [], posts: [], categories: [] };
+  }>('/sitemap', 3600, [cacheTags.sitemap])) ?? { pages: [], posts: [], categories: [] };
 
 export const getRedirects = async () =>
   (await apiGet<{ redirects: Array<{ fromPath: string; toPath: string; statusCode: number }> }>(
     '/redirects',
     3600,
+    [cacheTags.redirects],
   ))?.redirects ?? [];
+
+export type FooterGroups = Record<string, Array<{ label: string; href: string }>>;
+
+/**
+ * Footer links, admin-managed, with the built-in list as a fallback.
+ *
+ * This is the one query that runs on literally every page, so unlike the rest
+ * of the module it must not throw: `apiGet` raises ContentUnavailableError
+ * when the API is unreachable, and letting that propagate from a component in
+ * the root layout would turn a footer outage into a whole-site outage. An
+ * empty table is treated the same way as a failed request — both mean "nothing
+ * to render from the database", and a stale footer beats no footer.
+ */
+export async function getFooterNav(): Promise<FooterGroups> {
+  try {
+    const data = await apiGet<{ groups: FooterGroups }>('/nav/footer', REVALIDATE_SECONDS, [
+      cacheTags.footerNav,
+    ]);
+    const groups = data?.groups;
+    if (groups && Object.keys(groups).length > 0) return groups;
+  } catch {
+    // Fall through to the built-in list below.
+  }
+  // `navigation.footer` is a readonly literal, so it is copied into plain
+  // arrays rather than cast — the cast would be a lie about mutability that
+  // only holds until something appends to a group.
+  return Object.fromEntries(
+    Object.entries(navigation.footer).map(([group, entries]) => [
+      group,
+      entries.map(({ label, href }) => ({ label, href })),
+    ]),
+  );
+}

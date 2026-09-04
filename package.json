@@ -32,7 +32,8 @@
     "embeddings:build": "npm run embeddings:build -w @onsys/api --",
     "redirects:blog": "npm run redirects:blog -w @onsys/api --",
     "fix:imported": "npm run fix:imported -w @onsys/api --",
-    "seed:author": "npm run seed:author -w @onsys/api --"
+    "seed:author": "npm run seed:author -w @onsys/api --",
+    "seed:nav": "npm run seed:nav -w @onsys/api"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.0",

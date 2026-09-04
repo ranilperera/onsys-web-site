@@ -44,6 +44,16 @@ export const siteConfig = {
   phoneE164: process.env.NEXT_PUBLIC_ORG_PHONE_E164 || '+611800431416',
   bookingUrl: process.env.NEXT_PUBLIC_ORG_BOOKING_URL || '/book',
   logo: process.env.NEXT_PUBLIC_ORG_LOGO || '/logo.png',
+  /**
+   * Header wordmark, separate from `logo` because the two slots want
+   * different shapes: the header is a 64px-tall strip that suits a wide
+   * lockup, while the footer has room for the taller near-square mark.
+   * Falls back to `logo` so an unset value degrades to the old behaviour.
+   */
+  logoHeader:
+    process.env.NEXT_PUBLIC_ORG_LOGO_HEADER ||
+    process.env.NEXT_PUBLIC_ORG_LOGO ||
+    '/vertical-light.png',
   address: {
     street: process.env.NEXT_PUBLIC_ORG_STREET || 'Level 1, 530 Little Collins Street',
     locality: process.env.NEXT_PUBLIC_ORG_LOCALITY || 'Melbourne',
@@ -93,7 +103,7 @@ export const siteConfig = {
 } as const;
 
 /** Keys of the mega menus below. A nav item carrying one opens that panel. */
-export type MegaMenuKey = 'database' | 'services';
+export type MegaMenuKey = 'database' | 'infra' | 'data' | 'security';
 
 export interface MainNavItem {
   label: string;
@@ -105,27 +115,31 @@ export interface MainNavItem {
 export const navigation = {
   main: [
     { label: 'Home', href: '/' },
-    { label: 'Products', href: '/products' },
+    // Products and Expertise live in the footer's Company column instead. The
+    // top bar is for the four service lines someone is choosing between; the
+    // footer is where you look for a company you have already decided to read
+    // about, and duplicating both was crowding the choice that matters.
     { label: 'Database', href: '/sql-server-dba-services', menu: 'database' },
-    { label: 'Services', href: '/expertise', menu: 'services' },
-    { label: 'Expertise', href: '/expertise' },
+    { label: 'Infra & Cloud', href: '/managed-it-services', menu: 'infra' },
+    { label: 'App, Data & AI', href: '/artificial-intelligence-solutions', menu: 'data' },
+    { label: 'Cyber Security', href: '/managed-security-services', menu: 'security' },
     { label: 'Pricing', href: '/pricing-and-plans' },
     { label: 'Contact', href: '/contact' },
   ] satisfies MainNavItem[],
 
   /**
-   * Two mega menus rather than one.
+   * One menu per service line, rather than everything behind "Services".
    *
-   * A single "Services" panel had grown to twelve database links against four
-   * in each other column — a wall of text on desktop and a very long scroll on
-   * mobile, where the whole panel is one accordion. Splitting on the line the
-   * business actually sells across balances the columns and puts the database
-   * work, which is the specialisation, at the front of the navigation rather
-   * than three levels into it.
+   * "Services" told a visitor nothing — it is the word every competitor uses
+   * for the same undifferentiated list, and it buried the four things Onsys
+   * actually sells one level deeper than they needed to be. Naming the lines
+   * in the bar means someone scanning for cyber security finds the word
+   * "Cyber Security" rather than guessing which menu hides it.
    *
-   * Each menu is keyed so the header can open one at a time. Column counts are
-   * kept to 2-3 with roughly equal lengths; a column past about six items stops
-   * being scannable and becomes a list you read.
+   * Database keeps two columns because it carries eleven links. The other
+   * three are single-column dropdowns of four to six, where a column heading
+   * would only repeat the trigger label directly above it — so their `title`
+   * is omitted and the header is not rendered.
    */
   menus: {
     database: [
@@ -133,9 +147,8 @@ export const navigation = {
         title: 'SQL Server',
         links: [
           { label: 'SQL Server DBA Services', href: '/sql-server-dba-services', sub: 'The hub: what a DBA actually does' },
-          { label: 'Managed SQL Server Support', href: '/managed-sql-server-support', sub: 'From $150 per instance per month' },
+          { label: 'Remote On-Call DBA', href: '/on-call-dba-services', sub: 'Standby cover from $100/instance' },
           { label: 'Free SQL Server Health Check', href: '/free-20-point-sql-server-health-check', sub: '20 points, one instance, no charge' },
-          { label: 'SQL Server DBA Melbourne', href: '/sql-server-dba-melbourne', sub: 'Local DBAs, on site when it helps' },
           { label: 'SQL Server 2016 End of Support', href: '/sql-server-2016-end-of-support', sub: 'Support ended 15 July 2026' },
         ],
       },
@@ -144,16 +157,14 @@ export const navigation = {
         links: [
           { label: 'Remote Database Support', href: '/remote-database-support', sub: '24/7 cover from $1,500/month' },
           { label: 'Managed Database Services', href: '/managed-database-services', sub: '24/7 monitoring & ITIL support' },
-          { label: 'Remote On-Call DBA', href: '/on-call-dba-services', sub: 'Standby cover from $100/instance' },
           { label: 'Emergency Database Support', href: '/emergency-database-support', sub: 'Outage response, answered 24/7' },
           { label: 'Database Consultancy', href: '/database-consultancy', sub: 'Advisory, tuning & health checks' },
           { label: 'Upgrades, Migrations & DR', href: '/database-upgrades-migrations-dr', sub: 'Version moves, clustering & failover' },
         ],
       },
     ],
-    services: [
+    infra: [
       {
-        title: 'Infrastructure & Cloud',
         links: [
           { label: 'Managed IT Services', href: '/managed-it-services', sub: 'Outsourced IT from $4,500/month' },
           { label: 'Cloud Consultancy & Support', href: '/cloud-consultancy', sub: 'Strategy, architecture & FinOps' },
@@ -163,17 +174,19 @@ export const navigation = {
           { label: 'Virtualization & Storage', href: '/virtualization-and-storage', sub: 'VMware, NetApp, Dell EMC' },
         ],
       },
+    ],
+    data: [
       {
-        title: 'Software, Data & AI',
         links: [
-          { label: 'Custom Software Development', href: '/custom-software-development', sub: 'Offshore & augmented teams' },
-          { label: 'Mobile App Development', href: '/mobile-app-development', sub: 'iOS, Android, Flutter' },
-          { label: 'Integration Services', href: '/integration-services', sub: 'ETL & automated data pipelines' },
           { label: 'AI Development & Solutions', href: '/artificial-intelligence-solutions', sub: 'Applied AI & automation' },
+          { label: 'Integration Services', href: '/integration-services', sub: 'ETL & automated data pipelines' },
+          { label: 'Software Development', href: '/custom-software-development', sub: 'Offshore & augmented teams' },
+          { label: 'Mobile App Development', href: '/mobile-app-development', sub: 'iOS, Android, Flutter' },
         ],
       },
+    ],
+    security: [
       {
-        title: 'Cyber Security',
         links: [
           { label: 'Managed Security Services', href: '/managed-security-services', sub: '24/7 SOC, SIEM & threat hunting' },
           { label: 'Managed EDR', href: '/managed-endpoint-detection-and-response', sub: 'SentinelOne, with ransomware rollback' },
@@ -186,13 +199,17 @@ export const navigation = {
 
   footer: {
     Services: [
-      { label: 'SQL Server DBA Services', href: '/sql-server-dba-services' },
       { label: 'Managed SQL Server Support', href: '/managed-sql-server-support' },
+      // Moved down from the Database menu: a city page is a search landing
+      // page, not something a visitor navigates to from the header.
+      { label: 'SQL Server DBA Melbourne', href: '/sql-server-dba-melbourne' },
       { label: 'Remote Database Support', href: '/remote-database-support' },
-      { label: 'On-Call DBA Support', href: '/on-call-dba-services' },
-      { label: 'Database Consultancy', href: '/database-consultancy' },
-      { label: 'Upgrades, Migrations & DR', href: '/database-upgrades-migrations-dr' },
+      { label: 'Managed IT Services', href: '/managed-it-services' },
+      { label: 'Cloud Migrations', href: '/cloud-migrations' },
+      // Was listed as "Software Development" — same page, renamed to match the
+      // header rather than added twice under two labels.
       { label: 'Software Development', href: '/custom-software-development' },
+      { label: 'AI Development & Solutions', href: '/artificial-intelligence-solutions' },
     ],
     Company: [
       { label: 'About Us', href: '/about' },

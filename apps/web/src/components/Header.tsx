@@ -145,7 +145,17 @@ export function Header() {
       <header>
         <div className="wrap nav">
           <Link className="logo" href="/" aria-label={`${siteConfig.name} home`}>
-            <Image src={siteConfig.logo} alt={siteConfig.name} width={220} height={64} priority />
+            {/* Intrinsic dimensions, not display ones: CSS sizes this to
+                64px tall with width:auto, and declaring a ratio that does not
+                match the file makes the browser reserve the wrong width and
+                shift the header once the image loads. */}
+            <Image
+              src={siteConfig.logoHeader}
+              alt={siteConfig.name}
+              width={745}
+              height={239}
+              priority
+            />
           </Link>
 
           <button
@@ -209,9 +219,13 @@ export function Header() {
                       </Link>
 
                       <div className="megamenu" style={{ '--mm-cols': columns.length } as React.CSSProperties}>
-                        {columns.map((col) => (
-                          <div className="mm-col" key={col.title}>
-                            <h5>{col.title}</h5>
+                        {columns.map((col, ci) => {
+                          // Single-column menus omit the heading: it would only
+                          // repeat the trigger label sitting directly above it.
+                          const title = 'title' in col ? (col.title as string) : undefined;
+                          return (
+                          <div className="mm-col" key={title ?? ci}>
+                            {title && <h5>{title}</h5>}
                             {col.links.map((link) => (
                               <Link
                                 key={link.label}
@@ -229,7 +243,8 @@ export function Header() {
                               </Link>
                             ))}
                           </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </li>
                   );

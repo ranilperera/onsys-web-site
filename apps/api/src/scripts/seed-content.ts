@@ -142,7 +142,7 @@ const homeBlocks: Block[] = [
         link: { label: 'Learn more', href: '/expertise' },
       },
       {
-        title: 'Custom Software Development',
+        title: 'Software Development',
         body: 'Tailored applications built by offshore talent under Australian project leadership, on fixed-cost, milestone or dedicated-team engagements.',
         icon: '#s-etl',
         coverColor: '#FFF1E0',
@@ -384,7 +384,7 @@ const mdsBlocks: Block[] = [
     cards: [
       { title: '24/7 DBA Plan A', body: 'Up to 10 SQL Server instances and 5 TB. Two-hour response SLA, 10 service hours a month, monthly health check.', tag: '$1,500/mo', link: { label: 'Full inclusions', href: '/pricing-and-plans#database-plans' } },
       { title: '24/7 DBA Plan B', body: 'Adds 4 MySQL/PostgreSQL instances and 20 TB. One-hour SLA, 20 service hours, automated alerting configured.', tag: '$3,000/mo', link: { label: 'Full inclusions', href: '/pricing-and-plans#database-plans' } },
-      { title: '24/7 DBA Plan C', body: '25 SQL Server, 4 MySQL/PostgreSQL and 6 Oracle instances, 50 TB. One-hour SLA, 50 service hours, daily health checks.', tag: '$7,500/mo', link: { label: 'Full inclusions', href: '/pricing-and-plans#database-plans' } },
+      { title: '24/7 DBA Plan C', body: '20 SQL Server, 4 MySQL/PostgreSQL and 6 Oracle instances, 50 TB. One-hour SLA, 50 service hours, daily health checks.', tag: '$7,500/mo', link: { label: 'Full inclusions', href: '/pricing-and-plans#database-plans' } },
     ],
   },
   {
@@ -833,7 +833,7 @@ const pricingBlocks: Block[] = [
           'For mission-critical estates that need high availability, proactive monitoring and expert guidance to stay secure, optimised and resilient.',
         featuresTitle: 'Key features',
         features: [
-          { label: 'Instances:', text: '25 SQL Server, 4 MySQL/PostgreSQL, 6 Oracle' },
+          { label: 'Instances:', text: '20 SQL Server, 4 MySQL/PostgreSQL, 6 Oracle' },
           { label: 'Data volume:', text: 'up to 50 TB covered' },
           { label: 'Response SLA:', text: '1 hour, guaranteed, 24/7' },
           { label: 'Service hours:', text: '50 professional hours per month' },
@@ -4064,7 +4064,7 @@ const sqlServerDbaBlocks: Block[] = [
     cards: [
       { title: '24/7 DBA Plan A', body: 'Up to 10 SQL Server instances and 5 TB. Two-hour response SLA, 10 service hours a month, monthly health check. $150 per instance per month.', tag: '$1,500/mo', link: { label: 'Full inclusions', href: '/pricing-and-plans#database-plans' } },
       { title: '24/7 DBA Plan B', body: 'Adds 4 MySQL or PostgreSQL instances and 20 TB. One-hour SLA, 20 service hours, automated alerting configured.', tag: '$3,000/mo', link: { label: 'Full inclusions', href: '/pricing-and-plans#database-plans' } },
-      { title: '24/7 DBA Plan C', body: '25 SQL Server, 4 MySQL/PostgreSQL and 6 Oracle instances, 50 TB. One-hour SLA, 50 service hours, daily health checks.', tag: '$7,500/mo', link: { label: 'Full inclusions', href: '/pricing-and-plans#database-plans' } },
+      { title: '24/7 DBA Plan C', body: '20 SQL Server, 4 MySQL/PostgreSQL and 6 Oracle instances, 50 TB. One-hour SLA, 50 service hours, daily health checks.', tag: '$7,500/mo', link: { label: 'Full inclusions', href: '/pricing-and-plans#database-plans' } },
     ],
   },
   {
@@ -4170,7 +4170,7 @@ const managedSqlServerBlocks: Block[] = [
         description: 'Large mixed estates, including Oracle, with daily reporting.',
         featuresTitle: 'Everything in Plan B, plus',
         features: [
-          '25 SQL Server, 4 MySQL/PostgreSQL and 6 Oracle instances',
+          '20 SQL Server, 4 MySQL/PostgreSQL and 6 Oracle instances',
           '50 TB total capacity covered',
           'One-hour response SLA, 24/7/365',
           '50 included service hours a month',
@@ -5052,8 +5052,8 @@ export const pages: SeedPage[] = [
   },
   {
     slug: 'custom-software-development',
-    title: 'Custom Software Development',
-    heading: 'Custom software development',
+    title: 'Software Development',
+    heading: 'Software development',
     eyebrow: 'Offshore engineering · Melbourne accountability',
     lede: 'Built fast, built secure, built to scale. Web applications, APIs, modernisation and AI-enabled features — delivered by an offshore engineering team under experienced Melbourne project management.',
     heroImage: '/images/hero-software-dev.jpg',
@@ -5321,7 +5321,7 @@ export const pages: SeedPage[] = [
     navOrder: 7,
     blocks: managedSqlServerBlocks,
     faqs: [
-      { question: 'How much does managed SQL Server support cost?', answer: 'Onsys plans start at $1,500 per month excluding GST for up to 10 SQL Server instances and 5 TB — $150 per instance. Plan B is $3,000 and adds MySQL/PostgreSQL cover with a one-hour SLA; Plan C is $7,500 and covers 25 SQL Server, 4 MySQL/PostgreSQL and 6 Oracle instances with daily health checks. Every plan includes service hours and runs month to month.' },
+      { question: 'How much does managed SQL Server support cost?', answer: 'Onsys plans start at $1,500 per month excluding GST for up to 10 SQL Server instances and 5 TB — $150 per instance. Plan B is $3,000 and adds MySQL/PostgreSQL cover with a one-hour SLA; Plan C is $7,500 and covers 20 SQL Server, 4 MySQL/PostgreSQL and 6 Oracle instances with daily health checks. Every plan includes service hours and runs month to month.' },
       { question: 'What is included in managed SQL Server support?', answer: '24/7 monitoring and alerting, cumulative update and service pack patching on an approved schedule, backup verification with restore testing, performance tuning, high availability support, security hardening, and included service hours each month. Every plan is delivered by named Australian-based DBAs who hold all database access.' },
       { question: 'How does this compare with a cheaper per-instance quote?', answer: 'Divide before comparing. A plan advertised at $999 a month covering three instances is $333 per instance; Plan A at $1,500 covering ten is $150. Also check what the response SLA measures — a clock that starts when a person notices the alert is not a response SLA — and whether service hours are included or every ticket is billable.' },
       { question: 'What happens if we use more than the included service hours?', answer: 'Additional work is billed at the plan rate of $140 per hour, which is lower than our standard $150 consultancy rate and considerably lower than the $180 ad-hoc emergency rate. We tell you before hours are exceeded, not after.' },

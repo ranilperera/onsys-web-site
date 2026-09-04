@@ -48,6 +48,15 @@ const envSchema = z.object({
   SITE_URL: z.string().url().default('http://localhost:3000'),
   API_URL: z.string().url().default('http://localhost:4000'),
 
+  /**
+   * Shared secret for the web app's /api/revalidate endpoint.
+   *
+   * Optional: without it a CMS save still reaches the site, just on the
+   * 300-second cache timer rather than immediately. Must match
+   * REVALIDATE_SECRET in the web app's environment.
+   */
+  REVALIDATE_SECRET: z.string().min(16).optional(),
+
   // --- Microsoft Graph (transactional email) ---
   // App registration with Application permission Mail.Send, admin-consented.
   GRAPH_TENANT_ID: z.string().optional(),

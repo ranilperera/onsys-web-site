@@ -108,6 +108,7 @@ services:
         ORG_DESCRIPTION: ${ORG_DESCRIPTION:-}
         ORG_TAGLINE: ${ORG_TAGLINE:-}
         ORG_LOGO: ${ORG_LOGO:-}
+        ORG_LOGO_HEADER: ${ORG_LOGO_HEADER:-}
         ORG_LINKEDIN: ${ORG_LINKEDIN:-}
         ORG_FACEBOOK: ${ORG_FACEBOOK:-}
         ORG_TWITTER: ${ORG_TWITTER:-}
@@ -124,6 +125,10 @@ services:
       # Server-side rendering talks to the API over the compose network. The
       # browser still uses NEXT_PUBLIC_API_URL, which is the public origin.
       INTERNAL_API_URL: http://api:4000
+      # Runtime, not a build arg: the API posts this to /api/revalidate to purge
+      # cached pages after a CMS write, and a secret must not be baked into the
+      # image. Must match the api service's value.
+      REVALIDATE_SECRET: ${REVALIDATE_SECRET:-}
     healthcheck:
       test:
         - CMD

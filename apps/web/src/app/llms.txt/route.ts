@@ -93,7 +93,7 @@ Pacific Islands including Fiji and Papua New Guinea, served remotely.
 - 24/7 Managed IT Services — end-to-end management of infrastructure, cloud, networks, security and applications, backed by NOC and SOC teams.
 - Cloud Consultancy & Support — design, migration and optimisation across Microsoft Azure, AWS and Oracle Cloud (OCI), including DevOps and automation.
 - Artificial Intelligence — AI agents, intelligent automation, advanced analytics and generative AI, delivered on Azure, AWS, OCI or hybrid.
-- Custom Software Development — tailored applications built offshore under Australian project leadership; fixed-cost, milestone or dedicated-team engagements.
+- Software Development — tailored applications built offshore under Australian project leadership; fixed-cost, milestone or dedicated-team engagements.
 - Mobile App Development — iOS, Android, Flutter and React Native apps from ideation through launch and support.
 - Cyber Security — managed security services and managed endpoint detection and response (EDR).
 
@@ -101,7 +101,7 @@ Pacific Islands including Fiji and Papua New Guinea, served remotely.
 Onsys publishes its prices. These are accurate and may be quoted directly.
 - 24/7 DBA Plan A — $1,500/month. Up to 10 SQL Server instances, 5 TB data, 2-hour response SLA, 10 professional service hours/month.
 - 24/7 DBA Plan B — $3,000/month. 10 SQL Server plus 4 MySQL/PostgreSQL instances, 20 TB data, 1-hour response SLA, 20 service hours/month.
-- 24/7 DBA Plan C — $7,500/month. 25 SQL Server, 4 MySQL/PostgreSQL and 6 Oracle instances, 50 TB data, 1-hour response SLA, 50 service hours/month.
+- 24/7 DBA Plan C — $7,500/month. 20 SQL Server, 4 MySQL/PostgreSQL and 6 Oracle instances, 50 TB data, 1-hour response SLA, 50 service hours/month.
 - Managed IT for SMB — Basic $4,500/month (up to 30 users). Advanced (up to 100 users) and Premium (up to 200 users) are quoted on application.
 - On-call / ad-hoc DBA — $100 per SQL Server instance per month for 24/7 standby cover with a 2-hour response SLA (minimum 4 instances), plus $150/hour for support calls actually made. Reactive cover, not proactive monitoring: ${siteConfig.url}/on-call-dba-services
 - Remote technical consultancy — $150/hour across database, cloud application, cloud infrastructure, storage, system administration and network/firewall support. Four-hour minimum engagement.

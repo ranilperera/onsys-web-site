@@ -16,7 +16,8 @@
     "setup:mfa": "tsx src/scripts/setup-mfa.ts",
     "redirects:blog": "tsx src/scripts/backfill-blog-redirects.ts",
     "fix:imported": "tsx src/scripts/fix-imported-content.ts",
-    "seed:author": "tsx src/scripts/seed-author.ts"
+    "seed:author": "tsx src/scripts/seed-author.ts",
+    "seed:nav": "tsx src/scripts/seed-nav.ts"
   },
   "dependencies": {
     "@azure/identity": "^4.5.0",
