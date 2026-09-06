@@ -162,6 +162,20 @@ export const navigation = {
           { label: 'Upgrades, Migrations & DR', href: '/database-upgrades-migrations-dr', sub: 'Version moves, clustering & failover' },
         ],
       },
+      {
+        /**
+         * A column of its own rather than two more rows under "Database
+         * services", which already carried five. Someone scanning for
+         * PostgreSQL is not reading a Microsoft list to find it, and burying
+         * the two pages at the bottom of the longest column would waste the
+         * only part of the menu that says we are not a SQL Server shop.
+         */
+        title: 'Open source',
+        links: [
+          { label: 'PostgreSQL Consulting', href: '/postgresql-consulting-services', sub: 'Builds, HA & migrations, fixed price' },
+          { label: 'MySQL Consulting', href: '/mysql-consulting-services', sub: 'Clustering, 5.7 upgrades & cloud moves' },
+        ],
+      },
     ],
     infra: [
       {

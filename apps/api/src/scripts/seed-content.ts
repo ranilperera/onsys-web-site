@@ -1764,6 +1764,249 @@ const productsBlocks: Block[] = [
  * guarantees buried at the bottom of the HA page are promoted, because "two
  * specialists per project, peer reviewed" is the concrete differentiator.
  */
+/**
+ * PostgreSQL project delivery.
+ *
+ * Deliberately about project work rather than another monthly support page.
+ * The Australian search results for PostgreSQL consulting are upstream project
+ * documentation, an American vendor's own docs and one UK firm: the gap is a
+ * local team that will actually build and cut something over, and that is what
+ * this page sells. Ongoing cover is mentioned once, at the end, and links to
+ * the plans rather than competing with them.
+ */
+const postgresqlBlocks: Block[] = [
+  {
+    type: 'cardGrid',
+    eyebrow: 'Why teams call us',
+    heading: 'PostgreSQL is easy to start and hard to run at scale',
+    body: 'It installs in a minute, which is exactly why so many production estates are running a single instance with default settings, no tested standby and a pg_dump on a cron job. The work below is what turns that into something you can put a real workload on.',
+    centered: true,
+    altBackground: true,
+    columns: 3,
+    cards: [
+      { title: 'Built by developers, not DBAs', body: 'The instance was stood up to unblock a release and never revisited. Defaults for shared_buffers, work_mem, autovacuum and checkpoints are still in place, and the first sign of trouble is a query that used to take a second.', icon: '#s-consult', coverColor: '#EAF1FB' },
+      { title: 'A standby nobody has failed over to', body: 'Streaming replication is configured, replication lag is unmonitored, and no one has run a failover in anger. A standby you have never promoted is a hypothesis, not a disaster recovery plan.', icon: '#s-ha', coverColor: '#FFF1E0' },
+      { title: 'A version approaching end of life', body: 'The PostgreSQL project supports each major version for five years and then stops shipping security fixes entirely. Upgrades are usually deferred because nobody owns the cutover plan.', icon: '#s-managed', coverColor: '#F3F2F1' },
+    ],
+  },
+  {
+    type: 'steps',
+    anchor: 'projects',
+    eyebrow: 'What we build',
+    heading: 'PostgreSQL project work, delivered to a defined outcome',
+    body: 'Each of these is scoped, quoted as a fixed price and signed off against acceptance criteria agreed before the work starts. If it cannot be defined that precisely, we say so and quote it hourly instead.',
+    steps: [
+      { title: 'New production environments', body: 'A build you can put a real workload on: sizing against your actual data and concurrency, memory and checkpoint tuning, connection pooling with PgBouncer, autovacuum settings that suit your write pattern, roles and least-privilege grants, and a documented runbook. On-premises, Azure, AWS, or Aurora and Cloud SQL where managed suits you better.' },
+      { title: 'Replication and read scaling', body: 'Streaming replication with replication slots, synchronous or asynchronous to match the data loss you can actually tolerate, plus read replicas and routing so reporting stops competing with your transactional workload. Logical replication where you need to move a subset of tables rather than the whole cluster.' },
+      { title: 'High availability and failover', body: 'Automatic failover built on Patroni or repmgr with etcd or Consul, a virtual IP or HAProxy in front, fencing so a split brain cannot write to two primaries, and EDB Postgres Failover Manager for EDB estates. We fail it over in front of you before we hand it back.' },
+      { title: 'Backup, recovery and DR', body: 'pgBackRest or Barman with point-in-time recovery, retention that matches your policy rather than the default, off-site or cross-region copies, and a restore rehearsed against a stated RPO and RTO. A backup that has never been restored is not a backup.' },
+      { title: 'Migrations onto PostgreSQL', body: 'Oracle, SQL Server or MySQL onto PostgreSQL or EDB Postgres: schema and PL/SQL assessment, data type mapping, application change list, a dry run against a copy of production, and a cutover plan with a rollback that has been tested. EDB Postgres Advanced Server where Oracle compatibility shortens the application work.' },
+      { title: 'Version upgrades', body: 'Major version upgrades with pg_upgrade or logical replication for a near-zero-downtime cutover, extension compatibility checked first, and a rehearsed rollback. Off end-of-life versions before the security fixes stop, not after.' },
+      { title: 'Performance and cost work', body: 'Query and index tuning against pg_stat_statements, bloat and vacuum remediation, partitioning for tables that have outgrown a single heap, and right-sizing cloud instances that were provisioned for a guess.' },
+    ],
+  },
+  {
+    type: 'platformChips',
+    eyebrow: 'What we work with',
+    heading: 'PostgreSQL, EDB and the tooling around them',
+    groups: [
+      {
+        title: 'Distributions',
+        chips: [
+          { label: 'PostgreSQL 12 to 17', color: '#336791' },
+          { label: 'EDB Postgres Advanced Server', color: '#336791' },
+          { label: 'Amazon RDS & Aurora PostgreSQL', color: '#FF9900' },
+          { label: 'Azure Database for PostgreSQL', color: '#0078D4' },
+          { label: 'Google Cloud SQL for PostgreSQL', color: '#4285F4' },
+        ],
+      },
+      {
+        title: 'High availability & replication',
+        chips: [
+          { label: 'Patroni', color: '#336791' },
+          { label: 'repmgr', color: '#336791' },
+          { label: 'EDB Failover Manager', color: '#336791' },
+          { label: 'Streaming & logical replication', color: '#A4373A' },
+          { label: 'HAProxy & PgBouncer', color: '#605E5C' },
+        ],
+      },
+      {
+        title: 'Backup & operations',
+        chips: [
+          { label: 'pgBackRest', color: '#8A5A44' },
+          { label: 'Barman', color: '#8A5A44' },
+          { label: 'pg_stat_statements & auto_explain', color: '#0E336A' },
+          { label: 'Prometheus & Grafana monitoring', color: '#E6522C' },
+          { label: 'PostGIS, TimescaleDB, pgvector', color: '#13AA52' },
+        ],
+      },
+    ],
+  },
+  {
+    type: 'checkList',
+    eyebrow: 'How we work',
+    heading: 'What a fixed-price PostgreSQL project includes',
+    body: 'The same delivery method as our SQL Server and Oracle work: ITIL change management, and nothing goes to production that has not been rehearsed.',
+    items: [
+      'A free scoping call and a written quote before any commitment.',
+      'Acceptance criteria agreed up front, so "done" is not a matter of opinion.',
+      'A dry run against a copy of production for every migration and upgrade.',
+      'A rollback plan that has been executed in test, not just documented.',
+      'Configuration captured as code where your environment supports it.',
+      'A runbook and a recorded handover, so your team can operate what we built.',
+      'Melbourne-based project leadership, with follow-the-sun delivery from Colombo.',
+    ],
+    sidebar: {
+      title: 'At a glance',
+      rows: [
+        { label: 'Engagement', value: 'Fixed price on defined scope' },
+        { label: 'Hourly alternative', value: '$150 / hour, 4-hour minimum' },
+        { label: 'Scoping call', value: 'Free, 30 minutes' },
+        { label: 'Versions', value: 'PostgreSQL 12 to 17, EDB' },
+        { label: 'Where', value: 'On-premises, Azure, AWS, GCP' },
+        { label: 'Prices shown', value: 'GST exclusive' },
+      ],
+    },
+  },
+  {
+    // Replaces a pricing table of three identical "Fixed price" cards. The
+    // number depends entirely on the environment, so the honest offer is the
+    // conversation that produces it, not a placeholder figure.
+    type: 'ctaBand',
+    heading: 'Tell us what you are trying to build',
+    body: 'Talk it through with a senior consultant on a free 30-minute call. We write up the scope and the deliverables, agree them with you, and then quote a single fixed price against them \u2014 including telling you when the work is smaller than you feared.',
+    cta: { label: 'Discuss your project', href: '/contact' },
+  },
+  {
+    type: 'relatedService',
+    eyebrow: 'After the project',
+    heading: 'Someone has to run it on Monday',
+    body: 'Most clients hand the finished environment to their own team with the runbook and never need us again. If you would rather not carry it, our monthly plans cover PostgreSQL alongside SQL Server and Oracle with 24/7 monitoring and a guaranteed response.',
+    cta: { label: 'See monthly DBA plans', href: '/pricing-and-plans#database-plans' },
+  },
+];
+
+/**
+ * MySQL and MariaDB project delivery.
+ *
+ * The sibling of postgresqlBlocks and deliberately not a copy of it: the
+ * failure modes differ. MySQL estates tend to arrive with a storage engine or
+ * character set decision made years ago, replication that has drifted, and a
+ * version that Oracle has moved past. The page sells the same fixed-price
+ * outcome model against those specific problems.
+ */
+const mysqlBlocks: Block[] = [
+  {
+    type: 'cardGrid',
+    eyebrow: 'Why teams call us',
+    heading: 'Most MySQL estates were configured once and inherited since',
+    body: 'The decisions that hurt \u2014 storage engine, character set, replication topology, buffer pool sizing \u2014 were usually made years ago by someone who has left. The work below is what it takes to get back to something supportable.',
+    centered: true,
+    altBackground: true,
+    columns: 3,
+    cards: [
+      { title: 'Replication that has drifted', body: 'Asynchronous replication with no GTIDs, a replica that has been behind for weeks, and no monitoring on lag. It looks like a standby right up to the moment you need it.', icon: '#s-ha', coverColor: '#EAF1FB' },
+      { title: 'A version Oracle has moved past', body: 'MySQL 5.7 reached end of life in October 2023. Estates still on it get no security fixes at all, and the upgrade to 8.0 changes enough defaults that nobody wants to be the one who starts it.', icon: '#s-managed', coverColor: '#FFF1E0' },
+      { title: 'Legacy schema decisions', body: 'MyISAM tables that cannot do transactions, latin1 columns that mangle anything outside ASCII, and utf8 that is not actually UTF-8. Each one is a migration, not a setting.', icon: '#s-consult', coverColor: '#F3F2F1' },
+    ],
+  },
+  {
+    type: 'steps',
+    anchor: 'projects',
+    eyebrow: 'What we build',
+    heading: 'MySQL and MariaDB project work, delivered to a defined outcome',
+    body: 'Each of these is scoped, quoted as a fixed price and signed off against acceptance criteria agreed before the work starts.',
+    steps: [
+      { title: 'New production environments', body: 'Sized against your real workload rather than a template: InnoDB buffer pool and log sizing, connection limits, a sensible sql_mode, utf8mb4 from the start, least-privilege accounts, slow query logging and a documented runbook. On-premises, Azure, AWS or Google Cloud.' },
+      { title: 'Replication and read scaling', body: 'GTID-based replication rather than file and position, semi-synchronous where the data loss matters, read replicas with ProxySQL routing so reporting stops competing with checkout, and monitored lag with alerting that reaches someone.' },
+      { title: 'High availability and failover', body: 'InnoDB Cluster with Group Replication and MySQL Router, Galera or MariaDB Cluster where synchronous multi-primary suits the workload, or Orchestrator for topology management on an existing estate. Failover demonstrated before handover.' },
+      { title: 'Backup, recovery and DR', body: 'Percona XtraBackup or MariaDB Backup for hot physical backups, binary log retention for point-in-time recovery, off-site copies, and a restore rehearsed against a stated RPO and RTO rather than assumed to work.' },
+      { title: 'Migrations and consolidation', body: 'MySQL to MariaDB or back, on-premises to RDS, Aurora or Azure Database for MySQL, consolidation of sprawl onto fewer instances, and MyISAM to InnoDB or latin1 to utf8mb4 conversions with the application impact assessed first.' },
+      { title: 'Version upgrades', body: 'MySQL 5.7 to 8.0 and beyond, or MariaDB across majors: a compatibility assessment against the defaults and reserved words that actually change, a dry run on a copy of production, and a rehearsed rollback before the window opens.' },
+      { title: 'Performance work', body: 'Slow query analysis, index and schema review, buffer pool and I/O tuning, lock contention and deadlock diagnosis, and right-sizing cloud instances that were provisioned before anyone measured.' },
+    ],
+  },
+  {
+    type: 'platformChips',
+    eyebrow: 'What we work with',
+    heading: 'MySQL, MariaDB and the tooling around them',
+    groups: [
+      {
+        title: 'Distributions',
+        chips: [
+          { label: 'MySQL 5.7 to 8.4', color: '#00758F' },
+          { label: 'MariaDB 10.x and 11.x', color: '#C0765A' },
+          { label: 'Percona Server for MySQL', color: '#C1272D' },
+          { label: 'Amazon RDS & Aurora MySQL', color: '#FF9900' },
+          { label: 'Azure Database for MySQL', color: '#0078D4' },
+        ],
+      },
+      {
+        title: 'High availability & replication',
+        chips: [
+          { label: 'InnoDB Cluster & Group Replication', color: '#00758F' },
+          { label: 'Galera & MariaDB Cluster', color: '#C0765A' },
+          { label: 'Orchestrator', color: '#0E336A' },
+          { label: 'ProxySQL & MySQL Router', color: '#605E5C' },
+          { label: 'GTID & semi-synchronous replication', color: '#A4373A' },
+        ],
+      },
+      {
+        title: 'Backup & operations',
+        chips: [
+          { label: 'Percona XtraBackup', color: '#C1272D' },
+          { label: 'MariaDB Backup', color: '#C0765A' },
+          { label: 'Percona Toolkit', color: '#C1272D' },
+          { label: 'Performance Schema & sys', color: '#00758F' },
+          { label: 'Prometheus & Grafana monitoring', color: '#E6522C' },
+        ],
+      },
+    ],
+  },
+  {
+    type: 'checkList',
+    eyebrow: 'How we work',
+    heading: 'What a fixed-price MySQL project includes',
+    body: 'The same delivery method as our SQL Server and Oracle work: ITIL change management, and nothing goes to production that has not been rehearsed.',
+    items: [
+      'A free scoping call and a written quote before any commitment.',
+      'Acceptance criteria agreed up front, so "done" is not a matter of opinion.',
+      'A dry run against a copy of production for every migration and upgrade.',
+      'A rollback plan that has been executed in test, not just documented.',
+      'Application impact assessed before any schema or character set change.',
+      'A runbook and a recorded handover, so your team can operate what we built.',
+      'Melbourne-based project leadership, with follow-the-sun delivery from Colombo.',
+    ],
+    sidebar: {
+      title: 'At a glance',
+      rows: [
+        { label: 'Engagement', value: 'Fixed price on defined scope' },
+        { label: 'Hourly alternative', value: '$150 / hour, 4-hour minimum' },
+        { label: 'Scoping call', value: 'Free, 30 minutes' },
+        { label: 'Versions', value: 'MySQL 5.7 to 8.4, MariaDB 10/11' },
+        { label: 'Where', value: 'On-premises, Azure, AWS, GCP' },
+        { label: 'Prices shown', value: 'GST exclusive' },
+      ],
+    },
+  },
+  {
+    // Replaces a pricing table of three identical "Fixed price" cards. The
+    // number depends entirely on the environment, so the honest offer is the
+    // conversation that produces it, not a placeholder figure.
+    type: 'ctaBand',
+    heading: 'Tell us what you are trying to build',
+    body: 'Talk it through with a senior consultant on a free 30-minute call. We write up the scope and the deliverables, agree them with you, and then quote a single fixed price against them \u2014 including telling you when the work is smaller than you feared.',
+    cta: { label: 'Discuss your project', href: '/contact' },
+  },
+  {
+    type: 'relatedService',
+    eyebrow: 'After the project',
+    heading: 'Someone has to run it on Monday',
+    body: 'Most clients hand the finished environment to their own team with the runbook and never need us again. If you would rather not carry it, our monthly plans cover MySQL alongside SQL Server and Oracle with 24/7 monitoring and a guaranteed response.',
+    cta: { label: 'See monthly DBA plans', href: '/pricing-and-plans#database-plans' },
+  },
+];
+
 const upgradeDrBlocks: Block[] = [
   {
     type: 'cardGrid',
@@ -4807,6 +5050,60 @@ export const pages: SeedPage[] = [
       { question: 'Can we get a demo before committing?', answer: 'Yes. Demos are free and carry no obligation. Tell us what you are trying to solve and we will walk you through the relevant product, including architecture, deployment options and pricing patterns.' },
       { question: 'Can Onsys deploy and support the product for us?', answer: 'Yes. The engineers who build the platforms sit in the same organisation as the DBAs who run our managed services, so deployment, integration and ongoing 24/7 support all come from one team rather than a vendor-and-integrator chain.' },
       { question: 'Where can these products be deployed?', answer: 'On Microsoft Azure, AWS, Oracle Cloud Infrastructure or on-premises. All three are built on modular, containerised components with documented REST APIs, so they fit existing environments without bespoke connectors.' },
+    ],
+  },
+  {
+    slug: 'postgresql-consulting-services',
+    title: 'PostgreSQL Consulting',
+    heading: 'PostgreSQL consulting and project delivery',
+    eyebrow: 'Project delivery \u00b7 Fixed price \u00b7 Australia-wide',
+    lede: 'Build it properly, replicate it, make it fail over, and get off the version that is about to lose support. Australian-led PostgreSQL and EDB project work, quoted as a fixed price against acceptance criteria you agree before we start.',
+    heroImage: '/images/hero-db-upgrades.jpg',
+    heroCtas: [
+      { label: 'Book a Free Consultation', href: org.bookingUrl },
+      { label: 'What we build', href: '#projects' },
+    ],
+    seoTitle: 'PostgreSQL Consulting Australia | Fixed-Price Projects',
+    seoDescription:
+      'PostgreSQL and EDB project delivery in Australia \u2014 new builds, replication, Patroni high availability, migrations and upgrades. Fixed price on defined scope.',
+    navOrder: 9,
+    blocks: postgresqlBlocks,
+    faqs: [
+      { question: 'Do you provide PostgreSQL consulting in Australia?', answer: 'Yes. Onsys delivers PostgreSQL and EDB Postgres project work for organisations across Australia and New Zealand, with project leadership based in Melbourne and follow-the-sun delivery from Colombo. Work is remote by default; on-site attendance in the Melbourne metropolitan area is arranged as part of the engagement where it helps.' },
+      { question: 'How much does a PostgreSQL project cost?', answer: 'Where the scope can be defined, the project is quoted as a single fixed price with milestone-based payments and written acceptance criteria, so there is no cost-overrun risk. Where it genuinely cannot be defined up front we say so and work at $150 per hour with a four-hour minimum. The scoping call is free and all prices are GST exclusive.' },
+      { question: 'What does outcome-based pricing mean in practice?', answer: 'We agree in writing what "done" looks like before any work starts \u2014 for a high availability project that means the cluster fails over automatically, we demonstrate it in front of you, and it meets the RPO and RTO you stated. You pay the quoted price for that outcome. If it takes us longer than we estimated, that is our problem rather than a variation.' },
+      { question: 'Can you set up PostgreSQL high availability and automatic failover?', answer: 'Yes. We build automatic failover on Patroni or repmgr with etcd or Consul for consensus, HAProxy or a virtual IP so applications follow the primary, and fencing so a split brain cannot write to two nodes. For EDB estates we use EDB Postgres Failover Manager. We run the failover in front of you before handover and leave a runbook your team can follow without us.' },
+      { question: 'Can you migrate Oracle or SQL Server to PostgreSQL?', answer: 'Yes. A migration starts with a schema and stored procedure assessment, data type mapping and an application change list, then a dry run against a copy of production before any cutover date is agreed. EDB Postgres Advanced Server is often the shorter path off Oracle because its compatibility layer reduces the application rework. Every cutover has a rollback plan that has been executed in test.' },
+      { question: 'Which PostgreSQL versions do you support?', answer: 'PostgreSQL 12 through 17, plus EDB Postgres Advanced Server, and the managed services \u2014 Amazon RDS and Aurora, Azure Database for PostgreSQL and Google Cloud SQL. The PostgreSQL project supports each major version for five years, after which security fixes stop entirely, so upgrade planning is usually the first thing we look at on an older estate.' },
+      { question: 'Do we have to take a support contract afterwards?', answer: 'No. Project work is standalone and most clients hand the finished environment to their own team with the runbook and the documentation. If you would rather not carry it, our monthly DBA plans cover PostgreSQL alongside SQL Server and Oracle, but nothing about the project depends on taking one.' },
+      { question: 'How long does a PostgreSQL project take?', answer: 'A foundation build is usually days rather than weeks. A high availability or replication project depends on how much of the environment already exists and how much change approval it needs. A migration is dominated by the dry run and the application testing rather than the cutover itself. We give you a schedule with the fixed-price quote, after the free scoping call.' },
+    ],
+  },
+  {
+    slug: 'mysql-consulting-services',
+    title: 'MySQL Consulting',
+    heading: 'MySQL and MariaDB consulting and project delivery',
+    eyebrow: 'Project delivery \u00b7 Fixed price \u00b7 Australia-wide',
+    lede: 'Get off MySQL 5.7, put real clustering in place, fix replication that has been drifting for months, and move to managed cloud without a bad weekend. Quoted as a fixed price against acceptance criteria you agree before we start.',
+    heroImage: '/images/hero-db-upgrades.jpg',
+    heroCtas: [
+      { label: 'Book a Free Consultation', href: org.bookingUrl },
+      { label: 'What we build', href: '#projects' },
+    ],
+    seoTitle: 'MySQL Consulting Australia | Fixed-Price Projects',
+    seoDescription:
+      'MySQL and MariaDB project delivery in Australia \u2014 new builds, InnoDB Cluster high availability, 5.7 upgrades and cloud migration. Fixed price on defined scope.',
+    navOrder: 10,
+    blocks: mysqlBlocks,
+    faqs: [
+      { question: 'Do you provide MySQL consulting in Australia?', answer: 'Yes. Onsys delivers MySQL and MariaDB project work for organisations across Australia and New Zealand, with project leadership based in Melbourne and follow-the-sun delivery from Colombo. Work is remote by default; on-site attendance in the Melbourne metropolitan area is arranged as part of the engagement where it helps.' },
+      { question: 'How much does a MySQL project cost?', answer: 'Where the scope can be defined, the project is quoted as a single fixed price with milestone-based payments and written acceptance criteria, so there is no cost-overrun risk. Where it genuinely cannot be defined up front we say so and work at $150 per hour with a four-hour minimum. The scoping call is free and all prices are GST exclusive.' },
+      { question: 'Is MySQL 5.7 still supported?', answer: 'No. MySQL 5.7 reached end of life in October 2023, so it receives no security fixes at all. Estates still running it are accumulating unpatched vulnerabilities. The upgrade to 8.0 changes enough defaults \u2014 authentication plugin, character set, reserved words, sql_mode \u2014 that it needs a compatibility assessment and a dry run rather than an in-place attempt on a Friday.' },
+      { question: 'Can you set up MySQL high availability and automatic failover?', answer: 'Yes. We build InnoDB Cluster with Group Replication and MySQL Router, Galera or MariaDB Cluster where synchronous multi-primary suits the workload, or Orchestrator for topology management on an existing estate. We demonstrate the failover before handover and leave a runbook your team can follow without us.' },
+      { question: 'Should we move to MariaDB, or to a managed cloud service?', answer: 'It depends on what is actually costing you. MariaDB is usually about licensing and feature direction; managed services like RDS, Aurora or Azure Database for MySQL are usually about not carrying the operational load. Both change what your team has to do day to day. We give you an honest read at the scoping call, including when the answer is to stay where you are.' },
+      { question: 'Which MySQL and MariaDB versions do you support?', answer: 'MySQL 5.7 through 8.4 including Percona Server, MariaDB 10.x and 11.x, and the managed services \u2014 Amazon RDS and Aurora MySQL, Azure Database for MySQL and Google Cloud SQL. Older versions are supported for the purpose of getting you off them.' },
+      { question: 'Can you fix replication that has fallen behind?', answer: 'Yes, and it is one of the more common reasons people call. Typical causes are single-threaded replication on a write-heavy primary, long-running transactions, missing primary keys on replicated tables, or replication configured on file and position rather than GTIDs. We diagnose the cause rather than just rebuilding the replica, because a rebuild without the diagnosis puts you back in the same place.' },
+      { question: 'Do we have to take a support contract afterwards?', answer: 'No. Project work is standalone and most clients hand the finished environment to their own team with the runbook and the documentation. If you would rather not carry it, our monthly DBA plans cover MySQL alongside SQL Server and Oracle, but nothing about the project depends on taking one.' },
     ],
   },
   {

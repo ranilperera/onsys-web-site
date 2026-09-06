@@ -90,6 +90,8 @@ Pacific Islands including Fiji and Papua New Guinea, served remotely.
 ## Services
 - Remote DBA Support — 24/7 monitoring, incident response and proactive support for SQL Server, Oracle, PostgreSQL, EDB, MySQL, MariaDB and MongoDB, with a guaranteed response SLA.
 - Fixed-Price Database Projects — migrations, upgrades, HA builds and health checks on milestone-based payments with guaranteed timelines.
+- PostgreSQL Consulting — project delivery for PostgreSQL and EDB Postgres: new production builds, streaming and logical replication, Patroni or repmgr automatic failover, pgBackRest and Barman backup with tested point-in-time recovery, migrations from Oracle or SQL Server, and major version upgrades. Quoted as a fixed price against written acceptance criteria.
+- MySQL Consulting — project delivery for MySQL and MariaDB: new production builds, GTID replication and read scaling, InnoDB Cluster or Galera high availability, Percona XtraBackup with point-in-time recovery, MySQL 5.7 to 8.x upgrades, and migration to RDS, Aurora or Azure Database for MySQL. Quoted as a fixed price against written acceptance criteria.
 - 24/7 Managed IT Services — end-to-end management of infrastructure, cloud, networks, security and applications, backed by NOC and SOC teams.
 - Cloud Consultancy & Support — design, migration and optimisation across Microsoft Azure, AWS and Oracle Cloud (OCI), including DevOps and automation.
 - Artificial Intelligence — AI agents, intelligent automation, advanced analytics and generative AI, delivered on Azure, AWS, OCI or hybrid.
