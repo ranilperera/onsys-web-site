@@ -109,7 +109,14 @@ export type PostSummary = Omit<PostRecord, 'bodyHtml' | 'faqs'>;
  * must keep using the public origin, which is also what keeps requests
  * same-origin and free of CORS.
  */
-const serverApiBase = process.env.INTERNAL_API_URL || siteConfig.apiUrl;
+/**
+ * API base for server-side calls.
+ *
+ * INTERNAL_API_URL is the compose-network address, which server components and
+ * route handlers should use in preference to the public origin: it skips the
+ * edge proxy and works before DNS resolves externally.
+ */
+export const serverApiBase = process.env.INTERNAL_API_URL || siteConfig.apiUrl;
 
 /**
  * Thrown when the API could not be reached or answered with a server error.

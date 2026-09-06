@@ -829,11 +829,11 @@ GROUP BY encrypt_option, auth_scheme, net_transport;
     <h3 style="margin-top:0">Sending us the results</h3>
     <p><strong>There is a script that runs all of this for you.</strong> It collects every check
       on this page and writes a single zip file, so there is nothing to copy or paste. Ask for it
-      on the <a href="https://www.onsys.com.au/free-20-point-sql-server-health-check#request-health-check">free
+      on the <a href="{{SITE_URL}}/free-20-point-sql-server-health-check#request-health-check">free
       health check page</a> and it is yours straight away.</p>
     <p>If you would rather run the queries by hand, save each result set to CSV or copy the grid
       output into a spreadsheet. Either way, send the results to
-      <a href="mailto:healthcheck@onsys.com.au">healthcheck@onsys.com.au</a>, quoting your company
+      <a href="mailto:{{HEALTHCHECK_EMAIL}}">{{HEALTHCHECK_EMAIL}}</a>, quoting your company
       name. If you would rather not send anything at all, we can run these together on a screen
       share and take notes as we go.</p>
     <p style="margin-bottom:0"><strong>What happens next:</strong> we analyse the output, rate each
@@ -848,12 +848,12 @@ GROUP BY encrypt_option, auth_scheme, net_transport;
 <footer>
   <div class="wrap">
     <p class="foot-id">
-      <strong>Onsys Pty Ltd</strong> &middot; 1800 431 416 &middot;
-      <a href="mailto:healthcheck@onsys.com.au">healthcheck@onsys.com.au</a> &middot;
-      <a href="https://www.onsys.com.au/free-20-point-sql-server-health-check">www.onsys.com.au</a>
+      <strong>{{LEGAL_NAME}}</strong> &middot; {{PHONE}} &middot;
+      <a href="mailto:{{HEALTHCHECK_EMAIL}}">{{HEALTHCHECK_EMAIL}}</a> &middot;
+      <a href="{{SITE_URL}}/free-20-point-sql-server-health-check">{{SITE_HOST}}</a>
     </p>
     <p class="foot-legal">
-      &copy; 2026 Onsys Pty Ltd. You may use, copy and modify these scripts inside your
+      &copy; {{YEAR}} {{LEGAL_NAME}}. You may use, copy and modify these scripts inside your
       own organisation, including after the health check, at no charge. Please keep this notice
       attached.
     </p>
@@ -864,7 +864,7 @@ GROUP BY encrypt_option, auth_scheme, net_transport;
       tables. Even so, you remain responsible for what runs on your systems. Review every query
       before you run it, run it under whatever change control your organisation requires, and
       satisfy yourself that it is appropriate for your environment. To the extent permitted by law,
-      Onsys Pty Ltd accepts no liability for any loss or damage arising from their
+      {{LEGAL_NAME}} accepts no liability for any loss or damage arising from their
       use. Nothing here is advice about your specific circumstances until we have analysed your
       output and given you a report.
     </p>

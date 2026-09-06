@@ -101,6 +101,8 @@ const envSchema = z.object({
   /// point, not a scheduling limit: the prospect is meant to read the scripts
   /// and clear change approval first, and a slot tomorrow undercuts that.
   HEALTHCHECK_LEAD_DAYS: z.coerce.number().int().min(0).max(60).default(7),
+  /// Mailbox the customer sends their collected results zip to.
+  HEALTHCHECK_RESULTS_TO: z.string().email().default('healthcheck@onsys.com.au'),
 
   // --- Chatbot ---
   OPENAI_API_KEY: z.string().optional(),

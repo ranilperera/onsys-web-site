@@ -37,7 +37,13 @@ const SQL_VERSIONS = [
 export function HealthCheckBooking({ eyebrow, heading, body, note }: HealthCheckBookingProps) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [done, setDone] = useState<{ name: string; earliest: string } | null>(null);
+  const [done, setDone] = useState<{
+    name: string;
+    collectorUrl: string;
+    collectorExpiryDays: number;
+    submitTo: string;
+    alreadyClaimed: boolean;
+  } | null>(null);
 
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -68,7 +74,15 @@ export function HealthCheckBooking({ eyebrow, heading, body, note }: HealthCheck
         setError(data.error ?? `Something went wrong. Please call ${siteConfig.phone}.`);
         return;
       }
-      setDone({ name, earliest: data.earliest });
+      setDone({
+        name,
+        // No default for the URL any more: it carries a one-off token, and a
+        // hard-coded fallback would be a dead link rather than a helpful one.
+        collectorUrl: data.collectorUrl,
+        collectorExpiryDays: data.collectorExpiryDays ?? 30,
+        submitTo: data.submitTo ?? siteConfig.email,
+        alreadyClaimed: Boolean(data.alreadyClaimed),
+      });
     } catch {
       setError(`We could not send that just now. Please call ${siteConfig.phone}.`);
     } finally {
@@ -81,26 +95,61 @@ export function HealthCheckBooking({ eyebrow, heading, body, note }: HealthCheck
       <section className="section" id="request-health-check">
         <div className="wrap emergency-result paid">
           <span className="eyebrow">Request received</span>
-          <h2>Thanks {done.name} — now read the scripts</h2>
+          <h2>Thanks {done.name} — here is the collector</h2>
           <p>
-            A senior DBA will be in touch to confirm a time, and a confirmation is on its way to
-            your inbox. The most useful thing you can do next is review the queries we will run.
+            Download the script, run it against one SQL Server instance, and send us the zip it
+            produces. It is read-only: it queries dynamic management views and catalog views
+            only, and writes nothing to your instance.
           </p>
-          <a className="btn btn-primary btn-lg" href="/onsys-sql-server-health-check.html">
-            Open the script bundle
+
+          <ol className="hc-next">
+            <li>
+              <strong>Download</strong> the collector and, if you would rather read before you
+              run, the <a href="/onsys-sql-server-health-check.html">full text of all 20 queries</a>.
+            </li>
+            <li>
+              <strong>Run</strong> it on the database server:{' '}
+              <code>.\Invoke-OnsysHealthCheck.ps1 -ServerInstance YOURINSTANCE</code>. It takes
+              about 20 minutes and needs Windows PowerShell, which is already there.
+            </li>
+            <li>
+              <strong>Send</strong> the zip to{' '}
+              <a href={`mailto:${done.submitTo}`}>{done.submitTo}</a>, quoting your company name.
+            </li>
+            <li>
+              <strong>We analyse it</strong> and book a free call to present the report.
+            </li>
+          </ol>
+
+          <a className="btn btn-primary btn-lg" href={done.collectorUrl} download>
+            Download the collector
+          </a>{' '}
+          <a className="btn btn-outline btn-lg" href="/onsys-sql-server-health-check.html">
+            Read the queries first
           </a>
-          <p className="emergency-alt">
-            Earliest session:{' '}
-            <strong>
-              {new Date(done.earliest).toLocaleDateString('en-AU', {
-                weekday: 'long',
-                day: 'numeric',
-                month: 'long',
-              })}
-            </strong>
-            . If production is down right now, call{' '}
-            <a href={`tel:${siteConfig.phoneE164}`}>{siteConfig.phone}</a> instead of waiting.
+          <p style={{ fontSize: 13, color: 'var(--gray)', marginTop: 12 }}>
+            This download link is yours and stays live for {done.collectorExpiryDays} days. We have
+            emailed it to you as well, so you do not have to keep this page open.
           </p>
+
+          {done.alreadyClaimed ? (
+            // Said plainly rather than hidden: the free check is one instance per
+            // customer, and someone should hear that now rather than after they
+            // have spent twenty minutes collecting.
+            <p className="emergency-alt">
+              Our records show the free check has already been used by someone at your
+              organisation. We will still look at what you send, but a second review is a paid
+              engagement — a consultant will come back to you with what that involves.
+            </p>
+          ) : (
+            <p className="emergency-alt">
+              Once your results reach us we send the written report within{' '}
+              <strong>7 business days</strong>, and book a Teams walkthrough within{' '}
+              <strong>2 weeks</strong>. The call is free and there is no obligation. If
+              production is down right now, call{' '}
+              <a href={`tel:${siteConfig.phoneE164}`}>{siteConfig.phone}</a> instead of waiting.
+            </p>
+          )}
         </div>
       </section>
     );
@@ -219,20 +268,20 @@ export function HealthCheckBooking({ eyebrow, heading, body, note }: HealthCheck
               <h3>What happens next</h3>
               <dl>
                 <div>
-                  <dt>1. You get the scripts</dt>
+                  <dt>1. You get the collector</dt>
                   <dd>Immediately</dd>
                 </div>
                 <div>
-                  <dt>2. Teams session</dt>
-                  <dd>About a week out</dd>
-                </div>
-                <div>
-                  <dt>3. Collection</dt>
+                  <dt>2. You collect</dt>
                   <dd>~20 minutes</dd>
                 </div>
                 <div>
-                  <dt>4. Written report</dt>
-                  <dd>3 business days</dd>
+                  <dt>3. Written report</dt>
+                  <dd>Within 7 business days</dd>
+                </div>
+                <div>
+                  <dt>4. Teams walkthrough</dt>
+                  <dd>Within 2 weeks</dd>
                 </div>
               </dl>
               {note && <p className="emergency-note">{note}</p>}

@@ -1090,3 +1090,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 @media(max-width:720px){
   .admin-nav-group{border-right:0; padding-right:0; width:100%;}
 }
+
+/* Health check: what happens next, on the request confirmation. */
+.hc-next{margin:18px 0 22px; padding-left:22px; display:grid; gap:10px; max-width:62ch;}
+.hc-next li{font-size:14.5px; line-height:1.6; color:var(--ink);}
+.hc-next code{font-size:13px; background:#F3F2F1; border:1px solid var(--gray-light); border-radius:4px; padding:2px 6px; word-break:break-all;}

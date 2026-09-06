@@ -52,6 +52,12 @@ const nextConfig = {
   // Without this, tracing stops at apps/web and misses @onsys/shared, which is
   // a workspace sibling rather than a published package.
   outputFileTracingRoot: path.resolve(here, '../..'),
+  // The collector is read at runtime by /download/collector and lives outside
+  // public/ on purpose, so nothing traces it automatically. Without this entry
+  // the route works in development and 500s in Docker.
+  outputFileTracingIncludes: {
+    '/download/collector': ['./content/Invoke-OnsysHealthCheck.ps1'],
+  },
   reactStrictMode: true,
   poweredByHeader: false,
   compress: true,

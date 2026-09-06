@@ -348,6 +348,8 @@ model Lead {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
+  healthCheckTokens HealthCheckToken[]
+
   @@index([channel, createdAt])
   @@map("leads")
 }
@@ -542,4 +544,38 @@ model NavLink {
 
   @@index([group, order])
   @@map("nav_links")
+}
+
+/// A one-customer download grant for the health check collector script.
+///
+/// The collector is what the contact details are exchanged for, so it cannot
+/// sit in the web app's public folder where anyone who guesses the filename can
+/// take it. It is served instead by a route that requires one of these tokens,
+/// which is minted only when the request form is submitted.
+///
+/// Repeat downloads are allowed and counted rather than blocked: the same
+/// person legitimately comes back for it after their change window, and a
+/// single-use link would turn that into a support call. Expiry is the control.
+model HealthCheckToken {
+  id      String @id @default(cuid())
+  /// Random, URL-safe, and the only thing standing between a request and the
+  /// file — so it is generated from a CSPRNG, never from the lead id.
+  token   String @unique
+
+  /// Who it was issued to. Kept denormalised so a deleted lead does not
+  /// invalidate a link someone is still holding.
+  email   String
+  company String
+
+  leadId  String?
+  lead    Lead?   @relation(fields: [leadId], references: [id], onDelete: SetNull)
+
+  downloads  Int       @default(0)
+  lastUsedAt DateTime?
+  expiresAt  DateTime
+  createdAt  DateTime  @default(now())
+
+  @@index([expiresAt])
+  @@index([email])
+  @@map("health_check_tokens")
 }

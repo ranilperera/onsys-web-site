@@ -241,40 +241,60 @@ interface HealthCheckInput {
 /**
  * Acknowledgement to whoever asked for the health check.
  *
- * Leads with the script bundle rather than with a thank-you. The whole
- * proposition is that they read the queries before running them, and the
- * lead time exists to give them room to do exactly that — so the link is the
- * most useful thing this email can contain.
+ * Leads with the collector rather than with a thank-you. There is no slot to
+ * wait for any more: the script is ready the moment someone asks, and the whole
+ * proposition is that they read the queries before running them. So the
+ * download and the four steps are the most useful things this email can carry.
  */
 export function renderHealthCheckAck(
-  r: HealthCheckInput & { earliest: string; leadDays: number },
+  r: HealthCheckInput & {
+    earliest: string;
+    leadDays: number;
+    alreadyClaimed?: boolean;
+    collectorUrl: string;
+    collectorExpiryDays: number;
+  },
 ): string {
-  const readable = new Date(r.earliest).toLocaleDateString('en-AU', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-  });
+  const step = 'margin:0 0 10px;font-size:15px;line-height:1.6;';
 
   return wrapEmail(
     'Your free 20-point SQL Server health check',
-    `<p style="margin:0 0 16px;font-size:15px;line-height:1.6;">Thanks ${escapeHtml(r.name)} — we have your request for ${escapeHtml(r.company)} and a senior DBA will be in touch to confirm a time.</p>
-     <p style="margin:0 0 16px;font-size:15px;line-height:1.6;"><strong>Start by reading the scripts.</strong> Every one of the twenty checkpoints is collected by a read-only query, and they are all published so you can review them — and get any change approval you need — before anything runs.</p>
+    `<p style="margin:0 0 16px;font-size:15px;line-height:1.6;">Thanks ${escapeHtml(r.name)} — we have your request for ${escapeHtml(r.company)}. There is nothing to wait for: the collector is ready now.</p>
      <p style="margin:0 0 22px;">
-       <a href="${env.SITE_URL}/onsys-sql-server-health-check.html" style="display:inline-block;background:${BRAND_ORANGE};color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:4px;font-weight:600;font-size:15px;">Open the script bundle</a>
+       <a href="${env.SITE_URL}${r.collectorUrl}" style="display:inline-block;background:${BRAND_ORANGE};color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:4px;font-weight:600;font-size:15px;">Download the collector script</a>
      </p>
+     <p style="${step}"><strong>1. Read it first.</strong> Every one of the twenty checkpoints is a read-only query, and all of them are <a href="${env.SITE_URL}/onsys-sql-server-health-check.html">published in full</a> so you can review them — and get whatever change approval you need — before anything runs.</p>
+     <p style="${step}"><strong>2. Run it against one instance.</strong> <code style="font-size:13px;background:#F3F2F1;padding:2px 5px;border-radius:3px;">.\Invoke-OnsysHealthCheck.ps1 -ServerInstance YOURINSTANCE</code> — about twenty minutes, using Windows PowerShell, which is already on the server.</p>
+     <p style="${step}"><strong>3. Send us the zip.</strong> Email it to <a href="mailto:${escapeHtml(env.HEALTHCHECK_RESULTS_TO)}">${escapeHtml(env.HEALTHCHECK_RESULTS_TO)}</a>, quoting your company name.</p>
+     <p style="margin:0 0 22px;font-size:15px;line-height:1.6;"><strong>4. We take it from there.</strong> A written report rating all twenty points within <strong>7 business days</strong> of your results reaching us, and a free Teams walkthrough booked within <strong>2 weeks</strong>.</p>
      <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;font-size:14px;border-collapse:collapse;margin:0 0 16px;">
        <tr><td style="padding:6px 0;color:#605E5C;">SQL Server version</td><td style="padding:6px 0;text-align:right;">${escapeHtml(r.sqlVersion)}</td></tr>
        ${r.instanceCount ? `<tr><td style="padding:6px 0;color:#605E5C;">Instances</td><td style="padding:6px 0;text-align:right;">${escapeHtml(r.instanceCount)}</td></tr>` : ''}
-       <tr><td style="padding:6px 0;color:#605E5C;">Earliest session</td><td style="padding:6px 0;text-align:right;">${escapeHtml(readable)}</td></tr>
+       <tr><td style="padding:6px 0;color:#605E5C;">Send results to</td><td style="padding:6px 0;text-align:right;">${escapeHtml(env.HEALTHCHECK_RESULTS_TO)}</td></tr>
      </table>
-     <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#605E5C;">We schedule these about ${r.leadDays} days out on purpose, so there is time to review the scripts properly rather than approving something nobody has read.</p>
+     ${
+       r.alreadyClaimed
+         ? `<p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#6B5900;background:#FFF4CE;border:1px solid #F0DFA0;border-radius:6px;padding:12px 14px;">Our records show the free health check has already been used by someone at your organisation. The offer is one instance per customer, so a second review is a paid engagement — a consultant will come back to you with what that involves. You are welcome to keep and re-run the scripts either way.</p>`
+         : ''
+     }
+     <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#605E5C;">Your download link is personal to this request and stays live for ${r.collectorExpiryDays} days. Ask again from the website any time for a fresh one.</p>
+     <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#605E5C;">The collector is read-only: it queries dynamic management views and catalog views only, writes nothing to your instance, changes no configuration, and does not read the contents of your tables. It is provided as is, without warranty — please review it before running it.</p>
      <p style="margin:0;font-size:14px;line-height:1.6;color:#605E5C;">If production is down right now, do not wait for this — call <strong>${escapeHtml(org.phone)}</strong>.</p>`,
   );
 }
 
-/** Internal alert with everything a consultant needs before the session. */
-export function renderHealthCheckAlert(r: HealthCheckInput): string {
+/** Internal alert with everything a consultant needs before the report. */
+export function renderHealthCheckAlert(
+  r: HealthCheckInput & { alreadyClaimed?: boolean },
+): string {
   return wrapEmail(
     'Health check request',
     `<p style="margin:0 0 16px;font-size:15px;line-height:1.6;"><strong>${escapeHtml(r.company)}</strong> has requested the free 20-point health check.</p>
+     ${
+       r.alreadyClaimed
+         ? `<p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#8A1220;background:#FDE7E9;border:1px solid #F5B5BC;border-radius:6px;padding:12px 14px;"><strong>Repeat claim.</strong> Someone at this organisation has already had the free check. Quote a paid review rather than running a second free one.</p>`
+         : ''
+     }
      <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;font-size:14px;border-collapse:collapse;margin:0 0 16px;">
        <tr><td style="padding:6px 0;color:#605E5C;">Contact</td><td style="padding:6px 0;text-align:right;">${escapeHtml(r.name)}</td></tr>
        <tr><td style="padding:6px 0;color:#605E5C;">Email</td><td style="padding:6px 0;text-align:right;"><a href="mailto:${escapeHtml(r.email)}">${escapeHtml(r.email)}</a></td></tr>
