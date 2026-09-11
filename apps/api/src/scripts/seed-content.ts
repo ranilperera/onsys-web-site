@@ -24,13 +24,18 @@ const homeBlocks: Block[] = [
     //
     // Only slide one renders as the page's h1 — the others are visually
     // identical paragraphs, so the homepage keeps exactly one heading rather
-    // than three competing ones. The keyword the SEO audit cares about stays in
-    // the title tag and in the platform strip below each headline.
+    // than three competing ones.
+    //
+    // Slide one's body opens with SQL Server on purpose. It used to list five
+    // service categories and commit to none of them, which left the first
+    // sentence a retrieval system reads saying nothing about what this site is
+    // actually for. The other platforms still appear, after the commitment
+    // rather than instead of it.
     type: 'hero',
     eyebrow: '24/7 database & IT expertise',
     heading: 'Keep your critical systems running.',
     highlight: '24/7.',
-    body: 'Senior database and IT specialists supporting Australian businesses around the clock. From proactive database management and performance optimisation to cloud, infrastructure and security, Onsys helps keep your critical technology available, secure and performing at its best.',
+    body: 'Senior SQL Server DBAs on call around the clock for Australian businesses, with Oracle, PostgreSQL and MySQL covered on the same team. Monitoring, patching, tuning and incident response — under a response SLA that starts when the alert fires, not when somebody notices.',
     platforms: 'SQL Server · Oracle · PostgreSQL · MySQL · Azure · AWS',
     backgroundImage: '/images/hero-home-1.jpg',
     ctas: [

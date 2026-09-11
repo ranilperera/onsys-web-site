@@ -52,6 +52,27 @@ const nextConfig = {
   // Without this, tracing stops at apps/web and misses @onsys/shared, which is
   // a workspace sibling rather than a published package.
   outputFileTracingRoot: path.resolve(here, '../..'),
+  /**
+   * Always render metadata into <head>, never stream it into <body>.
+   *
+   * Next 15 streams metadata for dynamic routes: the shell flushes first and
+   * the title, description, canonical and og:* tags arrive later, inside
+   * <body>, for the browser to hoist. The homepage is the only `force-dynamic`
+   * route on the site, so it was the only page shipping its <head> empty —
+   * every crawler that parses HTML rather than executing it saw no description
+   * and no canonical there, which is exactly what three SEO audits reported.
+   *
+   * `htmlLimitedBots` is Next's own escape hatch: any user agent it matches
+   * gets a blocking render instead. The default list covers the social and
+   * search bots Next knows about, but not SEO tooling, and not curl or
+   * view-source. Matching everything turns streaming metadata off site-wide.
+   *
+   * The cost is that the head waits on generateMetadata. Here that is close to
+   * nothing: the homepage already awaits the same `getPage('home')` call for
+   * its body, and that fetch is cached for 300 seconds.
+   */
+  htmlLimitedBots: /.*/,
+
   // The collector is read at runtime by /download/collector and lives outside
   // public/ on purpose, so nothing traces it automatically. Without this entry
   // the route works in development and 500s in Docker.
