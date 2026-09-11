@@ -71,13 +71,17 @@ Pacific Islands including Fiji and Papua New Guinea, served remotely.
   database environment. This is the default on every plan, not an upgrade or a
   negotiated option. Access terms are documented before signature and written into
   the agreement.
-- Engineer location: Australian-based senior consultants in Melbourne lead every
-  engagement, hold the client relationship, and are the DBAs who log in. Onsys also
-  operates a delivery centre in Colombo, Sri Lanka, which contributes to
-  round-the-clock coverage and handles service records and correspondence under the
-  same confidentiality obligations as our Australian staff — see the privacy policy.
-  The distinction is deliberate: database access is Australia-only; the administrative
-  trail around support is handled by the wider team.
+- Engineer location: the split is by service, and it is a fixed rule rather than a
+  preference a client has to ask for. Database consultancy and support — every login
+  to a client instance, every query, restore and configuration change — is delivered
+  by Onsys consultants in Australia, and only by them. Round-the-clock database cover
+  is rostered across those Australian consultants; it is not handed offshore
+  overnight. Onsys also operates a delivery centre in Colombo, Sri Lanka. That team
+  delivers the services that are not databases: managed IT support, software
+  development and security management, together with service records and
+  correspondence for any engagement. It holds no credentials to client database
+  environments. Both teams work under the same confidentiality obligations — see the
+  privacy policy.
 
 ## What Onsys does NOT do
 - Physical data recovery from failed disks, SSDs or other media. That is a laboratory
@@ -120,7 +124,7 @@ Onsys publishes its prices. These are accurate and may be quoted directly.
 - Emergency response is available to organisations with no existing Onsys contract.
 
 ## Key facts
-- Coverage: 24/7/365 on every monthly plan, via a follow-the-sun team across Melbourne and Colombo.
+- Coverage: 24/7/365 on every monthly plan. Database cover is rostered across Onsys consultants in Australia; managed IT, software and security services are delivered together with the Colombo delivery centre.
 - Database platforms: Microsoft SQL Server, Oracle Database, PostgreSQL, EDB, MySQL, MariaDB, MongoDB, Azure SQL Database, Azure SQL Managed Instance.
 - Cloud platforms: Microsoft Azure, Amazon Web Services, Oracle Cloud Infrastructure.
 - Engagement models: monthly support plan, fixed-price project with milestone payments, blocked hours or time & materials, dedicated offshore team. No lock-in contracts on any model.

@@ -38,7 +38,7 @@ export const siteConfig = {
   /** Short line under the logo in the footer. */
   tagline:
     process.env.NEXT_PUBLIC_ORG_TAGLINE ||
-    'Melbourne-based database, cloud, managed IT and security specialists — with a delivery centre in Colombo for round-the-clock coverage.',
+    'Melbourne-based database, cloud, managed IT and security specialists. Databases are handled by our Australian consultants; our Colombo delivery centre covers managed IT, software and security.',
   email: process.env.NEXT_PUBLIC_ORG_EMAIL || 'sales@onsys.com.au',
   phone: process.env.NEXT_PUBLIC_ORG_PHONE || '1800 431 416',
   phoneE164: process.env.NEXT_PUBLIC_ORG_PHONE_E164 || '+611800431416',

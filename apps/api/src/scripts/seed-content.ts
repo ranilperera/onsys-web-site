@@ -185,7 +185,7 @@ const homeBlocks: Block[] = [
       { title: 'Proven enterprise-grade delivery', body: 'Deep experience across SQL Server, Oracle, PostgreSQL, MySQL, Azure, AWS and OCI, keeping mission-critical systems secure and reliable.' },
       { title: 'Innovation with AI and cloud', body: 'AI-driven SaaS products, automation and cloud-native solutions that help customers modernise and stay competitive.' },
       { title: 'Flexible engagement models', body: 'Fixed-price projects, remote DBA plans, managed services or offshore development teams — budget predictability with room to scale.' },
-      { title: 'Customer-centric approach', body: 'Offshore capability with local accountability: up to 50% savings on DBA and IT operations while keeping enterprise-level service quality.' },
+      { title: 'Customer-centric approach', body: 'Offshore scale with local accountability: up to 50% savings on IT operations, software and security, while your databases stay with our Australian consultants.' },
     ],
   },
   {
@@ -303,7 +303,7 @@ const mdsBlocks: Block[] = [
     anchor: 'included',
     eyebrow: 'Every plan includes',
     heading: 'No asterisks on the things that matter',
-    body: 'Delivered against an ITIL-aligned service model, by a follow-the-sun team across Melbourne and Colombo.',
+    body: 'Delivered against an ITIL-aligned service model by Onsys consultants in Australia. Every login to your instances is theirs — on every plan, by default.',
     items: [
       '24/7/365 proactive monitoring and alerting',
       'Guaranteed incident response SLA, day or night',
@@ -1859,7 +1859,7 @@ const postgresqlBlocks: Block[] = [
       'A rollback plan that has been executed in test, not just documented.',
       'Configuration captured as code where your environment supports it.',
       'A runbook and a recorded handover, so your team can operate what we built.',
-      'Melbourne-based project leadership, with follow-the-sun delivery from Colombo.',
+      'Delivered by Onsys consultants in Australia. Database work is Australian-only — no offshore engineer holds credentials to a client database.',
     ],
     sidebar: {
       title: 'At a glance',
@@ -1980,7 +1980,7 @@ const mysqlBlocks: Block[] = [
       'A rollback plan that has been executed in test, not just documented.',
       'Application impact assessed before any schema or character set change.',
       'A runbook and a recorded handover, so your team can operate what we built.',
-      'Melbourne-based project leadership, with follow-the-sun delivery from Colombo.',
+      'Delivered by Onsys consultants in Australia. Database work is Australian-only — no offshore engineer holds credentials to a client database.',
     ],
     sidebar: {
       title: 'At a glance',
@@ -2220,7 +2220,7 @@ const privacyBlocks: Block[] = [
 <h2>6. Overseas disclosure</h2>
 <p>Some of your information is accessed or processed outside Australia. Before disclosing information overseas we take reasonable steps to ensure the recipient handles it consistently with the APPs.</p>
 <ul>
-<li><strong>Sri Lanka.</strong> Onsys operates a delivery centre in Colombo. Our offshore team members may access service records and correspondence in the course of delivering support, under the same confidentiality obligations as our Australian staff.</li>
+<li><strong>Sri Lanka.</strong> Onsys operates a delivery centre in Colombo. Where you engage us for managed IT support, software development or security management, that team delivers the service and may access the systems and data it covers. They may also access service records and correspondence for any engagement. They do not hold credentials to client database environments, which are accessed only by our consultants in Australia. All of it under the same confidentiality obligations as our Australian staff.</li>
 <li><strong>United States.</strong> If you use the chat assistant, the content of your messages is sent to OpenAI to generate a response. Do not enter confidential information, credentials or personal information about others into the chat.</li>
 <li><strong>Microsoft.</strong> We use Microsoft services to send transactional email and, where a chat conversation is escalated to a person, to route that conversation to our team in Microsoft Teams.</li>
 <li><strong>Cloudflare</strong> for spam protection, and <strong>Plausible Analytics</strong> (hosted in the European Union) for aggregate website statistics.</li>
@@ -4513,7 +4513,8 @@ const databaseAccessBlocks: Block[] = [
       rows: [
         { label: 'Database access', value: 'Australian-based DBAs only' },
         { label: 'Offshore database access', value: 'None' },
-        { label: 'Where our DBAs are', value: 'Melbourne' },
+        { label: 'Where our DBAs are', value: 'Australia' },
+        { label: 'Colombo handles', value: 'IT, software, security — not databases' },
         { label: 'Applies to', value: 'Every plan, by default' },
       ],
     },
@@ -4535,8 +4536,8 @@ const databaseAccessBlocks: Block[] = [
         coverColor: '#E7F5EC',
       },
       {
-        title: 'Service records — as our privacy policy states',
-        body: 'Tickets, correspondence and service history are handled by the wider Onsys team, which includes our Colombo delivery centre, under the same confidentiality obligations as our Australian staff. That is disclosed in our privacy policy and has always been.',
+        title: 'Everything else — delivered with Colombo',
+        body: 'Managed IT support, software development and security management are delivered together with our Colombo delivery centre, along with tickets, correspondence and service history. All of it under the same confidentiality obligations as our Australian staff. That is disclosed in our privacy policy and has always been.',
         icon: '#s-consult',
         coverColor: '#EAF1FB',
         link: { label: 'Read the privacy policy', href: '/privacy' },
@@ -4787,7 +4788,7 @@ const remoteSupportBlocks: Block[] = [
       title: 'Where our engineers are',
       items: [
         'Australian-based senior consultants lead every engagement and hold the client relationship.',
-        'Follow-the-sun coverage is delivered from Melbourne and our Colombo delivery centre.',
+        'Round-the-clock database cover is rostered across those Australian consultants, not handed offshore overnight.',
         'We tell you which engineers can reach your data before you sign, and it goes in the agreement.',
       ],
     },
@@ -4818,7 +4819,7 @@ export const pages: SeedPage[] = [
     slug: 'home',
     title: 'Home',
     heading: 'Expert IT services you can trust.',
-    eyebrow: '24/7 IT & database support · Melbourne & Colombo',
+    eyebrow: '24/7 database & IT support · Australian DBAs',
     lede: 'Smart, affordable solutions designed to accelerate your business — remote DBA cover, managed IT, cloud, AI and custom software from one accountable team.',
     // The root layout and the root page share a segment, so the "| Onsys
     // Technologies" title template does not apply here — the brand has to be
@@ -4837,12 +4838,12 @@ export const pages: SeedPage[] = [
     faqs: [
       { question: 'How much does remote DBA support cost in Australia?', answer: 'Onsys remote DBA plans start at $1,500 per month for up to 10 SQL Server instances and 5 TB of data. Plan B is $3,000 per month and Plan C is $7,500 per month for larger multi-platform estates. Hourly consultancy is $150 per hour with a four-hour minimum. All prices are GST exclusive.' },
       { question: 'What database platforms does Onsys support?', answer: 'Onsys supports Microsoft SQL Server, Oracle Database, PostgreSQL, EDB Postgres, MySQL, MariaDB and MongoDB, plus Azure SQL Database and Azure SQL Managed Instance. Environments are covered on-premises and on Microsoft Azure, AWS and Oracle Cloud Infrastructure.' },
-      { question: 'Does Onsys provide 24/7 database and IT support?', answer: 'Yes. Every monthly plan includes 24/7/365 monitoring and remote support, delivered by a follow-the-sun team across Melbourne and Colombo. Response SLAs are two hours on Plan A and one hour on Plans B and C, guaranteed at any hour.' },
+      { question: 'Does Onsys provide 24/7 database and IT support?', answer: 'Yes. Every monthly plan includes 24/7/365 monitoring and remote support. Database monitoring and support is delivered by Onsys consultants in Australia, who are the only people who access your instances. Managed IT, software and security services are delivered together with our Colombo delivery centre. Response SLAs are two hours on Plan A and one hour on Plans B and C, guaranteed at any hour.' },
       { question: 'How quickly does Onsys respond to a database incident?', answer: 'Within one hour on the Plan B and Plan C support tiers, and within two hours on Plan A. The SLA clock runs 24 hours a day, including weekends and public holidays, and applies from the moment an alert or ticket is raised.' },
       { question: 'How much can a business save by outsourcing DBA work to Onsys?', answer: 'Onsys clients reduce DBA and IT operating costs by up to 50% compared with hiring in-house. You pay a fixed monthly plan instead of salary, recruitment, training and leave cover, and you get a certified team rather than a single person.' },
       { question: 'What engagement models does Onsys offer?', answer: 'Four: a fixed monthly support plan, a fixed-price project with milestone-based payments, blocked hours or time and materials, or a dedicated offshore development team. Models can be combined — many clients run a monthly plan alongside project work.' },
       { question: 'Does Onsys require a lock-in contract?', answer: 'No. Onsys does not use lock-in contracts. Monthly support plans run on a rolling basis, and hourly consultancy and fixed-price projects carry no ongoing commitment once the work is complete.' },
-      { question: 'Where is Onsys Technologies based?', answer: `Onsys Technologies is an Australian company with its head office at ${org.postalAddress}, and a delivery centre in Colombo, Sri Lanka. The two locations provide follow-the-sun coverage for Australian clients.` },
+      { question: 'Where is Onsys Technologies based?', answer: `Onsys Technologies is an Australian company with its head office at ${org.postalAddress}, and a delivery centre in Colombo, Sri Lanka. Database consultancy and support is delivered from Australia; Colombo delivers managed IT support, software development and security services.` },
     ],
   },
   {
@@ -4906,10 +4907,10 @@ export const pages: SeedPage[] = [
     navOrder: 5,
     blocks: aboutBlocks,
     faqs: [
-      { question: 'Where is Onsys Technologies based?', answer: `Onsys Technologies is a Melbourne-based Information Technology company, with its head office at ${org.postalAddress} and a delivery centre in Colombo, Sri Lanka. The two locations provide follow-the-sun coverage for Australian clients.` },
+      { question: 'Where is Onsys Technologies based?', answer: `Onsys Technologies is a Melbourne-based Information Technology company, with its head office at ${org.postalAddress} and a delivery centre in Colombo, Sri Lanka. Database consultancy and support is delivered from Australia; Colombo delivers managed IT support, software development and security services.` },
       { question: 'What is the Onsys Technologies ABN and ACN?', answer: `${org.legalName} holds ABN ${org.abn} and ACN ${org.acn}.` },
       { question: 'What services does Onsys provide?', answer: 'Database support and consultancy, managed database services, ad-hoc and 24×7 remote DBA support, emergency outage response and project delivery — plus cloud solutions, managed IT, cyber security, software development and AI services.' },
-      { question: 'Does Onsys use offshore staff?', answer: 'Yes, deliberately. Our team combines onshore specialists in Australia with an offshore expert team in Colombo. That is how enterprise-grade engineering is delivered at a cost-effective price, with Australian accountability on every engagement.' },
+      { question: 'Does Onsys use offshore staff?', answer: 'Yes, deliberately, and the split is a fixed rule rather than a preference. Database consultancy and support — including every login to a client database — is done by our consultants in Australia. Our Colombo team delivers managed IT support, software development and security management. That is how enterprise-grade engineering is delivered at a cost-effective price, with Australian accountability on every engagement.' },
       { question: 'What is Onsys Technologies’ mission?', answer: 'To design and deliver technology services that reduce operational costs, protect critical data, maximise availability, and enable organisations to manage, acquire and operate technology with confidence.' },
       { question: 'How do I start working with Onsys?', answer: 'Book a free 30-minute consultation with a senior consultant. There is no obligation, no lock-in contract on any engagement model, and you will get an honest assessment of whether the work is worth doing.' },
     ],
@@ -5074,7 +5075,7 @@ export const pages: SeedPage[] = [
     navOrder: 9,
     blocks: postgresqlBlocks,
     faqs: [
-      { question: 'Do you provide PostgreSQL consulting in Australia?', answer: 'Yes. Onsys delivers PostgreSQL and EDB Postgres project work for organisations across Australia and New Zealand, with project leadership based in Melbourne and follow-the-sun delivery from Colombo. Work is remote by default; on-site attendance in the Melbourne metropolitan area is arranged as part of the engagement where it helps.' },
+      { question: 'Do you provide PostgreSQL consulting in Australia?', answer: 'Yes. Onsys delivers PostgreSQL and EDB Postgres project work for organisations across Australia and New Zealand, delivered by Onsys consultants in Australia — database work is Australian-only, and no offshore engineer holds credentials to a client database. Work is remote by default; on-site attendance in the Melbourne metropolitan area is arranged as part of the engagement where it helps.' },
       { question: 'How much does a PostgreSQL project cost?', answer: 'Where the scope can be defined, the project is quoted as a single fixed price with milestone-based payments and written acceptance criteria, so there is no cost-overrun risk. Where it genuinely cannot be defined up front we say so and work at $150 per hour with a four-hour minimum. The scoping call is free and all prices are GST exclusive.' },
       { question: 'What does outcome-based pricing mean in practice?', answer: 'We agree in writing what "done" looks like before any work starts \u2014 for a high availability project that means the cluster fails over automatically, we demonstrate it in front of you, and it meets the RPO and RTO you stated. You pay the quoted price for that outcome. If it takes us longer than we estimated, that is our problem rather than a variation.' },
       { question: 'Can you set up PostgreSQL high availability and automatic failover?', answer: 'Yes. We build automatic failover on Patroni or repmgr with etcd or Consul for consensus, HAProxy or a virtual IP so applications follow the primary, and fencing so a split brain cannot write to two nodes. For EDB estates we use EDB Postgres Failover Manager. We run the failover in front of you before handover and leave a runbook your team can follow without us.' },
@@ -5101,7 +5102,7 @@ export const pages: SeedPage[] = [
     navOrder: 10,
     blocks: mysqlBlocks,
     faqs: [
-      { question: 'Do you provide MySQL consulting in Australia?', answer: 'Yes. Onsys delivers MySQL and MariaDB project work for organisations across Australia and New Zealand, with project leadership based in Melbourne and follow-the-sun delivery from Colombo. Work is remote by default; on-site attendance in the Melbourne metropolitan area is arranged as part of the engagement where it helps.' },
+      { question: 'Do you provide MySQL consulting in Australia?', answer: 'Yes. Onsys delivers MySQL and MariaDB project work for organisations across Australia and New Zealand, delivered by Onsys consultants in Australia — database work is Australian-only, and no offshore engineer holds credentials to a client database. Work is remote by default; on-site attendance in the Melbourne metropolitan area is arranged as part of the engagement where it helps.' },
       { question: 'How much does a MySQL project cost?', answer: 'Where the scope can be defined, the project is quoted as a single fixed price with milestone-based payments and written acceptance criteria, so there is no cost-overrun risk. Where it genuinely cannot be defined up front we say so and work at $150 per hour with a four-hour minimum. The scoping call is free and all prices are GST exclusive.' },
       { question: 'Is MySQL 5.7 still supported?', answer: 'No. MySQL 5.7 reached end of life in October 2023, so it receives no security fixes at all. Estates still running it are accumulating unpatched vulnerabilities. The upgrade to 8.0 changes enough defaults \u2014 authentication plugin, character set, reserved words, sql_mode \u2014 that it needs a compatibility assessment and a dry run rather than an in-place attempt on a Friday.' },
       { question: 'Can you set up MySQL high availability and automatic failover?', answer: 'Yes. We build InnoDB Cluster with Group Replication and MySQL Router, Galera or MariaDB Cluster where synchronous multi-primary suits the workload, or Orchestrator for topology management on an existing estate. We demonstrate the failover before handover and leave a runbook your team can follow without us.' },
@@ -5650,8 +5651,8 @@ export const pages: SeedPage[] = [
     blocks: databaseAccessBlocks,
     faqs: [
       { question: 'Is it safe to give an external company access to our production SQL Server?', answer: 'It is safe when you know exactly who holds credentials, where they are, and what happens when that list changes — and when those terms are written into the agreement rather than only onto a website. At Onsys, production database access is held by Australian-based DBAs only, and we will confirm the access terms in writing during scoping.' },
-      { question: 'Do offshore staff have access to our databases?', answer: 'No. Onsys DBAs based in Australia hold database access. Offshore team members do not hold credentials to client database environments. Onsys does operate a delivery centre in Colombo, and the wider team there handles service records and correspondence under the same confidentiality obligations as our Australian staff — that is disclosed in our privacy policy.' },
-      { question: 'What is the difference between database access and service records?', answer: 'Database access means logging into an instance: running queries, restoring backups, changing configuration. That is Australian-based DBAs only. Service records means tickets, correspondence and service history — the administrative trail around your support, which the wider Onsys team handles. We keep the distinction explicit rather than letting the word "offshore" sit unexplained.' },
+      { question: 'Do offshore staff have access to our databases?', answer: 'No. Onsys DBAs based in Australia hold database access. Offshore team members do not hold credentials to client database environments. Onsys does operate a delivery centre in Colombo: that team delivers our managed IT, software development and security services, and handles service records and correspondence, under the same confidentiality obligations as our Australian staff — as disclosed in our privacy policy. It does not touch databases.' },
+      { question: 'Which parts of your service does the Colombo team deliver?', answer: 'Database access means logging into an instance: running queries, restoring backups, changing configuration. That is Australian-based DBAs only. Everything else means our managed IT, software development and security services, plus the administrative trail around support — tickets, correspondence and service history. That work is delivered together with our Colombo team. We keep the distinction explicit rather than letting the word "offshore" sit unexplained.' },
       { question: 'Can the access terms go into our contract?', answer: 'Yes, and we would encourage it. A commitment that lives only on a website is a marketing claim. Raise it during scoping and the access terms are written into the agreement you sign.' },
       { question: 'How do we know who currently holds access?', answer: 'Ask, and we will tell you. You can request the current list at any point in the engagement, and we would rather you did — a provider who is uncomfortable answering that question is telling you something.' },
     ],
