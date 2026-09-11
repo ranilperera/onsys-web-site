@@ -376,7 +376,7 @@ export const articles: ArticleSeed[] = [
 
 <p>Where the scope can be defined, the project is quoted as a single fixed price against written acceptance criteria, with milestone payments. Where it genuinely cannot, we say so and work at $150 an hour rather than quoting a number we would have to revise.</p>
 
-<p>Either way it is delivered by <a href="/who-can-access-your-database">Onsys consultants in Australia</a> — database work is Australian-only, on every engagement. <a href="/contact">Tell us what you are trying to move</a> and we will scope it on a free call, including when the work is smaller than you expected.</p>
+<p>Either way it is delivered by <a href="/who-can-access-your-database">Onsys consultants in Australia</a> — database work is Australian-only, on every engagement. Our <a href="/sql-server-migration-and-upgrade-services">SQL Server project services</a> page sets out what each engagement covers, or <a href="/contact">tell us what you are trying to move</a> and we will scope it on a free call — including when the work is smaller than you expected.</p>
 `,
     faqs: [
       {

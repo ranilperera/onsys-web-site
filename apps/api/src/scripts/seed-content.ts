@@ -2012,6 +2012,141 @@ const mysqlBlocks: Block[] = [
   },
 ];
 
+/**
+ * SQL Server project delivery.
+ *
+ * The audit found migration, upgrade, Always On and Azure SQL MI queries
+ * returning nothing at all, and called them the highest-value engagements on
+ * offer. /database-upgrades-migrations-dr covers the same work across every
+ * platform and is deliberately left alone: it ranks for the generic query,
+ * this one takes the SQL Server-specific terms, and each links to the other
+ * rather than competing.
+ *
+ * Sibling of postgresqlBlocks and mysqlBlocks, same shape and same pricing
+ * stance — no table of "Fixed price" cards, because the number depends on the
+ * environment and a placeholder figure is worse than an honest conversation.
+ */
+const sqlServerProjectBlocks: Block[] = [
+  {
+    type: 'cardGrid',
+    eyebrow: 'Why teams call us',
+    heading: 'The engine upgrade is the easy part',
+    body: 'Almost nobody calls because the installer is difficult. They call because a version is out of support and nobody owns the cutover plan, because an availability group has never been failed over, or because a cloud migration has stalled on a sizing question nobody can answer.',
+    centered: true,
+    altBackground: true,
+    columns: 3,
+    cards: [
+      { title: 'A version past its support date', body: 'SQL Server 2016 lost support on 15 July 2026 and 2019 has been in extended support since 1 March 2025. The upgrade keeps slipping because the risk is invisible until it is not, and because the application vendor has not answered.', icon: '#s-managed', coverColor: '#EAF1FB' },
+      { title: 'A cluster nobody has failed over', body: 'An availability group configured once, never tested, and missing the logins and Agent jobs that live at instance level rather than in the database. It looks like high availability right up to the moment it is needed.', icon: '#s-ha', coverColor: '#FFF1E0' },
+      { title: 'A cloud move that stalled', body: 'Azure SQL Managed Instance was chosen, then the sizing exercise produced a number nobody expected and the project stopped. The decision needs modelling, not another proof of concept.', icon: '#s-cloud', coverColor: '#F3F2F1' },
+    ],
+  },
+  {
+    type: 'steps',
+    anchor: 'projects',
+    eyebrow: 'What we build',
+    heading: 'SQL Server project work, delivered to a defined outcome',
+    body: 'Each of these is scoped, quoted as a fixed price and signed off against acceptance criteria agreed before the work starts. If it cannot be defined that precisely, we say so and quote it hourly instead.',
+    steps: [
+      { title: 'Version upgrades', body: 'SQL Server 2008 through 2019 up to 2022, in place or side by side. A compatibility assessment against deprecated features and your third-party support matrix, a dry run on a copy of production, and a rehearsed rollback. Compatibility level is raised deliberately afterwards with Query Store capturing regressions \u2014 never bundled into the cutover, where a performance change cannot be attributed to either the engine or the optimiser.' },
+      { title: 'Always On availability groups', body: 'Failover clustering and availability group design against the specific failure you are protecting against, quorum and node weights that survive it, and the instance-level objects an availability group does not replicate: logins, SQL Agent jobs, linked servers, credentials and certificates. We fail the cluster over in front of you before handover, twice.' },
+      { title: 'Azure SQL Managed Instance migration', body: 'Assessment of what actually comes across, vCore and service-tier sizing modelled before the decision rather than after it, Azure Database Migration Service with log shipping so the cutover is minutes rather than hours, and the backup and Agent strategy rebuilt for a platform that manages its own.' },
+      { title: 'Platform and hosting migrations', body: 'On-premises to Azure or AWS, physical to virtual, one data centre to another, or consolidation of instance sprawl onto fewer, larger hosts. Collation, linked servers, SSIS packages, SSRS subscriptions and Agent jobs all move with the databases \u2014 they are the things most often left behind.' },
+      { title: 'Disaster recovery you have tested', body: 'Log shipping, availability groups or Dbvisit Standby for Standard Edition estates, designed against a stated RPO and RTO rather than a diagram. Includes a documented, rehearsed failover \u2014 a DR plan nobody has executed is a hypothesis.' },
+      { title: 'New builds and standards', body: 'A production instance built to a standard you can repeat: sizing against real workload, memory and MAXDOP set against the hardware actually present, tempdb configured properly, maintenance and backup jobs installed, and a build document your team can follow next time.' },
+      { title: 'Health checks and remediation', body: 'The findings from our free 20-point health check turned into a scoped piece of work, prioritised by what is actually at risk rather than by what is easiest to fix.' },
+    ],
+  },
+  {
+    type: 'platformChips',
+    eyebrow: 'What we work with',
+    heading: 'SQL Server, and the platforms it runs on',
+    groups: [
+      {
+        title: 'Versions & editions',
+        chips: [
+          { label: 'SQL Server 2008 to 2022', color: '#CC2927' },
+          { label: 'Standard, Enterprise & Developer', color: '#CC2927' },
+          { label: 'Azure SQL Managed Instance', color: '#0078D4' },
+          { label: 'Azure SQL Database', color: '#0078D4' },
+          { label: 'Amazon RDS for SQL Server', color: '#FF9900' },
+        ],
+      },
+      {
+        title: 'High availability & DR',
+        chips: [
+          { label: 'Always On availability groups', color: '#CC2927' },
+          { label: 'Failover Cluster Instances', color: '#CC2927' },
+          { label: 'Log shipping & replication', color: '#A4373A' },
+          { label: 'Dbvisit Standby', color: '#0E7C4A' },
+          { label: 'Windows Server Failover Clustering', color: '#0078D4' },
+        ],
+      },
+      {
+        title: 'Migration & operations',
+        chips: [
+          { label: 'Azure Database Migration Service', color: '#0078D4' },
+          { label: 'Data Migration Assistant', color: '#0078D4' },
+          { label: 'Query Store & plan forcing', color: '#0E336A' },
+          { label: 'SSIS, SSRS & SSAS', color: '#605E5C' },
+          { label: 'Ola Hallengren maintenance', color: '#8A5A44' },
+        ],
+      },
+    ],
+  },
+  {
+    type: 'checkList',
+    eyebrow: 'How we work',
+    heading: 'What a fixed-price SQL Server project includes',
+    body: 'The same delivery method as our Oracle and open-source work: ITIL change management, and nothing goes to production that has not been rehearsed.',
+    items: [
+      'A free scoping call and a written quote before any commitment.',
+      'Acceptance criteria agreed up front, so "done" is not a matter of opinion.',
+      'A dry run against a copy of production for every migration and upgrade.',
+      'A rollback plan that has been executed in test, not just documented.',
+      'The instance-level objects checked explicitly \u2014 logins, Agent jobs, linked servers.',
+      'A runbook and a recorded handover, so your team can operate what we built.',
+      'Delivered by Onsys consultants in Australia. Database work is Australian-only.',
+    ],
+    sidebar: {
+      title: 'At a glance',
+      rows: [
+        { label: 'Engagement', value: 'Fixed price on defined scope' },
+        { label: 'Hourly alternative', value: '$150 / hour, 4-hour minimum' },
+        { label: 'Scoping call', value: 'Free, 30 minutes' },
+        { label: 'Versions', value: 'SQL Server 2008 to 2022' },
+        { label: 'Targets', value: 'On-premises, Azure, AWS' },
+        { label: 'Prices shown', value: 'GST exclusive' },
+      ],
+    },
+  },
+  {
+    // Crawlable links out to the depth pieces. The menu gets a visitor here;
+    // this is what tells a search engine the three URLs belong together.
+    type: 'richText',
+    heading: 'Further reading',
+    html: `
+<ul>
+  <li><a href="/blog/sql-server-upgrade-migration-always-on-projects">How these projects actually run</a> — the sequence, what drives the cost, and the failure modes worth planning around.</li>
+  <li><a href="/sql-server-2016-end-of-support">SQL Server 2016 end of support</a> — support ended 15 July 2026, and what the options are now.</li>
+  <li><a href="/free-20-point-sql-server-health-check">Free 20-point health check</a> — scripts you can read first, on one instance, no charge.</li>
+</ul>`,
+  },
+  {
+    type: 'ctaBand',
+    heading: 'Tell us what you are trying to move',
+    body: 'Talk it through with a senior consultant on a free 30-minute call. We write up the scope and the deliverables, agree them with you, and then quote a single fixed price against them \u2014 including telling you when the work is smaller than you feared.',
+    cta: { label: 'Discuss your project', href: '/contact' },
+  },
+  {
+    type: 'relatedService',
+    eyebrow: 'After the project',
+    heading: 'Someone has to run it on Monday',
+    body: 'Most clients hand the finished environment to their own team with the runbook. If you would rather not carry it, our monthly plans cover SQL Server from $150 per instance per month with 24/7 monitoring and a guaranteed response.',
+    cta: { label: 'See monthly DBA plans', href: '/pricing-and-plans#database-plans' },
+  },
+];
+
 const upgradeDrBlocks: Block[] = [
   {
     type: 'cardGrid',
@@ -5056,6 +5191,33 @@ export const pages: SeedPage[] = [
       { question: 'Can we get a demo before committing?', answer: 'Yes. Demos are free and carry no obligation. Tell us what you are trying to solve and we will walk you through the relevant product, including architecture, deployment options and pricing patterns.' },
       { question: 'Can Onsys deploy and support the product for us?', answer: 'Yes. The engineers who build the platforms sit in the same organisation as the DBAs who run our managed services, so deployment, integration and ongoing 24/7 support all come from one team rather than a vendor-and-integrator chain.' },
       { question: 'Where can these products be deployed?', answer: 'On Microsoft Azure, AWS, Oracle Cloud Infrastructure or on-premises. All three are built on modular, containerised components with documented REST APIs, so they fit existing environments without bespoke connectors.' },
+    ],
+  },
+  {
+    slug: 'sql-server-migration-and-upgrade-services',
+    title: 'SQL Server Projects',
+    heading: 'SQL Server migrations, upgrades and high availability',
+    eyebrow: 'Project delivery \u00b7 Fixed price \u00b7 Australia-wide',
+    lede: 'Get off an unsupported version, build an availability group that has actually been failed over, or move to Azure SQL Managed Instance without a bad weekend. Quoted as a fixed price against acceptance criteria you agree before we start.',
+    heroImage: '/images/hero-db-upgrades.jpg',
+    heroCtas: [
+      { label: 'Book a Free Consultation', href: org.bookingUrl },
+      { label: 'What we build', href: '#projects' },
+    ],
+    seoTitle: 'SQL Server Migration & Upgrade Services Australia',
+    seoDescription:
+      'SQL Server migration, upgrade, Always On and Azure SQL Managed Instance projects for Australian organisations. Fixed price on defined scope, rehearsed cutovers.',
+    navOrder: 11,
+    blocks: sqlServerProjectBlocks,
+    faqs: [
+      { question: 'Do you do SQL Server migrations in Australia?', answer: 'Yes. Onsys delivers SQL Server migration, upgrade, high availability and cloud projects for organisations across Australia and New Zealand, delivered by Onsys consultants in Australia \u2014 database work is Australian-only, and no offshore engineer holds credentials to a client database. Work is remote by default, with on-site attendance in Melbourne arranged where it helps.' },
+      { question: 'How much does a SQL Server migration or upgrade cost?', answer: 'Where the scope can be defined, the project is quoted as a single fixed price with milestone payments and written acceptance criteria, so there is no cost-overrun risk. Where it genuinely cannot be defined up front we say so and work at $150 per hour with a four-hour minimum. The scoping call is free and all prices are GST exclusive.' },
+      { question: 'Which SQL Server upgrade paths do you support?', answer: 'SQL Server 2008, 2008 R2, 2012, 2014, 2016 and 2017 up to 2019 or 2022, in place or side by side, plus service pack and cumulative update programmes. SQL Server 2022 is supported until 12 January 2033; SQL Server 2019 is supported until 9 January 2030 but its mainstream support ended on 1 March 2025, so it is already extended-support only.' },
+      { question: 'Do we need Enterprise Edition for Always On?', answer: 'Not always. Standard Edition supports Basic Availability Groups, which cover one database per group with a single non-readable secondary. Enterprise Edition is required if multiple databases must fail over together or you want a readable secondary. Enterprise licensing often costs more than the whole project, so we settle the edition question during design rather than after it.' },
+      { question: 'How much downtime does a SQL Server migration need?', answer: 'Usually minutes rather than hours. Log shipping or Azure Database Migration Service moves the bulk of the data while the source is still serving, so the cutover is the final catch-up and the switch. Where the window is genuinely tight, Managed Instance link narrows it further. The window is agreed before the work starts and the cutover is rehearsed against a copy of production first.' },
+      { question: 'Should we move to Azure SQL Managed Instance or stay on VMs?', answer: 'Managed Instance removes the patching and the end-of-support cycle, and keeps SQL Agent, cross-database queries and linked servers, which is what a lift from an on-premises instance usually depends on. It also moves spend from licences and capital to a monthly bill. Which is better depends on your sizing, and we model that before the decision rather than after the migration.' },
+      { question: 'What happens if the cutover goes wrong?', answer: 'It rolls back, using a plan that has been executed in test rather than only written. Every migration and upgrade includes a full dry run against a copy of production before a cutover date is agreed, which is where the surprises are meant to be found. That rehearsal is the project, not optional rigour around it.' },
+      { question: 'Do you also support the environment afterwards?', answer: 'Only if you want us to. Project work is standalone and most clients hand the finished environment to their own team with the runbook and the documentation. Monthly DBA plans start at $1,500 for up to 10 SQL Server instances, which is $150 per instance, but nothing about the project depends on taking one.' },
     ],
   },
   {

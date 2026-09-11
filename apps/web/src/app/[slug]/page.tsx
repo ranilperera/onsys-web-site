@@ -46,6 +46,7 @@ const SERVICE_SLUGS = new Set([
   'emergency-database-support',
   'database-consultancy',
   'database-upgrades-migrations-dr',
+  'sql-server-migration-and-upgrade-services',
   'postgresql-consulting-services',
   'mysql-consulting-services',
   'managed-it-services',

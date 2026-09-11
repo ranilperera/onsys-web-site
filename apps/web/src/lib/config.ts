@@ -148,6 +148,7 @@ export const navigation = {
         links: [
           { label: 'SQL Server DBA Services', href: '/sql-server-dba-services', sub: 'The hub: what a DBA actually does' },
           { label: 'Remote On-Call DBA', href: '/on-call-dba-services', sub: 'Standby cover from $100/instance' },
+          { label: 'SQL Server Projects', href: '/sql-server-migration-and-upgrade-services', sub: 'Migrations, upgrades, Always On, Azure' },
           { label: 'Free SQL Server Health Check', href: '/free-20-point-sql-server-health-check', sub: '20 points, one instance, no charge' },
           { label: 'SQL Server 2016 End of Support', href: '/sql-server-2016-end-of-support', sub: 'Support ended 15 July 2026' },
         ],
