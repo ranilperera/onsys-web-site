@@ -4954,7 +4954,7 @@ export const pages: SeedPage[] = [
       { label: 'Book a Free Consultation', href: org.bookingUrl },
       { label: 'See DBA plans', href: '/pricing-and-plans#database-plans' },
     ],
-    seoTitle: 'Standby SQL Server DBA Cover | $100 Per Instance | Onsys',
+    seoTitle: 'Standby SQL Server DBA Cover | $100 Per Instance',
     seoDescription:
       'Standby DBA cover from $100 per instance per month with a 2-hour response SLA, 24/7. Pay only for the call-outs you use. SQL Server, Oracle, PostgreSQL.',
     navOrder: 2,

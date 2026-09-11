@@ -16,6 +16,18 @@ const absoluteUrl = (path: string): string =>
 
 const DEFAULT_OG = '/og-default.png';
 
+/**
+ * The brand close the root layout appends to every child route's title, via
+ * `template: '%s | Onsys'`.
+ *
+ * A title that already ends in it must opt out of the template, or the layout
+ * appends a second copy. That is not hypothetical: /on-call-dba-services
+ * shipped as "… | $100 Per Instance | Onsys | Onsys" on the URL that ranks for
+ * seven of the queries this site appears for at all, because a CMS author
+ * typed the brand by hand and nothing stopped them.
+ */
+const TITLE_SUFFIX = ` | ${siteConfig.shortName}`;
+
 export function buildMetadata(opts: {
   title: string;
   description: string;
@@ -31,7 +43,12 @@ export function buildMetadata(opts: {
   const image = absoluteUrl(opts.ogImage || DEFAULT_OG);
 
   return {
-    title: opts.title,
+    // `absolute` bypasses the root layout's title template. Applied only when
+    // the title already carries the brand, so an author who types it by hand
+    // gets one copy rather than two — and every other title is untouched.
+    title: opts.title.trimEnd().endsWith(TITLE_SUFFIX)
+      ? { absolute: opts.title.trimEnd() }
+      : opts.title,
     description: opts.description,
     alternates: { canonical: url },
     robots: opts.noindex
