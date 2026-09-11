@@ -665,14 +665,6 @@ footer li a:hover{color:var(--navy);}
 .article-byline{color:inherit; font-weight:600; text-decoration:underline; text-underline-offset:2px;}
 .article-byline:hover{color:#fff;}
 
-.author-box{border:1px solid var(--gray-light); border-radius:10px; background:#FAFBFD; padding:20px 22px; margin:32px 0 24px;}
-.author-box-head{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:10px;}
-.author-box-head .eyebrow{margin:0;}
-.author-box-head a{font-size:16px; font-weight:700; color:var(--navy);}
-.author-box-role{font-size:13px; color:#605E5C;}
-.author-box p{font-size:14px; line-height:1.65; color:#3B3A39; margin:0 0 12px;}
-.author-box .lnk{font-size:13.5px; font-weight:700; color:var(--orange-dark);}
-
 .author-profile{display:flex; gap:28px; align-items:flex-start; flex-wrap:wrap;}
 .author-photo{border-radius:50%; flex-shrink:0;}
 .author-detail{flex:1; min-width:280px;}

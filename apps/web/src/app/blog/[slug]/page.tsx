@@ -134,26 +134,20 @@ export default async function BlogPost({ params }: Props) {
               </div>
             )}
 
-            {post.author && (
-              <aside className="author-box">
-                <div className="author-box-head">
-                  <span className="eyebrow">Written by</span>
-                  <Link href={`/about/${post.author.slug}`}>{post.author.name}</Link>
-                  {post.author.role && <span className="author-box-role">{post.author.role}</span>}
-                </div>
-                {post.author.bio && <p>{post.author.bio}</p>}
-                {post.author.credentials.length > 0 && (
-                  <ul className="author-credentials">
-                    {post.author.credentials.map((c) => (
-                      <li key={c}>{c}</li>
-                    ))}
-                  </ul>
-                )}
-                <Link className="lnk" href={`/about/${post.author.slug}`}>
-                  All articles by {post.author.name} →
-                </Link>
-              </aside>
-            )}
+            {/* No author bio box here on purpose.
+                It repeated the same paragraph and the same eleven
+                certifications at the foot of every article — identical blocks
+                across 55 pages, which is duplicate content that pushes the
+                article's own ending further from the reader.
+
+                Nothing is lost by removing it. The byline at the top of the
+                article already links to /about/<slug>, so the profile stays
+                one click away and keeps its internal link; the author's
+                credentials, bio and article list live on that page, which is
+                where someone checking who wrote this actually goes; and the
+                Person entity with its sameAs is emitted by authorNode() in
+                the JSON-LD, not by this markup, so the E-E-A-T signal is
+                untouched. */}
 
             {/* WP5.2: the primary action is the free health check, not the
                 contact form. A specific, free, scoped offer converts far better
