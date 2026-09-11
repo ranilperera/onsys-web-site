@@ -8,6 +8,7 @@
  */
 import { prisma } from '../lib/prisma';
 import { pages, SQL_ARTICLE_HTML } from './seed-content';
+import { revalidate, tags } from '../services/revalidate.service';
 
 async function main(): Promise<void> {
   console.log('\nSeeding Onsys platform…\n');
@@ -112,6 +113,40 @@ async function main(): Promise<void> {
   if (conflicting.count > 0) {
     console.log(`  ✓ removed ${conflicting.count} redirect(s) shadowing a live page`);
   }
+
+  /**
+   * Purge the web app's caches for everything just rewritten.
+   *
+   * The admin console purges automatically because its writes go through the
+   * API, but the seed talks to the database directly and so bypasses all of
+   * that. Without this step a content deploy looks half-applied for up to an
+   * hour: /privacy refreshed on its 300-second timer while llms.txt sat on its
+   * 3600-second one, still quoting copy that had already been replaced — which
+   * is exactly how it behaved after the offshore-access rewrite.
+   *
+   * Tags cover the API reads; paths cover routes whose whole output is cached,
+   * which tags alone do not reach. Failure is logged and swallowed inside
+   * revalidate(), so a web app that is down cannot fail a database seed.
+   */
+  const slugs = pages.map((p) => p.slug);
+  await revalidate({
+    tags: [
+      ...slugs.map((slug) => tags.page(slug)),
+      tags.pageList,
+      tags.postList,
+      tags.sitemap,
+      tags.categories,
+      tags.redirects,
+      tags.footerNav,
+    ],
+    paths: [
+      '/',
+      '/llms.txt',
+      '/sitemap.xml',
+      '/blog',
+      ...slugs.filter((slug) => slug !== 'home').map((slug) => `/${slug}`),
+    ],
+  });
 
   console.log('\n✓ Seed complete.\n');
   console.log('Next: npm run create:admin -- --email=you@onsys.com.au --name="Your Name"\n');
