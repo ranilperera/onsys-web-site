@@ -9,7 +9,8 @@
 import { prisma } from '../lib/prisma';
 import { pages, SQL_ARTICLE_HTML } from './seed-content';
 import { revalidate, tags } from '../services/revalidate.service';
-import { pageFingerprint, nextContentUpdatedAt } from '../lib/content-changed';
+import { pageFingerprint, postFingerprint, nextContentUpdatedAt } from '../lib/content-changed';
+import { articles } from './seed-articles';
 
 async function main(): Promise<void> {
   console.log('\nSeeding Onsys platform…\n');
@@ -102,6 +103,63 @@ async function main(): Promise<void> {
   });
   console.log(`  ✓ post: /blog/${articleSlug}`);
 
+  /**
+   * Editorial articles.
+   *
+   * Bylined to the author record rather than to the organisation: a Person with
+   * a profile and a sameAs link is something a search engine can attribute
+   * expertise to, and "Onsys Technologies" is not.
+   *
+   * `update` deliberately rewrites the body, SEO fields and FAQs. These are
+   * authored in the repository, so the repository is the source of truth and a
+   * re-seed is how a correction reaches production. contentUpdatedAt still only
+   * moves when the content actually differs, so re-seeding an unchanged article
+   * does not lie to the sitemap about its freshness.
+   */
+  const byline = await prisma.author.findFirst({ orderBy: { createdAt: 'asc' } });
+
+  for (const article of articles) {
+    const category = await prisma.category.findUnique({ where: { slug: article.category } });
+    const { faqs, category: _category, ...data } = article;
+
+    const existing = await prisma.post.findUnique({
+      where: { slug: article.slug },
+      include: { faqs: { orderBy: { order: 'asc' } } },
+    });
+
+    const contentUpdatedAt = nextContentUpdatedAt(
+      existing ? postFingerprint(existing) : null,
+      postFingerprint({ ...data, authorName: byline?.name ?? 'Onsys Technologies', faqs }),
+      existing?.contentUpdatedAt,
+    );
+
+    if (existing) await prisma.faq.deleteMany({ where: { postId: existing.id } });
+
+    await prisma.post.upsert({
+      where: { slug: article.slug },
+      create: {
+        ...data,
+        status: 'PUBLISHED',
+        categoryId: category?.id ?? null,
+        authorId: byline?.id ?? null,
+        authorName: byline?.name ?? 'Onsys Technologies',
+        publishedAt: new Date(),
+        contentUpdatedAt,
+        faqs: { create: faqs.map((f, i) => ({ ...f, order: i })) },
+      },
+      update: {
+        ...data,
+        status: 'PUBLISHED',
+        categoryId: category?.id ?? null,
+        authorId: byline?.id ?? null,
+        authorName: byline?.name ?? 'Onsys Technologies',
+        contentUpdatedAt,
+        faqs: { create: faqs.map((f, i) => ({ ...f, order: i })) },
+      },
+    });
+    console.log(`  ✓ post: /blog/${article.slug}`);
+  }
+
   // Redirects preserving equity from the current WordPress URLs.
   const redirects = [
     { fromPath: '/our-expertise', toPath: '/expertise' },
@@ -168,6 +226,7 @@ async function main(): Promise<void> {
       '/sitemap.xml',
       '/blog',
       ...slugs.filter((slug) => slug !== 'home').map((slug) => `/${slug}`),
+      ...articles.map((a) => `/blog/${a.slug}`),
     ],
   });
 
