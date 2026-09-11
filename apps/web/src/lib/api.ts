@@ -267,10 +267,26 @@ export const getCategories = async (): Promise<CategoryRecord[]> =>
 
 export const getSitemapData = async () =>
   (await apiGet<{
-    pages: Array<{ slug: string; updatedAt: string }>;
-    posts: Array<{ slug: string; updatedAt: string; publishedAt: string | null }>;
+    /**
+     * `contentUpdatedAt` is the lastmod worth publishing: `updatedAt` moves on
+     * every write, including a seed that changed nothing, which produced a
+     * sitemap claiming every page changed at the same instant.
+     */
+    pages: Array<{ slug: string; updatedAt: string; contentUpdatedAt: string | null }>;
+    posts: Array<{
+      slug: string;
+      updatedAt: string;
+      publishedAt: string | null;
+      contentUpdatedAt: string | null;
+    }>;
     categories: Array<{ slug: string }>;
-  }>('/sitemap', 3600, [cacheTags.sitemap])) ?? { pages: [], posts: [], categories: [] };
+    authors: Array<{ slug: string; updatedAt: string }>;
+  }>('/sitemap', 3600, [cacheTags.sitemap])) ?? {
+    pages: [],
+    posts: [],
+    categories: [],
+    authors: [],
+  };
 
 export const getRedirects = async () =>
   (await apiGet<{ redirects: Array<{ fromPath: string; toPath: string; statusCode: number }> }>(

@@ -15,6 +15,17 @@
  *    what is actually fresh. Where a publishedAt exists it is the better
  *    signal, so updatedAt is moved back to it.
  *
+ * 3. Duplicated words. The import carried "Remote Remote Database Support"
+ *    into both the excerpt and the body of the savings article, and the
+ *    excerpt is what the meta description falls back to, so the stutter was
+ *    showing in search results.
+ *
+ * 4. Missing meta descriptions. A post with no seoDescription falls back to
+ *    its excerpt, which on an imported article is the opening 300-odd words —
+ *    a description Google truncates mid-sentence. Only the articles listed in
+ *    META_DESCRIPTIONS below get one, because a description is editorial and
+ *    generating them wholesale is how you end up with fifty bland duplicates.
+ *
  * Rows edited since the import are left alone — that is the whole point of
  * the freshness signal, and overwriting a genuine edit would destroy it.
  */
@@ -43,6 +54,28 @@ function stripSuffix(title: string): string {
  * check would miss most of them.
  */
 const IMPORT_WINDOW_MS = 10 * 60_000;
+
+/**
+ * Words the import duplicated. Matched case-insensitively on a word boundary
+ * so "Remote Remote" is caught but "had had" in quoted prose is not — this
+ * list is deliberately explicit rather than a general doubled-word regex,
+ * which would rewrite legitimate English.
+ */
+const DOUBLED_WORDS: Array<[RegExp, string]> = [
+  [/\bRemote\s+Remote\b/gi, 'Remote'],
+];
+
+/**
+ * Hand-written meta descriptions, by slug.
+ *
+ * Only for articles whose fallback is demonstrably bad. Each is written to sit
+ * inside the ~155 character band Google renders, and to say what the article
+ * actually delivers rather than repeating its opening sentence.
+ */
+const META_DESCRIPTIONS: Record<string, string> = {
+  'how-to-save-with-onsys-remote-database-services':
+    'How Australian businesses cut DBA costs by up to 50% with remote database support — what the model covers, where the savings come from, and when it fits.',
+};
 
 async function main(): Promise<void> {
   const dryRun = process.argv.includes('--dry-run');
@@ -112,7 +145,63 @@ async function main(): Promise<void> {
     }
   }
 
-  // --- 3. Placeholder audit (reported, never auto-edited) ------------------
+  // --- 3. Duplicated words ------------------------------------------------
+  const wordFixes: Array<{ id: string; slug: string; field: string }> = [];
+  const candidates = await prisma.post.findMany({
+    select: { id: true, slug: true, title: true, excerpt: true, bodyHtml: true, seoTitle: true, seoDescription: true },
+  });
+
+  for (const post of candidates) {
+    const patch: Record<string, string> = {};
+    for (const field of ['title', 'excerpt', 'bodyHtml', 'seoTitle', 'seoDescription'] as const) {
+      const value = post[field];
+      if (typeof value !== 'string' || !value) continue;
+      let next = value;
+      for (const [pattern, replacement] of DOUBLED_WORDS) next = next.replace(pattern, replacement);
+      if (next !== value) {
+        patch[field] = next;
+        wordFixes.push({ id: post.id, slug: post.slug, field });
+      }
+    }
+    if (Object.keys(patch).length && !dryRun) {
+      await prisma.post.update({ where: { id: post.id }, data: patch });
+    }
+  }
+
+  if (wordFixes.length) {
+    console.log(`\n${dryRun ? 'Would fix' : '✓ Fixed'} ${wordFixes.length} duplicated word(s):`);
+    for (const f of wordFixes) console.log(`  · /blog/${f.slug} (${f.field})`);
+  } else {
+    console.log('\n✓ No duplicated words found.');
+  }
+
+  // --- 4. Missing meta descriptions ---------------------------------------
+  const metaFixes: string[] = [];
+  for (const [slug, description] of Object.entries(META_DESCRIPTIONS)) {
+    const post = await prisma.post.findUnique({
+      where: { slug },
+      select: { id: true, seoDescription: true },
+    });
+    if (!post) {
+      console.log(`\n⚠ No post at /blog/${slug} — meta description skipped.`);
+      continue;
+    }
+    // An existing description is somebody's editorial decision; leave it.
+    if (post.seoDescription && post.seoDescription.trim()) continue;
+    metaFixes.push(slug);
+    if (!dryRun) {
+      await prisma.post.update({ where: { id: post.id }, data: { seoDescription: description } });
+    }
+  }
+
+  if (metaFixes.length) {
+    console.log(`\n${dryRun ? 'Would add' : '✓ Added'} ${metaFixes.length} meta description(s):`);
+    for (const slug of metaFixes) {
+      console.log(`  · /blog/${slug} (${META_DESCRIPTIONS[slug].length} chars)`);
+    }
+  }
+
+  // --- 5. Placeholder audit (reported, never auto-edited) ------------------
   // Rewriting a published article is an editorial decision, so this only
   // reports. Inventing replacement prose for a technical post is exactly the
   // kind of "helpful" that puts something wrong in front of a customer.

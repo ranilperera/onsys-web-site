@@ -9,6 +9,7 @@ import { logger } from '../lib/logger';
 import { requireAuth, requireAdmin, verifyCsrf } from '../middleware/auth';
 import { sendEmail, renderChatTranscript } from '../services/email.service';
 import { revalidateInBackground, tags } from '../services/revalidate.service';
+import { pageFingerprint, postFingerprint, nextContentUpdatedAt } from '../lib/content-changed';
 
 /**
  * Admin CMS API. Every route requires an authenticated session and a valid
@@ -89,6 +90,7 @@ adminRouter.post(
       data: {
         ...data,
         publishedAt: data.status === 'PUBLISHED' ? new Date() : null,
+        contentUpdatedAt: new Date(),
         faqs: { create: faqs.map((f, i) => ({ ...f, order: i })) },
       },
       include: { faqs: true },
@@ -108,11 +110,25 @@ adminRouter.put(
     const input = pageSchema.parse(req.body);
     const { faqs, ...data } = input;
 
-    const existing = await prisma.page.findUnique({ where: { id: req.params.id } });
+    const existing = await prisma.page.findUnique({
+      where: { id: req.params.id },
+      include: { faqs: { orderBy: { order: 'asc' } } },
+    });
     if (!existing) {
       res.status(404).json({ error: 'Page not found' });
       return;
     }
+
+    /**
+     * Only move the sitemap's freshness date when the content actually
+     * differs. Re-saving a page to correct a typo you then undo, or to flip
+     * its status, is not a content change and should not tell a crawler it is.
+     */
+    const contentUpdatedAt = nextContentUpdatedAt(
+      pageFingerprint(existing),
+      pageFingerprint({ ...data, faqs }),
+      existing.contentUpdatedAt,
+    );
 
     // Replace FAQs wholesale — simpler and safe at this scale.
     const page = await prisma.$transaction(async (tx) => {
@@ -123,6 +139,7 @@ adminRouter.put(
           ...data,
           publishedAt:
             data.status === 'PUBLISHED' ? existing.publishedAt ?? new Date() : existing.publishedAt,
+          contentUpdatedAt,
           faqs: { create: faqs.map((f, i) => ({ ...f, order: i })) },
         },
         include: { faqs: true },
@@ -571,6 +588,7 @@ adminRouter.post(
         ...(await withAuthorName(data)),
         bodyHtml: resolveBody(input),
         publishedAt: data.status === 'PUBLISHED' ? new Date() : null,
+        contentUpdatedAt: new Date(),
         faqs: { create: faqs.map((f, i) => ({ ...f, order: i })) },
       },
       include: { faqs: true },
@@ -590,11 +608,20 @@ adminRouter.put(
     const input = postSchema.parse(req.body);
     const { faqs, bodyHtml: _ignored, ...data } = input;
 
-    const existing = await prisma.post.findUnique({ where: { id: req.params.id } });
+    const existing = await prisma.post.findUnique({
+      where: { id: req.params.id },
+      include: { faqs: { orderBy: { order: 'asc' } } },
+    });
     if (!existing) {
       res.status(404).json({ error: 'Post not found' });
       return;
     }
+
+    const contentUpdatedAt = nextContentUpdatedAt(
+      postFingerprint(existing),
+      postFingerprint({ ...data, bodyHtml: resolveBody(input), faqs }),
+      existing.contentUpdatedAt,
+    );
 
     const post = await prisma.$transaction(async (tx) => {
       await tx.faq.deleteMany({ where: { postId: req.params.id } });
@@ -605,6 +632,7 @@ adminRouter.put(
           bodyHtml: resolveBody(input),
           publishedAt:
             data.status === 'PUBLISHED' ? existing.publishedAt ?? new Date() : existing.publishedAt,
+          contentUpdatedAt,
           faqs: { create: faqs.map((f, i) => ({ ...f, order: i })) },
         },
         include: { faqs: true },

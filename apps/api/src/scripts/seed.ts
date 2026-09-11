@@ -9,14 +9,31 @@
 import { prisma } from '../lib/prisma';
 import { pages, SQL_ARTICLE_HTML } from './seed-content';
 import { revalidate, tags } from '../services/revalidate.service';
+import { pageFingerprint, nextContentUpdatedAt } from '../lib/content-changed';
 
 async function main(): Promise<void> {
   console.log('\nSeeding Onsys platform…\n');
 
+  let contentChanged = 0;
+
   for (const p of pages) {
     const { faqs = [], ...pageData } = p;
 
-    const existing = await prisma.page.findUnique({ where: { slug: p.slug } });
+    const existing = await prisma.page.findUnique({
+      where: { slug: p.slug },
+      include: { faqs: { orderBy: { order: 'asc' } } },
+    });
+
+    /**
+     * Fingerprint before the FAQs are deleted, or the "before" side is always
+     * empty and every page looks changed on every run — which is the flood
+     * this is here to stop.
+     */
+    const before = existing ? pageFingerprint(existing) : null;
+    const after = pageFingerprint({ ...pageData, faqs });
+    const contentUpdatedAt = nextContentUpdatedAt(before, after, existing?.contentUpdatedAt);
+    if (before !== after) contentChanged += 1;
+
     if (existing) await prisma.faq.deleteMany({ where: { pageId: existing.id } });
 
     await prisma.page.upsert({
@@ -27,6 +44,7 @@ async function main(): Promise<void> {
         heroCtas: (pageData.heroCtas ?? undefined) as unknown as object | undefined,
         status: 'PUBLISHED',
         publishedAt: new Date(),
+        contentUpdatedAt,
         faqs: { create: faqs.map((f, i) => ({ ...f, order: i })) },
       },
       update: {
@@ -34,10 +52,11 @@ async function main(): Promise<void> {
         blocks: pageData.blocks as unknown as object,
         heroCtas: (pageData.heroCtas ?? undefined) as unknown as object | undefined,
         status: 'PUBLISHED',
+        contentUpdatedAt,
         faqs: { create: faqs.map((f, i) => ({ ...f, order: i })) },
       },
     });
-    console.log(`  ✓ page: /${p.slug === 'home' ? '' : p.slug}`);
+    console.log(`  ✓ page: /${p.slug === 'home' ? '' : p.slug}${before !== after ? '  (content changed)' : ''}`);
   }
 
   const categories = [
@@ -128,6 +147,10 @@ async function main(): Promise<void> {
    * which tags alone do not reach. Failure is logged and swallowed inside
    * revalidate(), so a web app that is down cannot fail a database seed.
    */
+  console.log(
+    `\n  ${contentChanged} of ${pages.length} pages had content changes; the rest kept their existing sitemap date.`,
+  );
+
   const slugs = pages.map((p) => p.slug);
   await revalidate({
     tags: [

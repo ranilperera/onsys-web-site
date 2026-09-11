@@ -168,18 +168,27 @@ contentRouter.get(
 contentRouter.get(
   '/sitemap',
   asyncHandler(async (_req, res) => {
-    const [pages, posts, categories] = await Promise.all([
+    const [pages, posts, categories, authors] = await Promise.all([
       prisma.page.findMany({
         where: { ...publishedPage, noindex: false },
-        select: { slug: true, updatedAt: true },
+        select: { slug: true, updatedAt: true, contentUpdatedAt: true },
       }),
       prisma.post.findMany({
         where: { status: 'PUBLISHED', noindex: false },
-        select: { slug: true, updatedAt: true, publishedAt: true },
+        select: { slug: true, updatedAt: true, publishedAt: true, contentUpdatedAt: true },
       }),
       prisma.category.findMany({ select: { slug: true } }),
+      /**
+       * Author profiles, but only those with something to show. An author
+       * page with no published articles is a thin page, and asking a crawler
+       * to index one is asking for the wrong kind of attention.
+       */
+      prisma.author.findMany({
+        where: { posts: { some: { status: 'PUBLISHED', noindex: false } } },
+        select: { slug: true, updatedAt: true },
+      }),
     ]);
-    res.json({ pages, posts, categories });
+    res.json({ pages, posts, categories, authors });
   }),
 );
 

@@ -13,7 +13,21 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const { pages, posts } = await getSitemapData();
+  const { pages, posts, authors } = await getSitemapData();
+
+  /**
+   * lastmod should say when the content changed, not when a row was written.
+   *
+   * `updatedAt` moves on every write and the content seed rewrites every row
+   * on every deploy, so this used to publish thirty-seven pages all claiming
+   * to change at the same instant. A crawler cannot tell which of several
+   * similar pages is current from that, which is exactly the signal this site
+   * most needs to send. `contentUpdatedAt` only moves when the content really
+   * differs; it falls back to `updatedAt` for any row written before the
+   * column existed.
+   */
+  const freshness = (row: { updatedAt: string; contentUpdatedAt?: string | null }): Date =>
+    new Date(row.contentUpdatedAt ?? row.updatedAt);
 
   // Only listed once the portal is live. Advertising a sign-in page for a
   // service that is not running yet is a broken promise to a crawler.
@@ -36,11 +50,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteConfig.url}/book`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.9 },
   ];
 
+  /**
+   * Author profiles. Also a code route, and already indexed — listing it makes
+   * that deliberate rather than accidental. The API returns only authors with
+   * a published article, so a profile with nothing behind it is not offered.
+   */
+  const authorEntries: MetadataRoute.Sitemap = authors.map((a) => ({
+    url: `${siteConfig.url}/about/${a.slug}`,
+    lastModified: new Date(a.updatedAt),
+    changeFrequency: 'monthly' as const,
+    priority: 0.5,
+  }));
+
   const pageEntries: MetadataRoute.Sitemap = pages
     .filter((p) => p.slug !== 'home')
     .map((p) => ({
       url: `${siteConfig.url}/${p.slug}`,
-      lastModified: new Date(p.updatedAt),
+      lastModified: freshness(p),
       changeFrequency: 'monthly' as const,
       // Money pages outrank the rest.
       priority: ['managed-database-services', 'pricing', 'contact', 'expertise'].includes(p.slug) ? 0.9 : 0.7,
@@ -48,7 +74,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const postEntries: MetadataRoute.Sitemap = posts.map((p) => ({
     url: `${siteConfig.url}/blog/${p.slug}`,
-    lastModified: new Date(p.updatedAt),
+    lastModified: freshness(p),
     changeFrequency: 'monthly' as const,
     priority: 0.6,
   }));
@@ -57,5 +83,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // view of /blog that canonicalises back to it, so listing one asks a crawler
   // to index a URL we have simultaneously told it not to. Several categories
   // are empty as well, which would put "no posts published yet" in the index.
-  return [...staticEntries, ...portalEntry, ...pageEntries, ...postEntries];
+  return [...staticEntries, ...portalEntry, ...pageEntries, ...postEntries, ...authorEntries];
 }

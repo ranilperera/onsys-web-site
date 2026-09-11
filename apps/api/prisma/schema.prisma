@@ -62,6 +62,15 @@ model Page {
   publishedAt DateTime?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
+  /// When the visible content last actually changed.
+  ///
+  /// `updatedAt` moves on every write, and the seed rewrites every row on
+  /// every deploy — which published a sitemap where all thirty-seven pages
+  /// claimed to change at the same instant, telling a crawler nothing about
+  /// which one is current. This only moves when the blocks, headings, lede,
+  /// SEO fields or FAQs differ from what was already stored, so it is the
+  /// value the sitemap reports.
+  contentUpdatedAt DateTime?
 
   chunks      ContentChunk[]
 
@@ -119,6 +128,8 @@ model Post {
   publishedAt DateTime?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
+  /// See Page.contentUpdatedAt — same rule, same reason.
+  contentUpdatedAt DateTime?
 
   chunks     ContentChunk[]
 
