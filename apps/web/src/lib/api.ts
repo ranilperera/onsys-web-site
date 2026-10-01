@@ -228,8 +228,20 @@ export const getPage = async (slug: string): Promise<PageRecord | null> => {
   return { ...page, blocks: normaliseBlocks(page.blocks, `/${slug}`) };
 };
 
-export const getPages = async (): Promise<Array<Pick<PageRecord, 'slug' | 'title'>>> =>
-  (await apiGet<{ pages: Array<Pick<PageRecord, 'slug' | 'title'>> }>('/pages', REVALIDATE_SECONDS, [
+/**
+ * The page index. Carries enough of each page to describe it — llms.txt turns
+ * this into a one-line-per-page map, and `noindex` lets it leave out the pages
+ * that are deliberately not for crawlers.
+ */
+export type PageIndexEntry = Pick<PageRecord, 'slug' | 'title'> & {
+  lede: string | null;
+  seoDescription: string | null;
+  noindex: boolean;
+  contentUpdatedAt: string | null;
+};
+
+export const getPages = async (): Promise<PageIndexEntry[]> =>
+  (await apiGet<{ pages: PageIndexEntry[] }>('/pages', REVALIDATE_SECONDS, [
     cacheTags.pageList,
   ]))?.pages ?? [];
 

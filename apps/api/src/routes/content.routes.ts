@@ -17,7 +17,24 @@ contentRouter.get(
   asyncHandler(async (_req, res) => {
     const pages = await prisma.page.findMany({
       where: publishedPage,
-      select: { slug: true, title: true, heading: true, navOrder: true, updatedAt: true },
+      /**
+       * lede, seoDescription, noindex and contentUpdatedAt are here for
+       * llms.txt: it lists every page, and a list of bare links tells a
+       * retrieval layer nothing about which one answers the question. The
+       * route is a public index, so only fields already visible on the page
+       * itself are exposed.
+       */
+      select: {
+        slug: true,
+        title: true,
+        heading: true,
+        lede: true,
+        seoDescription: true,
+        noindex: true,
+        navOrder: true,
+        updatedAt: true,
+        contentUpdatedAt: true,
+      },
       orderBy: [{ navOrder: 'asc' }, { title: 'asc' }],
     });
     res.json({ pages });
