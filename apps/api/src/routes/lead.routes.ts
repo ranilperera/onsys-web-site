@@ -3,6 +3,7 @@ import { leadInputSchema } from '@onsys/shared';
 import { prisma } from '../lib/prisma';
 import { env } from '../lib/env';
 import { logger } from '../lib/logger';
+import { deriveCountry } from '../lib/country';
 import { asyncHandler } from '../middleware/error';
 import { leadLimiter, verifyCaptcha, honeypot } from '../middleware/security';
 import { sendEmail, renderLeadNotification, renderLeadAcknowledgement } from '../services/email.service';
@@ -32,6 +33,11 @@ leadRouter.post(
         utmMedium: input.utmMedium || null,
         utmCampaign: input.utmCampaign || null,
         referrer: input.referrer || null,
+        country: deriveCountry({
+          timezone: input.timezone,
+          locale: input.locale,
+          acceptLanguage: req.headers['accept-language'],
+        }),
       },
     });
 

@@ -355,6 +355,14 @@ model Lead {
   utmCampaign String?
   referrer    String?
 
+  /// ISO 3166-1 alpha-2, derived from the browser time zone and Accept-Language
+  /// — see deriveCountry. A hint rather than a location: there is no geo-IP in
+  /// this stack, and a VPN or a traveller reads wrong. Null when the signals
+  /// match nothing known, because an unknown country is more useful in a report
+  /// than a guessed one. Only 10% of site clicks are Australian, so counting
+  /// leads by market is the measurement the growth plan turns on.
+  country     String?   @db.VarChar(2)
+
   emailSentAt DateTime?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt

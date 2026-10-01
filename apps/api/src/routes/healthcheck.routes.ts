@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { randomBytes } from 'node:crypto';
 import { healthCheckRequestSchema, claimMatchFor } from '@onsys/shared';
 import { prisma } from '../lib/prisma';
+import { deriveCountry } from '../lib/country';
 import { env, org } from '../lib/env';
 import { logger } from '../lib/logger';
 import { asyncHandler } from '../middleware/error';
@@ -178,6 +179,15 @@ healthCheckRouter.post(
           .filter(Boolean)
           .join('\n'),
         channel: 'CONTACT_FORM',
+        utmSource: input.utmSource || null,
+        utmMedium: input.utmMedium || null,
+        utmCampaign: input.utmCampaign || null,
+        referrer: input.referrer || null,
+        country: deriveCountry({
+          timezone: input.timezone,
+          locale: input.locale,
+          acceptLanguage: req.headers['accept-language'],
+        }),
       },
     });
 
