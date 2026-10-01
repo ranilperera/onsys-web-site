@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { bookingInputSchema, type AvailabilityResponse, type BookingConfirmation } from '@onsys/shared';
 import { siteConfig } from '@/lib/config';
+import { getAttribution } from '@/lib/attribution';
+import { GOALS, trackGoal } from '@/lib/analytics';
 import { Turnstile } from './Turnstile';
 
 const TOPICS = [
@@ -117,7 +119,6 @@ export function BookingWidget() {
     }
 
     const form = new FormData(e.currentTarget);
-    const params = new URLSearchParams(window.location.search);
     const payload = {
       name: String(form.get('name') ?? ''),
       email: String(form.get('email') ?? ''),
@@ -128,10 +129,8 @@ export function BookingWidget() {
       startsAt: selected,
       website: String(form.get('website') ?? ''), // honeypot
       captchaToken,
-      referrer: typeof document !== 'undefined' ? document.referrer : undefined,
-      utmSource: params.get('utm_source') ?? undefined,
-      utmMedium: params.get('utm_medium') ?? undefined,
-      utmCampaign: params.get('utm_campaign') ?? undefined,
+      // See ContactForm: captured on landing, not read from the URL here.
+      ...getAttribution(),
     };
 
     // Same schema the API validates with, so the visitor sees errors instantly.
@@ -175,6 +174,7 @@ export function BookingWidget() {
       }
 
       setConfirmed(data.booking as BookingConfirmation);
+      trackGoal(GOALS.booking);
     } catch {
       setState('error');
       setMessage(`We could not reach the booking service. Please call ${siteConfig.phone}.`);

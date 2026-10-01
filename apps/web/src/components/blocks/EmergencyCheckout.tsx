@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { siteConfig } from '@/lib/config';
+import { GOALS, trackGoal } from '@/lib/analytics';
 
 interface SummaryRow {
   label: string;
@@ -112,6 +113,12 @@ export function EmergencyCheckout({
         return;
       }
 
+      // The goal fires on the request being accepted, not on payment landing
+      // back on the site: a Stripe redirect leaves the page, and tying the
+      // conversion to the return trip loses everyone who pays and closes the
+      // tab. emergency_requests carries no attribution columns of its own, so
+      // the campaign behind an emergency is not recorded anywhere yet.
+      trackGoal(GOALS.emergency);
       setPaidName(String(form.get('name') || '') || null);
 
       if (mode === 'payment') {

@@ -3,6 +3,8 @@
 import { useState, type FormEvent } from 'react';
 import { leadInputSchema } from '@onsys/shared';
 import { siteConfig } from '@/lib/config';
+import { getAttribution } from '@/lib/attribution';
+import { GOALS, trackGoal } from '@/lib/analytics';
 import { Turnstile } from './Turnstile';
 
 const SERVICES = [
@@ -46,10 +48,10 @@ export function ContactForm({ heading, body }: { heading?: string; body?: string
       message: String(form.get('message') ?? ''),
       website: String(form.get('website') ?? ''), // honeypot
       captchaToken,
-      referrer: typeof document !== 'undefined' ? document.referrer : undefined,
-      utmSource: new URLSearchParams(window.location.search).get('utm_source') ?? undefined,
-      utmMedium: new URLSearchParams(window.location.search).get('utm_medium') ?? undefined,
-      utmCampaign: new URLSearchParams(window.location.search).get('utm_campaign') ?? undefined,
+      // First-touch attribution, captured on landing. Reading the current URL
+      // here instead lost the campaign for anyone who arrived on one page and
+      // submitted from another, which is most of them.
+      ...getAttribution(),
     };
 
     // Validate client-side against the same schema the API uses.
@@ -85,6 +87,7 @@ export function ContactForm({ heading, body }: { heading?: string; body?: string
 
       setState('success');
       setMessage(data.message ?? "Thanks — we've received your enquiry.");
+      trackGoal(GOALS.contact);
       formEl.reset();
     } catch {
       setState('error');

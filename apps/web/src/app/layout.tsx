@@ -5,6 +5,7 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { SvgSprite } from '@/components/SvgSprite';
 import { ChatWidget } from '@/components/ChatWidget';
+import { AttributionCapture } from '@/components/AttributionCapture';
 import { JsonLd } from '@/components/JsonLd';
 import { siteConfig } from '@/lib/config';
 import { organizationSchema, localBusinessSchema, websiteSchema } from '@/lib/seo';
@@ -88,13 +89,28 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         <Footer />
         <ChatWidget />
+        <AttributionCapture />
 
         {process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN && (
-          <script
-            defer
-            data-domain={process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN}
-            src="https://plausible.io/js/script.js"
-          />
+          <>
+            <script
+              defer
+              data-domain={process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN}
+              src="https://plausible.io/js/script.js"
+            />
+            {/* Queue stub, required before any custom event can be sent.
+                script.js is deferred, so a visitor who submits a form quickly
+                would otherwise call window.plausible before it exists and the
+                conversion would be lost. The stub collects those calls and the
+                script replays them once it loads. Straight from Plausible's own
+                documentation; 'unsafe-inline' in the CSP already covers it. */}
+            <script
+              dangerouslySetInnerHTML={{
+                __html:
+                  'window.plausible=window.plausible||function(){(window.plausible.q=window.plausible.q||[]).push(arguments)}',
+              }}
+            />
+          </>
         )}
       </body>
     </html>

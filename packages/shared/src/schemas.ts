@@ -15,6 +15,13 @@ export const leadInputSchema = z.object({
   utmMedium: z.string().max(120).optional(),
   utmCampaign: z.string().max(120).optional(),
   referrer: z.string().max(500).optional(),
+  /**
+   * Browser time zone and locale, used server-side to derive a country.
+   * See deriveCountry in the API: there is no geo-IP at the edge, and the
+   * reporting question is how many leads are Australian or from New Zealand.
+   */
+  timezone: z.string().max(120).optional(),
+  locale: z.string().max(120).optional(),
 });
 export type LeadInput = z.infer<typeof leadInputSchema>;
 
@@ -142,6 +149,17 @@ export const healthCheckRequestSchema = z.object({
   sqlVersion: z.string().trim().min(1, 'Which SQL Server version?').max(80),
   instanceCount: z.string().trim().max(40).optional(),
   notes: z.string().trim().max(2000).optional(),
+  /**
+   * This request creates a Lead, so it carries the same attribution as the
+   * contact form. It had none, which made the one conversion worth advertising
+   * against the only one with no source recorded against it.
+   */
+  utmSource: z.string().max(120).optional(),
+  utmMedium: z.string().max(120).optional(),
+  utmCampaign: z.string().max(120).optional(),
+  referrer: z.string().max(500).optional(),
+  timezone: z.string().max(120).optional(),
+  locale: z.string().max(120).optional(),
 });
 
 export const purgeChatSchema = z.object({
@@ -189,6 +207,13 @@ export const bookingInputSchema = z.object({
   utmMedium: z.string().max(120).optional(),
   utmCampaign: z.string().max(120).optional(),
   referrer: z.string().max(500).optional(),
+  /**
+   * Browser time zone and locale, used server-side to derive a country.
+   * See deriveCountry in the API: there is no geo-IP at the edge, and the
+   * reporting question is how many leads are Australian or from New Zealand.
+   */
+  timezone: z.string().max(120).optional(),
+  locale: z.string().max(120).optional(),
 });
 export type BookingInput = z.infer<typeof bookingInputSchema>;
 

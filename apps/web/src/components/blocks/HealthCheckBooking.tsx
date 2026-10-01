@@ -3,6 +3,8 @@
 import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { siteConfig } from '@/lib/config';
+import { getAttribution } from '@/lib/attribution';
+import { GOALS, trackGoal } from '@/lib/analytics';
 
 export interface HealthCheckBookingProps {
   eyebrow?: string;
@@ -66,6 +68,10 @@ export function HealthCheckBooking({ eyebrow, heading, body, note }: HealthCheck
           sqlVersion: form.get('sqlVersion'),
           instanceCount: form.get('instanceCount') || undefined,
           notes: form.get('notes') || undefined,
+          // This request creates a Lead, and it is the page a paid campaign
+          // would land on, so it carries the same attribution as the contact
+          // form rather than arriving with no source at all.
+          ...getAttribution(),
         }),
       });
       const data = await res.json();
@@ -74,6 +80,7 @@ export function HealthCheckBooking({ eyebrow, heading, body, note }: HealthCheck
         setError(data.error ?? `Something went wrong. Please call ${siteConfig.phone}.`);
         return;
       }
+      trackGoal(GOALS.healthCheck);
       setDone({
         name,
         // No default for the URL any more: it carries a one-off token, and a
