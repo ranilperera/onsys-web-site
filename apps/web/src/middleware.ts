@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { siteConfig } from '@/lib/config';
+import { cleanLegacyQuery } from '@/lib/legacyQuery';
 
 /**
  * 301 redirects from the old WordPress URL structure.
@@ -154,6 +155,27 @@ async function getDynamicRedirects(): Promise<Map<string, { to: string; code: nu
   }
 }
 
+/**
+ * Apply a redirect target that may carry a #fragment.
+ *
+ * `url.pathname = '/pricing-and-plans#consultancy-rates'` does not create a
+ * fragment — pathname percent-encodes the hash, and the browser is sent to
+ * the literal path `/pricing-and-plans%23consultancy-rates`, which is not a
+ * slug and returns 404. Five live URLs were landing on that 404 for weeks:
+ * the four /product/sql-server-consultancy-services-* WooCommerce pages and
+ * /custom-support-plan. Google counted them as broken, not redirected.
+ *
+ * The fragment has to be split off and assigned to `url.hash` separately.
+ */
+function redirectTo(request: NextRequest, target: string, code: number, search = '') {
+  const url = request.nextUrl.clone();
+  const hashAt = target.indexOf('#');
+  url.pathname = hashAt === -1 ? target : target.slice(0, hashAt);
+  url.hash = hashAt === -1 ? '' : target.slice(hashAt + 1);
+  url.search = search;
+  return NextResponse.redirect(url, code);
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
@@ -164,24 +186,56 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url, 308);
   }
 
-  const staticTarget = STATIC_REDIRECTS[pathname];
+  /**
+   * WordPress paginated archives.
+   *
+   * /category/database redirects, but /category/database/page/3 did not: the
+   * lookup is an exact key match and the map holds only the unpaginated path.
+   * Three of those pages are indexed. Stripping a trailing /page/<n> before
+   * the lookup fixes the whole family without enumerating it, and it applies
+   * to the dynamic map too — a paginated form of any redirected path belongs
+   * at the same destination as the path itself.
+   *
+   * Narrow on purpose: the stripped path must already have a redirect. It
+   * never invents one, so /blog/page/2 still 404s rather than being quietly
+   * routed somewhere nobody chose.
+   */
+  const lookupPath = pathname.replace(/\/page\/\d+$/, '');
+
+  /**
+   * Strip legacy query parameters, but resolve the pathname in the same hop.
+   *
+   * Doing the query strip as its own early redirect would turn
+   * /shop?replytocom=5 into two 301s, and redirect chains are the other half of
+   * the fault this is meant to fix. So the cleaned query is computed here and
+   * carried into whichever redirect ends up firing; if none does, the clean
+   * query is the redirect.
+   */
+  const cleanSearch = cleanLegacyQuery(request.nextUrl.searchParams);
+
+  const staticTarget = STATIC_REDIRECTS[lookupPath];
   if (staticTarget) {
-    const url = request.nextUrl.clone();
-    url.pathname = staticTarget;
-    return NextResponse.redirect(url, 301);
+    // The query string is preserved rather than dropped: these paths are
+    // advertised in email and paid campaigns, and a redirect that eats
+    // ?utm_source makes the destination look like direct traffic.
+    return redirectTo(request, staticTarget, 301, cleanSearch ?? search);
   }
 
   const dynamic = await getDynamicRedirects();
-  const match = dynamic.get(pathname);
+  const match = dynamic.get(lookupPath);
   if (match) {
     // Absolute targets (e.g. moved off-site) are redirected verbatim.
     if (match.to.startsWith('http')) {
       return NextResponse.redirect(match.to, match.code);
     }
-    const url = request.nextUrl.clone();
-    url.pathname = match.to;
-    url.search = search;
-    return NextResponse.redirect(url, match.code);
+    // Same fragment handling as the static map: a redirect row edited in
+    // /admin can carry a #anchor just as a hard-coded one can.
+    return redirectTo(request, match.to, match.code, cleanSearch ?? search);
+  }
+
+  // The path is served as-is; only the query string was legacy.
+  if (cleanSearch !== null) {
+    return redirectTo(request, pathname, 301, cleanSearch);
   }
 
   return NextResponse.next();
