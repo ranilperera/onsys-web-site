@@ -195,7 +195,7 @@ export const navigation = {
         links: [
           { label: 'AI Development & Solutions', href: '/artificial-intelligence-solutions', sub: 'Applied AI & automation' },
           { label: 'Integration Services', href: '/integration-services', sub: 'ETL & automated data pipelines' },
-          { label: 'Software Development', href: '/custom-software-development', sub: 'Offshore & augmented teams' },
+          { label: 'Software Development', href: '/custom-software-development', sub: 'Projects, fixed price' },
           { label: 'Mobile App Development', href: '/mobile-app-development', sub: 'iOS, Android, Flutter' },
         ],
       },

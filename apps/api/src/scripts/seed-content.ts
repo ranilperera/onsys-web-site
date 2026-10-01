@@ -408,6 +408,13 @@ const mdsBlocks: Block[] = [
     ],
   },
   {
+    type: 'relatedService',
+    eyebrow: 'If the estate is SQL Server',
+    heading: 'There is a SQL Server-specific plan',
+    body: 'This page covers every platform we manage. If what you run is SQL Server, the plan is priced per instance from $150 a month and the page sets out exactly what each tier includes.',
+    cta: { label: 'Managed SQL Server support', href: '/managed-sql-server-support' },
+  },
+  {
     type: 'ctaBand',
     heading: 'What would an outage cost you tonight?',
     body: 'If you cannot answer that, book a free 30-minute consultation. A senior DBA will assess your environment and tell you where you are exposed — no obligation.',
@@ -1062,6 +1069,13 @@ const pricingBlocks: Block[] = [
         { label: 'Prices shown', value: 'GST exclusive' },
       ],
     },
+  },
+  {
+    type: 'relatedService',
+    eyebrow: 'Managed IT',
+    heading: 'What the managed IT tiers actually cover',
+    body: 'The table above prices the three managed IT tiers. The service page sets out what sits inside each one — service desk, network, servers, endpoints, backup and Microsoft 365 — and who does the work.',
+    cta: { label: 'Managed IT services', href: '/managed-it-services' },
   },
   {
     type: 'ctaBand',
@@ -2147,6 +2161,296 @@ const sqlServerProjectBlocks: Block[] = [
   },
 ];
 
+/**
+ * Software development staff augmentation.
+ *
+ * Deliberately not /custom-software-development. That page sells a built
+ * outcome — you describe a thing, we deliver it to a fixed price. This one
+ * sells named engineers who join your standup and work to your backlog under
+ * your direction. Different buying motion, different queries, and the failure
+ * mode of merging them is a page that answers neither.
+ *
+ * Colombo delivery is correct here and stated plainly: under the access split,
+ * Colombo delivers software development, managed IT and security. It does not
+ * touch client databases, and nothing on this page should imply otherwise.
+ *
+ * Salary figures are Australian market data with their sources named in the
+ * copy, checked on 12 September 2026. They are the comparison a buyer actually
+ * makes, and they date — when they are more than a year old they need
+ * rechecking or removing, because a stale salary figure on a cost-comparison
+ * page is worse than no figure.
+ */
+const staffAugBlocks: Block[] = [
+  {
+    type: 'cardGrid',
+    eyebrow: 'Why teams call us',
+    heading: 'The developer you need is not on the market at the price you have',
+    body: 'Three problems bring people to this page, and none of them is solved by posting the role again.',
+    centered: true,
+    altBackground: true,
+    columns: 3,
+    cards: [
+      { title: 'The role has been open for months', body: 'A senior developer vacancy in Australia routinely runs a quarter or more from approval to start date, and the shortlist is competing with every other employer in the same city. Meanwhile the work does not stop and the team absorbs it.', icon: '#s-consult', coverColor: '#EAF1FB' },
+      { title: 'The budget does not reach the salary', body: 'The advertised salary is only part of what a hire costs. Superannuation is 12%, payroll tax applies above the state threshold, and agency placement is commonly 15% to 20% of the first year. The approved number and the real number are rarely the same.', icon: '#s-managed', coverColor: '#FFF1E0' },
+      { title: 'Contractors leave with the context', body: 'A six-week contractor gets productive around week three and hands back a codebase nobody else has read. Augmentation is the opposite trade: the same engineer, quarter after quarter, keeping the context inside the team.', icon: '#s-shield', coverColor: '#F3F2F1' },
+    ],
+  },
+  {
+    type: 'steps',
+    anchor: 'roles',
+    eyebrow: 'Who you can place',
+    heading: 'Three levels, and what each one is actually for',
+    body: 'Every engineer is an Onsys employee in our Colombo delivery centre, working your hours, in your tools, to your definition of done. You direct the work; we handle employment, payroll, equipment, cover and replacement.',
+    steps: [
+      { title: 'Software Engineer', body: 'Three to five years. Ships features against a well-formed ticket, writes the tests, reviews peers, and asks when a requirement is ambiguous rather than guessing. The right level when your seniors are spending their time on work that does not need them and your backlog is the constraint.' },
+      { title: 'Senior Software Engineer', body: 'Six to ten years. Takes a loosely defined problem to a design, breaks it into work others can pick up, and owns a service or a domain end to end. Reviews with judgement rather than style opinions, and is the level most Australian teams are actually short of.' },
+      { title: 'Software Architect', body: 'Ten years and up. Sets the shape — service boundaries, data model, integration patterns, non-functional requirements — and stays close enough to the code that the design survives contact with it. Usually engaged alongside two or three engineers rather than on their own.' },
+      { title: 'Supporting specialists', body: 'QA automation, DevOps and platform engineering, and business analysis, placed on the same terms when a team needs them. A squad that can ship but cannot test or deploy is not a squad.' },
+    ],
+  },
+  {
+    /**
+     * Rates are published rather than gated, because the competitor this page
+     * is written against publishes none and that is the whole opening.
+     *
+     * "From" is load-bearing and not a hedge: the figure is a starting rate for
+     * the level, and stack, seniority within the band and notice terms move it.
+     * Quoting a flat number we then revised in the first call would cost more
+     * trust than gating it ever would.
+     */
+    type: 'pricing',
+    anchor: 'rates',
+    altBackground: true,
+    eyebrow: 'Indicative rates',
+    heading: 'What a seat costs, per month',
+    body: 'One monthly rate per engineer that covers salary, employment, payroll, equipment, facilities, leave cover and replacement. No recruitment fee, no on-costs to add, no separate management charge.',
+    columns: 3,
+    note: 'Indicative starting rates in Australian dollars, exclusive of GST, per engineer per month, on a 12-month minimum term. Volume discount: 5% from three engineers, 10% from five. Final rates are confirmed in writing after a scoping call, because stack and seniority within a band move the number.',
+    plans: [
+      {
+        name: 'Software Engineer',
+        price: 'From $3,450',
+        unit: 'per month + GST',
+        featured: false,
+        description: 'Three to five years. Ships features against a well-formed ticket.',
+        featuresTitle: 'Included in the rate',
+        features: [
+          { label: 'Experience:', text: '3 to 5 years commercial' },
+          { label: 'Works:', text: 'your board, your hours, your definition of done' },
+          { label: 'Minimum term:', text: '12 months' },
+          'Salary, EPF/ETF, payroll and statutory employment cost',
+          'Laptop, workspace, connectivity and licences',
+          'Leave cover and replacement at our cost, not yours',
+        ],
+        cta: { label: 'Scope this role', href: '/contact' },
+      },
+      {
+        name: 'Senior Software Engineer',
+        price: 'From $4,750',
+        unit: 'per month + GST',
+        featured: true,
+        badge: 'Most placed',
+        description: 'Six to ten years. Takes a loose problem to a design and owns a domain.',
+        featuresTitle: 'Included in the rate',
+        features: [
+          { label: 'Experience:', text: '6 to 10 years commercial' },
+          { label: 'Works:', text: 'your board, your hours, your definition of done' },
+          { label: 'Minimum term:', text: '12 months' },
+          'Salary, EPF/ETF, payroll and statutory employment cost',
+          'Laptop, workspace, connectivity and licences',
+          'Leave cover and replacement at our cost, not yours',
+        ],
+        cta: { label: 'Scope this role', href: '/contact' },
+      },
+      {
+        name: 'Software Architect',
+        price: 'From $7,500',
+        unit: 'per month + GST',
+        featured: false,
+        description: 'Ten years and up. Sets the shape and stays close to the code.',
+        featuresTitle: 'Included in the rate',
+        features: [
+          { label: 'Experience:', text: '10+ years commercial' },
+          { label: 'Works:', text: 'usually alongside two or three engineers' },
+          { label: 'Minimum term:', text: '12 months' },
+          'Salary, EPF/ETF, payroll and statutory employment cost',
+          'Laptop, workspace, connectivity and licences',
+          'Leave cover and replacement at our cost, not yours',
+        ],
+        cta: { label: 'Scope this role', href: '/contact' },
+      },
+    ],
+  },
+  {
+    /**
+     * The comparison presented as arithmetic rather than as a percentage.
+     *
+     * "Save up to 70%" is the claim every offshore firm makes and no reader
+     * believes. Two numbers and a subtraction can be checked, and the sources
+     * are linked so they can be — which is the point of publishing it at all.
+     */
+    type: 'richText',
+    heading: 'Side by side with an Australian hire',
+    html: `
+<p>The figures on the left are Australian market salaries with employer on-costs applied — superannuation at 12%, payroll tax, leave, workers compensation. They exclude agency placement, commonly a further 15% to 20% of first-year salary, so the real gap is wider than the table shows.</p>
+
+<div class="table-scroll">
+<table>
+  <thead>
+    <tr>
+      <th>Role</th>
+      <th>Australian hire, loaded</th>
+      <th>Onsys, from</th>
+      <th>Difference per month</th>
+      <th>Over 12 months</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Software Engineer (3–5 yrs)</td>
+      <td>~$10,700</td>
+      <td><strong>$3,450</strong></td>
+      <td>$7,250</td>
+      <td>~$87,000</td>
+    </tr>
+    <tr>
+      <td>Senior Software Engineer (6–10 yrs)</td>
+      <td>~$13,800</td>
+      <td><strong>$4,750</strong></td>
+      <td>$9,050</td>
+      <td>~$108,600</td>
+    </tr>
+    <tr>
+      <td>Software Architect (10+ yrs)</td>
+      <td>~$16,300</td>
+      <td><strong>$7,500</strong></td>
+      <td>$8,800</td>
+      <td>~$105,600</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>This compares cost, not output. One engineer is one engineer wherever they sit, and anyone telling you an offshore seat replaces more than one Australian seat is selling you something. What it does say is that the same seniority costs roughly a third to a half of what it costs to employ here, and that the difference funds a second engineer.</p>
+
+<p class="muted"><strong>Sources.</strong> Australian salary figures from
+<a href="https://www.glassdoor.com.au/Salaries/senior-software-developer-salary-SRCH_KO0,25.htm" target="_blank" rel="noopener">Glassdoor Australia — Senior Software Developer</a>,
+<a href="https://www.payscale.com/research/AU/Job=Senior_Software_Engineer/Salary" target="_blank" rel="noopener">PayScale Australia — Senior Software Engineer</a> and
+<a href="https://www.payscale.com/research/AU/Job=Senior_Solutions_Architect/Salary/09c2de90/Experienced-Software-Architecture" target="_blank" rel="noopener">PayScale Australia — Senior Solutions Architect</a>, all retrieved 12 September 2026.
+Superannuation rate and the payday-super start date from the
+<a href="https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/super-guarantee" target="_blank" rel="noopener">Australian Taxation Office</a>.
+Payroll tax rates and thresholds vary by state and territory.</p>`,
+  },
+  {
+    type: 'checkList',
+    anchor: 'cost',
+    eyebrow: 'The comparison that matters',
+    heading: 'What an Australian hire actually costs',
+    body: 'The salary is the visible part. These are the 2026 Australian market figures a buyer is comparing against, before on-costs are added.',
+    items: [
+      'Senior software developer: about $126,500 average, typically $107,000 to $153,600 (Glassdoor Australia, 2026).',
+      'Senior software engineer: about $135,900 average (PayScale Australia, 2026).',
+      'Senior solutions architect: about $160,100 average, ranging $122,000 to $211,000 (PayScale Australia, 2026).',
+      'Superannuation adds 12% — the legislated final rate since 1 July 2025, and payable on payday from 1 July 2026.',
+      'Payroll tax applies above the threshold in every state, at a rate that varies by state.',
+      'Agency placement is commonly 15% to 20% of first-year salary, paid once and again on replacement.',
+      'Then annual leave, sick leave, long service accrual, workers compensation, a laptop and a desk.',
+    ],
+    sidebar: {
+      title: 'At a glance',
+      rows: [
+        { label: 'From', value: '$3,450 / month + GST' },
+        { label: 'Minimum term', value: '12 months' },
+        { label: 'Volume discount', value: '5% at 3+, 10% at 5+' },
+        { label: 'Time to start', value: 'About 5 weeks' },
+        { label: 'Where they sit', value: 'Colombo delivery centre' },
+        { label: 'Contract with', value: 'Onsys Technologies, an Australian company' },
+        { label: 'Notice', value: 'Agreed in the engagement' },
+        { label: 'Replacement', value: 'Our cost, not yours' },
+      ],
+    },
+  },
+  {
+    type: 'cardGrid',
+    eyebrow: 'Why Onsys rather than a marketplace',
+    heading: 'You are contracting with an Australian company',
+    body: 'Most offshore staffing is brokerage: a platform matches you to a contractor it does not employ, and steps back once the invoice clears. This is not that.',
+    centered: true,
+    altBackground: true,
+    columns: 3,
+    cards: [
+      { title: 'Our employees, not sourced per deal', body: 'The engineers work in our own Colombo delivery centre, on our payroll, under our management. We are not recruiting a stranger to your requirement and introducing you.', icon: '#s-managed', coverColor: '#EAF1FB' },
+      { title: 'An Australian contract', body: 'You contract with Onsys Technologies, an Australian company with an ABN and a Melbourne head office, under Australian law. Your legal counterparty is here, not offshore.', icon: '#s-shield', coverColor: '#E7F5EC' },
+      { title: 'Five weeks to a working seat', body: 'Typically five weeks from signed engagement to an engineer in your standup: matching and interviews, notice, then security and tooling onboarding. We staff from a team that already exists, so the lead time is notice rather than a hiring round.', icon: '#s-cloud', coverColor: '#FFF1E0' },
+    ],
+  },
+  {
+    type: 'platformChips',
+    eyebrow: 'What they work in',
+    heading: 'The stack our engineers actually ship in',
+    groups: [
+      {
+        title: 'Languages & frameworks',
+        chips: [
+          { label: '.NET & C#', color: '#512BD4' },
+          { label: 'Java & Spring', color: '#E76F00' },
+          { label: 'TypeScript & Node.js', color: '#3178C6' },
+          { label: 'React & Next.js', color: '#0E336A' },
+          { label: 'Python', color: '#3776AB' },
+          { label: 'PHP & Laravel', color: '#777BB4' },
+        ],
+      },
+      {
+        title: 'Cloud & platform',
+        chips: [
+          { label: 'Microsoft Azure', color: '#0078D4' },
+          { label: 'AWS', color: '#FF9900' },
+          { label: 'Docker & Kubernetes', color: '#326CE5' },
+          { label: 'Azure DevOps & GitHub Actions', color: '#605E5C' },
+          { label: 'Terraform', color: '#7B42BC' },
+        ],
+      },
+      {
+        title: 'Data & integration',
+        chips: [
+          { label: 'SQL Server & PostgreSQL', color: '#CC2927' },
+          { label: 'REST & GraphQL APIs', color: '#E10098' },
+          { label: 'Message queues & event streams', color: '#A4373A' },
+          { label: 'Power BI & reporting', color: '#F2C811' },
+          { label: 'AI and LLM-enabled features', color: '#0E7C4A' },
+        ],
+      },
+    ],
+  },
+  {
+    type: 'steps',
+    anchor: 'how-it-works',
+    eyebrow: 'How it works',
+    heading: 'From first call to a developer in your standup',
+    body: 'Five stages, typically five weeks end to end. The slow part is notice and your interview loop, not our recruitment, because the people are already employed.',
+    steps: [
+      { title: 'Scope the role', body: 'A free call to work out the level, the stack and the shape of the work. This is also where we tell you if augmentation is the wrong answer — a defined deliverable with a deadline is usually a fixed-price project instead.' },
+      { title: 'Meet candidates', body: 'You interview shortlisted engineers from our team, on your process, with your technical screen. You choose. Nobody is allocated to you.' },
+      { title: 'Engage', body: 'A monthly rate per engineer with a 12-month minimum term, contracted with Onsys Technologies in Australia. Three or more engineers takes 5% off the rate, five or more takes 10%. The term is what lets us hold senior people against your work rather than rotating them.' },
+      { title: 'Onboard', body: 'Access, tooling, repositories and your working agreements. We run the employment, equipment, leave cover and security onboarding; you run the technical induction as you would for any new starter.' },
+      { title: 'Run it as your team', body: 'They attend your standup, work your board, and are reviewed against your expectations. You get a named Onsys manager for anything employment-shaped, so a performance conversation never becomes a procurement one.' },
+    ],
+  },
+  {
+    type: 'ctaBand',
+    heading: 'Tell us the role you cannot fill',
+    body: 'A free 30-minute call to scope the level, the stack and the start date, and a written rate per engineer against it. Engagements run on a 12-month minimum term, monthly per engineer, contracted in Australia.',
+    cta: { label: 'Scope your team', href: '/contact' },
+  },
+  {
+    type: 'relatedService',
+    eyebrow: 'Not what you need?',
+    heading: 'If you want the thing built rather than the people',
+    body: 'Augmentation suits an ongoing backlog and a team that already has direction. Where the work is a defined deliverable with a deadline, a fixed-price project is the better trade — scoped, quoted and delivered against acceptance criteria.',
+    cta: { label: 'Software development projects', href: '/custom-software-development' },
+  },
+];
+
 const upgradeDrBlocks: Block[] = [
   {
     type: 'cardGrid',
@@ -2563,16 +2867,18 @@ const managedItBlocks: Block[] = [
       },
       {
         title: 'Server management',
-        body: 'Server administration for performance and uptime — regular maintenance, updates and patch management to close vulnerabilities before they are exploited.',
+        body: 'Server administration for performance and uptime — regular maintenance, updates and patch management to close vulnerabilities before they are exploited. When the server runs SQL Server, our own DBA team covers it rather than raising a ticket with someone else.',
         icon: '#s-managed',
         coverColor: '#FFF1E0',
+        link: { label: 'Managed SQL Server support', href: '/managed-sql-server-support' },
         tag: 'Patched & maintained',
       },
       {
         title: 'Endpoint security',
-        body: 'Endpoint protection against evolving threats, security policies that prevent data breaches, and regular audits so your posture does not quietly decay.',
+        body: 'Endpoint protection against evolving threats, security policies that prevent data breaches, and regular audits so your posture does not quietly decay — mapped to the frameworks your auditors and insurers actually ask about.',
         icon: '#s-shield',
         coverColor: '#E7F5EC',
+        link: { label: 'GRC & compliance', href: '/grc-and-compliance' },
         tag: 'Audited regularly',
       },
       {
@@ -4191,6 +4497,13 @@ export interface SeedPage {
   seoTitle: string;
   seoDescription: string;
   navOrder?: number;
+  /**
+   * Defaults to PUBLISHED. Set DRAFT to hold a finished page out of the index
+   * without deleting it — the content stays in the repo and in /admin, and
+   * publishing is one word and a re-seed. Used when a page is written but the
+   * SEO position is to not add it yet.
+   */
+  status?: 'DRAFT' | 'PUBLISHED';
   blocks: Block[];
   faqs?: Array<{ question: string; answer: string }>;
 }
@@ -4942,6 +5255,13 @@ const remoteSupportBlocks: Block[] = [
     ],
   },
   {
+    type: 'relatedService',
+    eyebrow: 'Mostly SQL Server?',
+    heading: 'Start at the SQL Server hub instead',
+    body: 'Remote support covers SQL Server, Oracle, PostgreSQL and MySQL. If your estate is SQL Server, that page is the shorter route — what a DBA actually does for it, what it costs, and the free 20-point health check.',
+    cta: { label: 'SQL Server DBA services', href: '/sql-server-dba-services' },
+  },
+  {
     type: 'ctaBand',
     heading: 'Speak with a senior DBA today',
     body: 'A 30-minute call with the consultant who would run your estate — not a salesperson, and not a form response.',
@@ -5218,6 +5538,45 @@ export const pages: SeedPage[] = [
       { question: 'Should we move to Azure SQL Managed Instance or stay on VMs?', answer: 'Managed Instance removes the patching and the end-of-support cycle, and keeps SQL Agent, cross-database queries and linked servers, which is what a lift from an on-premises instance usually depends on. It also moves spend from licences and capital to a monthly bill. Which is better depends on your sizing, and we model that before the decision rather than after the migration.' },
       { question: 'What happens if the cutover goes wrong?', answer: 'It rolls back, using a plan that has been executed in test rather than only written. Every migration and upgrade includes a full dry run against a copy of production before a cutover date is agreed, which is where the surprises are meant to be found. That rehearsal is the project, not optional rigour around it.' },
       { question: 'Do you also support the environment afterwards?', answer: 'Only if you want us to. Project work is standalone and most clients hand the finished environment to their own team with the runbook and the documentation. Monthly DBA plans start at $1,500 for up to 10 SQL Server instances, which is $150 per instance, but nothing about the project depends on taking one.' },
+    ],
+  },
+  {
+    /**
+     * Held as a draft on the Report IX finding (1 Oct 2026): concentration
+     * beats volume, and every page outside the SQL Server silo dilutes the
+     * side of the business that is actually ranking. The page is complete —
+     * rates confirmed, sources cited — and publishing it is a one-word change
+     * here plus a re-seed.
+     */
+    status: 'DRAFT',
+    slug: 'software-development-staff-augmentation',
+    title: 'Staff Augmentation',
+    heading: 'Offshore software developers for Australian teams',
+    eyebrow: 'Staff augmentation · 12-month minimum · Colombo delivery centre',
+    lede: 'Staff augmentation is hiring named engineers who work inside your existing team — your standup, your backlog, your definition of done — rather than outsourcing a project. Onsys places software engineers, senior engineers and architects from our own Colombo delivery centre, employed by us, contracted through an Australian company, from $3,450 a month plus GST on a 12-month minimum term.',
+    heroImage: '/images/hero-software-dev.jpg',
+    heroCtas: [
+      { label: 'Scope your team', href: '/contact' },
+      { label: 'See indicative rates', href: '#rates' },
+    ],
+    seoTitle: 'Offshore Developers Australia | Staff Augmentation',
+    seoDescription:
+      'Offshore engineers, seniors and architects working inside Australian teams from our Colombo centre. Australian contract, 12-month minimum, onboarding in weeks.',
+    navOrder: 12,
+    blocks: staffAugBlocks,
+    faqs: [
+      { question: 'What is IT staff augmentation?', answer: 'Staff augmentation is engaging named engineers who work inside your existing team rather than outsourcing a project to a vendor. They attend your standup, work your backlog and follow your definition of done, under your technical direction. The difference from outsourcing is who directs the work: with augmentation you do, and the provider handles employment, payroll, equipment, leave cover and replacement.' },
+      { question: 'How much does an offshore developer cost compared with hiring in Australia?', answer: 'The comparison to make is against total employment cost, not advertised salary. Australian market figures for 2026 put a senior software developer at about $126,500 on average and a senior solutions architect at about $160,100. On top of that sits superannuation at 12%, payroll tax above the state threshold, agency placement commonly at 15% to 20% of first-year salary, plus leave, workers compensation and equipment. Onsys publishes indicative starting rates instead: from $3,450 a month for a software engineer, $4,750 for a senior engineer and $7,500 for an architect, in Australian dollars plus GST, per engineer, on a 12-month minimum term. One rate covers salary, employment, equipment, leave cover and replacement — there is no recruitment fee and no on-costs to add.' },
+      { question: 'How much does offshore staff augmentation cost per month?', answer: 'Indicative starting rates are $3,450 a month for a software engineer with three to five years, $4,750 for a senior engineer with six to ten, and $7,500 for a software architect with ten or more. All figures are Australian dollars plus GST, per engineer, on a 12-month minimum term. Three or more engineers takes 5% off the rate and five or more takes 10%. Rates are confirmed in writing after a scoping call, because stack and seniority within a band move the number.' },
+      { question: 'Is there a discount for placing more than one engineer?', answer: 'Yes. Three or more engineers takes 5% off the monthly rate, and five or more takes 10%. It is worth knowing before you scope, because a squad that can build, test and deploy usually reaches the threshold where a single seat does not.' },
+      { question: 'Where are the engineers based?', answer: 'In our own delivery centre in Colombo, Sri Lanka. They are Onsys employees on our payroll, not contractors sourced for your engagement. Sri Lanka has a deep pool of English-speaking engineers and a working day that overlaps Australian hours for most of the afternoon, which is why it suits augmentation better than locations eight or more hours behind.' },
+      { question: 'Do they work Australian hours?', answer: 'Yes. Colombo is four and a half hours behind AEST during standard time, so a normal Sri Lankan working day overlaps the Australian morning and early afternoon. Engineers work to your hours by agreement, which is what makes a shared standup and same-day review possible rather than a daily handover.' },
+      { question: 'What is the minimum engagement term?', answer: 'Twelve months, per engineer, billed monthly. The term exists for a reason rather than as a lock-in: it is what lets us hold a senior engineer against your work instead of rotating them between short engagements, and it is why the person who learns your codebase in month two is still there in month ten.' },
+      { question: 'How quickly can someone start?', answer: 'Typically five weeks from a signed engagement to an engineer in your standup. That covers matching and your interviews, the engineer’s notice period, and security and tooling onboarding. It is five weeks rather than five months because we staff from a team that already exists rather than recruiting to your requirement — the lead time is notice, not a hiring round.' },
+      { question: 'Who manages the engineer day to day?', answer: 'You do, technically — they work your board and your priorities exactly as an employee would. Onsys handles everything employment-shaped: payroll, leave, equipment, security onboarding and performance management, through a named manager. That separation is deliberate, so a difficult conversation about output never has to become a conversation with a procurement team.' },
+      { question: 'What happens if an engineer is not working out, or leaves?', answer: 'We replace them at our cost, and the notice and replacement terms are written into the engagement rather than negotiated at the point of friction. Because they are our employees rather than contractors sourced per deal, continuity is our problem to manage, not a new search you have to fund.' },
+      { question: 'Can they work on our databases?', answer: 'No, and that is a deliberate rule rather than an oversight. Database consultancy and support at Onsys is delivered by our consultants in Australia, and they are the only people who hold credentials to a client database environment. Augmented engineers write application code against databases you control. If you need database work, that is a separate Australian-delivered service.' },
+      { question: 'Is this the same as outsourcing a project?', answer: 'No. Outsourcing hands over a defined deliverable and a deadline, and the provider directs the work. Augmentation puts engineers inside your team under your direction, which suits an ongoing backlog rather than a bounded piece of work. If what you have is a specific thing to build by a date, a fixed-price project is usually the better trade.' },
     ],
   },
   {
