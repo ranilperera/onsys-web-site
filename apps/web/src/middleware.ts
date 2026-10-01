@@ -245,5 +245,13 @@ export const config = {
   // Skip Next internals and static assets — they never need a redirect check.
   // .well-known is excluded alongside llms.txt: the rewrite that serves it
   // must not be preceded by redirect or trailing-slash logic.
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|logo.png|sitemap.xml|robots.txt|llms.txt|\.well-known).*)'],
+  //
+  // google<token>.html is the Search Console file-verification method. Site
+  // ownership is the thing every indexing diagnosis depends on, so that fetch
+  // must not route through a redirect lookup that can call the API: the pattern
+  // covers the current token and any re-issued one. No page slug ends in .html,
+  // so nothing real is shadowed.
+  matcher: [
+    '/((?!api|_next/static|_next/image|favicon.ico|logo.png|sitemap.xml|robots.txt|llms.txt|google[0-9a-f]+\.html|\.well-known).*)',
+  ],
 };
