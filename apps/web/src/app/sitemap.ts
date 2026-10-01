@@ -12,6 +12,20 @@ import { siteConfig } from '@/lib/config';
 export const dynamic = 'force-dynamic';
 export const revalidate = 3600;
 
+/**
+ * Slugs that get priority 0.9. Verified against seed-content.ts on 12 Sep 2026.
+ */
+const MONEY_PAGES = new Set([
+  'pricing-and-plans',
+  'contact',
+  'expertise',
+  'managed-database-services',
+  'managed-it-services',
+  'sql-server-dba-services',
+  'managed-sql-server-support',
+  'free-20-point-sql-server-health-check',
+]);
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { pages, posts, authors } = await getSitemapData();
 
@@ -68,8 +82,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${siteConfig.url}/${p.slug}`,
       lastModified: freshness(p),
       changeFrequency: 'monthly' as const,
-      // Money pages outrank the rest.
-      priority: ['managed-database-services', 'pricing', 'contact', 'expertise'].includes(p.slug) ? 0.9 : 0.7,
+      /**
+       * Money pages outrank the rest.
+       *
+       * This list named 'pricing', and the slug is 'pricing-and-plans' — so
+       * the entry matched nothing and the pricing page has been shipping at
+       * 0.7 since the sitemap was written. A list of string literals compared
+       * against slugs has no compiler to catch that, which is why the slugs
+       * below were each checked against seed-content.ts rather than typed
+       * from memory.
+       */
+      priority: MONEY_PAGES.has(p.slug) ? 0.9 : 0.7,
     }));
 
   const postEntries: MetadataRoute.Sitemap = posts.map((p) => ({

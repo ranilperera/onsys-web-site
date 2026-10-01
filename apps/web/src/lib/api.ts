@@ -281,7 +281,10 @@ export const getSitemapData = async () =>
     }>;
     categories: Array<{ slug: string }>;
     authors: Array<{ slug: string; updatedAt: string }>;
-  }>('/sitemap', 3600, [cacheTags.sitemap])) ?? {
+    // 300, not 3600. The sitemap is the artefact used to verify a deploy,
+    // and an hour-long cache on it produced two rounds of audit findings that
+    // described content already replaced in the database.
+  }>('/sitemap', 300, [cacheTags.sitemap])) ?? {
     pages: [],
     posts: [],
     categories: [],

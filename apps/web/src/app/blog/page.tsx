@@ -18,14 +18,51 @@ import { JsonLd } from '@/components/JsonLd';
 export const dynamic = 'force-dynamic';
 export const revalidate = 300;
 
-export const metadata: Metadata = buildMetadata({
-  title: 'Database & Cloud Blog | SQL Server, Oracle, Azure',
-  description:
-    'Hands-on guides from Australian DBAs and engineers — SQL Server, Oracle, PostgreSQL, Azure and AWS troubleshooting, tuning and migration walkthroughs.',
-  path: '/blog',
-});
-
 type Props = { searchParams: Promise<{ category?: string; page?: string }> };
+
+/**
+ * Keep paginated and filtered views out of the index.
+ *
+ * This was a static `metadata` export, so every one of /blog?page=1..5 shipped
+ * the same title, the same description and a canonical pointing at /blog —
+ * and Google indexed them anyway. A canonical is a hint on a URL that returns
+ * different content; noindex is not, which is what these need.
+ *
+ * `follow` stays on deliberately: pages two onward are the only crawl path to
+ * older articles, so removing them from the index must not remove the route
+ * to the posts they list. The canonical is self-referencing rather than
+ * pointing at /blog, because claiming to be a duplicate of a page while also
+ * refusing indexing sends a crawler two different instructions.
+ *
+ * ?category= gets the same treatment: it is a faceted view of the same list,
+ * and the sitemap comment below already explains why those are not listed.
+ */
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const { page, category } = await searchParams;
+  const pageNumber = Number(page) || 1;
+  const isFiltered = pageNumber > 1 || Boolean(category);
+
+  const base = buildMetadata({
+    title: 'Database & Cloud Blog | SQL Server, Oracle, Azure',
+    description:
+      'Hands-on guides from Australian DBAs and engineers — SQL Server, Oracle, PostgreSQL, Azure and AWS troubleshooting, tuning and migration walkthroughs.',
+    path: '/blog',
+  });
+
+  if (!isFiltered) return base;
+
+  const query = new URLSearchParams();
+  if (category) query.set('category', category);
+  if (pageNumber > 1) query.set('page', String(pageNumber));
+  const self = `${siteConfig.url}/blog?${query.toString()}`;
+
+  return {
+    ...base,
+    title: pageNumber > 1 ? `Database & Cloud Blog — page ${pageNumber}` : base.title,
+    alternates: { canonical: self },
+    robots: { index: false, follow: true },
+  };
+}
 
 export default async function BlogIndex({ searchParams }: Props) {
   const { category, page: pageParam } = await searchParams;
