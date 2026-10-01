@@ -91,6 +91,9 @@ services:
         NEXT_PUBLIC_HERO_ROTATE_SECONDS: ${NEXT_PUBLIC_HERO_ROTATE_SECONDS:-8}
         NEXT_PUBLIC_PORTAL_URL: ${NEXT_PUBLIC_PORTAL_URL:-https://dbpulse.onsys.com.au}
         NEXT_PUBLIC_PORTAL_ENABLED: ${NEXT_PUBLIC_PORTAL_ENABLED:-false}
+        # Empty by default so a deploy without it simply has no analytics,
+        # rather than failing the build.
+        NEXT_PUBLIC_PLAUSIBLE_DOMAIN: ${NEXT_PUBLIC_PLAUSIBLE_DOMAIN:-}
         ORG_NAME: ${ORG_NAME:-}
         ORG_SHORT_NAME: ${ORG_SHORT_NAME:-}
         ORG_LEGAL_NAME: ${ORG_LEGAL_NAME:-}

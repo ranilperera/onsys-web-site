@@ -42,6 +42,13 @@ ENV NEXT_PUBLIC_PORTAL_URL=$NEXT_PUBLIC_PORTAL_URL
 ARG NEXT_PUBLIC_PORTAL_ENABLED
 ENV NEXT_PUBLIC_PORTAL_ENABLED=$NEXT_PUBLIC_PORTAL_ENABLED
 
+# Analytics. NEXT_PUBLIC_* is inlined at build time, so this has to be an ARG:
+# supplying it only in the compose `environment:` block leaves the value empty
+# in the bundle and the Plausible script never renders. That is why the site
+# shipped with no analytics at all while the variable looked configured.
+ARG NEXT_PUBLIC_PLAUSIBLE_DOMAIN
+ENV NEXT_PUBLIC_PLAUSIBLE_DOMAIN=$NEXT_PUBLIC_PLAUSIBLE_DOMAIN
+
 # next.config.mjs reads these from the environment first and falls back to the
 # repo-root .env, which is deliberately absent from the image. Passing them here
 # is what keeps the header, footer and schema.org markup driven by config rather
