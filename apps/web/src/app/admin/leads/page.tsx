@@ -13,6 +13,35 @@ interface Lead {
   status: string;
   channel: string;
   createdAt: string;
+  /// ISO country code derived from the visit — see deriveCountry in the API.
+  country: string | null;
+  utmSource: string | null;
+  utmMedium: string | null;
+  utmCampaign: string | null;
+  referrer: string | null;
+}
+
+/**
+ * How this lead arrived, in as few characters as a table cell allows.
+ *
+ * A campaign beats a referrer, and a referrer beats nothing: "google / cpc" is
+ * what a paid click looks like, a bare hostname is organic or a link, and
+ * "Direct" means the visit carried no source at all. Older leads predate
+ * attribution capture and show a dash rather than claiming to be direct.
+ */
+function sourceLabel(lead: Lead): string {
+  if (lead.utmSource) {
+    const campaign = lead.utmCampaign ? ` · ${lead.utmCampaign}` : '';
+    return `${lead.utmSource}${lead.utmMedium ? ` / ${lead.utmMedium}` : ''}${campaign}`;
+  }
+  if (lead.referrer) {
+    try {
+      return new URL(lead.referrer).hostname.replace(/^www\./, '');
+    } catch {
+      return lead.referrer.slice(0, 40);
+    }
+  }
+  return 'Direct';
 }
 
 /** Reads the CSRF cookie set at login so mutations pass the double-submit check. */
@@ -143,6 +172,10 @@ export default function LeadsPage() {
                 <th>Company</th>
                 <th>Message</th>
                 <th>Channel</th>
+                {/* Only 10% of site clicks are Australian, so "where did this
+                    come from" is the first question asked of a new lead. */}
+                <th>Market</th>
+                <th>Source</th>
                 <th>Received</th>
                 <th>Status</th>
                 <th>Action</th>
@@ -178,6 +211,10 @@ export default function LeadsPage() {
                       {l.service && <span className="lead-service">{l.service}</span>}
                     </td>
                     <td>{l.channel}</td>
+                    <td>{l.country ?? '—'}</td>
+                    <td className="lead-source" title={l.referrer ?? undefined}>
+                      {sourceLabel(l)}
+                    </td>
                     <td style={{ whiteSpace: 'nowrap' }}>
                       {new Date(l.createdAt).toLocaleDateString('en-AU')}
                     </td>
