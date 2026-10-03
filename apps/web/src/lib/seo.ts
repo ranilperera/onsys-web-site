@@ -371,6 +371,86 @@ export function productListSchema(page: PageRecord): Record<string, unknown> | n
   };
 }
 
+/**
+ * JobPosting schema for a vacancy.
+ *
+ * This is the one schema type on the site with a dedicated search surface:
+ * Google Jobs will not show a role at all without it. Only fields we actually
+ * hold are emitted — no invented salary, no invented identifier — because a
+ * JobPosting with fabricated pay is worse than one with none.
+ *
+ * `validThrough` is the end of the closing day, matching how the listing
+ * filters: a role closing today is open today.
+ */
+export function jobPostingSchema(job: {
+  slug: string;
+  title: string;
+  summary: string;
+  descriptionHtml: string;
+  type: string;
+  location: string;
+  workArrangement: string;
+  salaryRange?: string | null;
+  closesAt: string;
+  publishedAt?: string | null;
+}): Record<string, unknown> {
+  const EMPLOYMENT_TYPE: Record<string, string> = {
+    PERMANENT: 'FULL_TIME',
+    CONTRACT: 'CONTRACTOR',
+    INTERN: 'INTERN',
+    TRAINEE: 'INTERN',
+    CASUAL: 'PART_TIME',
+    PART_TIME: 'PART_TIME',
+  };
+
+  // The two places Onsys employs. A Sri Lankan role must not be advertised
+  // with the Melbourne address attached to it.
+  const PLACE: Record<string, Record<string, unknown>> = {
+    AUSTRALIA: {
+      '@type': 'Place',
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: siteConfig.address.street,
+        addressLocality: siteConfig.address.locality,
+        addressRegion: siteConfig.address.region,
+        postalCode: siteConfig.address.postalCode,
+        addressCountry: 'AU',
+      },
+    },
+    SRI_LANKA: {
+      '@type': 'Place',
+      address: { '@type': 'PostalAddress', addressLocality: 'Colombo', addressCountry: 'LK' },
+    },
+  };
+
+  const validThrough = new Date(job.closesAt);
+  validThrough.setHours(23, 59, 59, 999);
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'JobPosting',
+    title: job.title,
+    description: job.descriptionHtml,
+    datePosted: job.publishedAt ?? undefined,
+    validThrough: validThrough.toISOString(),
+    employmentType: EMPLOYMENT_TYPE[job.type] ?? 'OTHER',
+    hiringOrganization: {
+      '@type': 'Organization',
+      name: siteConfig.name,
+      sameAs: siteConfig.url,
+      logo: absoluteUrl(siteConfig.logo),
+    },
+    jobLocation: PLACE[job.location] ?? PLACE.AUSTRALIA,
+    // Remote roles need this as well as a jobLocation, or Google treats them
+    // as on-site at the address given.
+    ...(job.workArrangement === 'REMOTE'
+      ? { jobLocationType: 'TELECOMMUTE', applicantLocationRequirements: { '@type': 'Country', name: job.location === 'SRI_LANKA' ? 'Sri Lanka' : 'Australia' } }
+      : {}),
+    ...(job.salaryRange ? { baseSalary: { '@type': 'MonetaryAmount', value: { '@type': 'QuantitativeValue', value: job.salaryRange } } } : {}),
+    url: `${siteConfig.url}/careers/${job.slug}`,
+  };
+}
+
 export function breadcrumbSchema(items: Array<{ name: string; url?: string }>): Record<string, unknown> {
   return {
     '@context': 'https://schema.org',

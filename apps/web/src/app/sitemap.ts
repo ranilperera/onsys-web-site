@@ -27,7 +27,7 @@ const MONEY_PAGES = new Set([
 ]);
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const { pages, posts, authors } = await getSitemapData();
+  const { pages, posts, authors, jobs } = await getSitemapData();
 
   /**
    * lastmod should say when the content changed, not when a row was written.
@@ -62,7 +62,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // A code route rather than a CMS page, so it is not covered by the DB list
     // below and has to be named explicitly.
     { url: `${siteConfig.url}/book`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.9 },
+    // Also a code route. Listed even with nothing open: it is a page buyers
+    // and candidates both check, and the footer links it from every page.
+    { url: `${siteConfig.url}/careers`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.5 },
   ];
+
+  /**
+   * Open vacancies. The API returns only published roles that have not passed
+   * their closing date, so a closed job leaves the sitemap on its own — and
+   * the page itself goes noindex at the same moment.
+   */
+  const jobEntries: MetadataRoute.Sitemap = jobs.map((j) => ({
+    url: `${siteConfig.url}/careers/${j.slug}`,
+    lastModified: new Date(j.updatedAt),
+    changeFrequency: 'weekly' as const,
+    priority: 0.5,
+  }));
 
   /**
    * Author profiles. Also a code route, and already indexed — listing it makes
@@ -106,5 +121,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // view of /blog that canonicalises back to it, so listing one asks a crawler
   // to index a URL we have simultaneously told it not to. Several categories
   // are empty as well, which would put "no posts published yet" in the index.
-  return [...staticEntries, ...portalEntry, ...pageEntries, ...postEntries, ...authorEntries];
+  return [...staticEntries, ...portalEntry, ...pageEntries, ...postEntries, ...authorEntries, ...jobEntries];
 }

@@ -2,11 +2,17 @@ import { Router } from 'express';
 import DOMPurify from 'isomorphic-dompurify';
 import { z } from 'zod';
 import { marked } from 'marked';
-import { blocksSchema, purgeChatSchema, normalisePastedHtml, isAllowedNavHref } from '@onsys/shared';
+import {
+  blocksSchema,
+  purgeChatSchema,
+  normalisePastedHtml,
+  isAllowedNavHref,
+  jobInputSchema,
+} from '@onsys/shared';
 import { prisma } from '../lib/prisma';
 import { asyncHandler } from '../middleware/error';
 import { logger } from '../lib/logger';
-import { requireAuth, requireAdmin, verifyCsrf } from '../middleware/auth';
+import { requireAuth, requireAdmin, verifyCsrf, type AuthedRequest } from '../middleware/auth';
 import { sendEmail, renderChatTranscript } from '../services/email.service';
 import { revalidateInBackground, tags } from '../services/revalidate.service';
 import { pageFingerprint, postFingerprint, nextContentUpdatedAt } from '../lib/content-changed';
@@ -904,6 +910,191 @@ adminRouter.delete(
   requireAdmin,
   asyncHandler(async (req, res) => {
     await prisma.redirect.delete({ where: { id: req.params.id } });
+    res.json({ ok: true });
+  }),
+);
+
+/**
+ * Vacancies.
+ *
+ * Ported from the standalone careers app, which had its own HrUser table and
+ * its own login. These sit behind the admin auth this console already uses, so
+ * there is one set of credentials with one MFA enrolment rather than a second
+ * door into the same building.
+ *
+ * The advert body is sanitised on the way in, exactly as post bodies are: it is
+ * operator-authored HTML that ends up rendered with dangerouslySetInnerHTML.
+ */
+adminRouter.get(
+  '/jobs',
+  asyncHandler(async (_req, res) => {
+    const jobs = await prisma.job.findMany({
+      orderBy: [{ status: 'asc' }, { closesAt: 'asc' }],
+      select: {
+        id: true, slug: true, title: true, type: true, location: true,
+        workArrangement: true, status: true, closesAt: true, publishedAt: true,
+        updatedAt: true, createdBy: { select: { name: true } },
+      },
+    });
+    res.json({ jobs });
+  }),
+);
+
+adminRouter.get(
+  '/jobs/:id',
+  asyncHandler(async (req, res) => {
+    const job = await prisma.job.findUnique({ where: { id: req.params.id } });
+    if (!job) {
+      res.status(404).json({ error: 'Job not found' });
+      return;
+    }
+    res.json({ job });
+  }),
+);
+
+/** Shared by create and update: sanitise, normalise, and resolve the dates. */
+function jobData(input: ReturnType<typeof jobInputSchema.parse>) {
+  return {
+    title: input.title,
+    slug: input.slug,
+    summary: input.summary,
+    type: input.type,
+    location: input.location,
+    workArrangement: input.workArrangement,
+    descriptionHtml: DOMPurify.sanitize(input.descriptionHtml),
+    salaryRange: input.salaryRange || null,
+    // An <input type="date"> posts "2026-11-30", which Date parses as UTC
+    // midnight. Stored as given; "end of that day" is applied when filtering,
+    // so a job closing today is open for all of today.
+    closesAt: new Date(input.closesAt),
+    applyEmail: input.applyEmail || null,
+    status: input.status,
+    seoTitle: input.seoTitle || null,
+    seoDescription: input.seoDescription || null,
+  };
+}
+
+adminRouter.post(
+  '/jobs',
+  // Typed so the creating user can be recorded — same pattern as auth.routes.
+  asyncHandler(async (req: AuthedRequest, res) => {
+    const input = jobInputSchema.parse(req.body);
+
+    const clash = await prisma.job.findUnique({ where: { slug: input.slug } });
+    if (clash) {
+      res.status(409).json({ error: 'A job with that URL slug already exists.' });
+      return;
+    }
+
+    const job = await prisma.job.create({
+      data: {
+        ...jobData(input),
+        publishedAt: input.status === 'PUBLISHED' ? new Date() : null,
+        createdById: req.user?.id ?? null,
+      },
+    });
+
+    revalidateInBackground({
+      tags: [tags.job(job.slug), tags.jobList, tags.sitemap],
+      paths: [`/careers/${job.slug}`, '/careers'],
+    });
+    logger.info({ jobId: job.id, slug: job.slug, status: job.status }, 'Job created');
+    res.status(201).json({ job });
+  }),
+);
+
+adminRouter.put(
+  '/jobs/:id',
+  asyncHandler(async (req, res) => {
+    const input = jobInputSchema.parse(req.body);
+
+    const existing = await prisma.job.findUnique({ where: { id: req.params.id } });
+    if (!existing) {
+      res.status(404).json({ error: 'Job not found' });
+      return;
+    }
+
+    const clash = await prisma.job.findUnique({ where: { slug: input.slug } });
+    if (clash && clash.id !== existing.id) {
+      res.status(409).json({ error: 'A job with that URL slug already exists.' });
+      return;
+    }
+
+    const job = await prisma.job.update({
+      where: { id: existing.id },
+      data: {
+        ...jobData(input),
+        // First publish stamps the date; re-saving a published job keeps it.
+        publishedAt:
+          input.status === 'PUBLISHED' ? existing.publishedAt ?? new Date() : existing.publishedAt,
+      },
+    });
+
+    revalidateInBackground({
+      // The old slug too, or a renamed job stays cached at its previous URL.
+      tags: [tags.job(job.slug), tags.job(existing.slug), tags.jobList, tags.sitemap],
+      paths: [`/careers/${job.slug}`, `/careers/${existing.slug}`, '/careers'],
+    });
+    res.json({ job });
+  }),
+);
+
+/**
+ * Publish or withdraw without opening the editor — the two things done most
+ * often, and the reason the standalone app had separate publish/unpublish
+ * endpoints.
+ */
+adminRouter.patch(
+  '/jobs/:id/status',
+  asyncHandler(async (req, res) => {
+    const { status } = z.object({ status: z.enum(['DRAFT', 'PUBLISHED']) }).parse(req.body);
+
+    const existing = await prisma.job.findUnique({ where: { id: req.params.id } });
+    if (!existing) {
+      res.status(404).json({ error: 'Job not found' });
+      return;
+    }
+
+    const job = await prisma.job.update({
+      where: { id: existing.id },
+      data: {
+        status,
+        publishedAt: status === 'PUBLISHED' ? existing.publishedAt ?? new Date() : existing.publishedAt,
+      },
+    });
+
+    revalidateInBackground({
+      tags: [tags.job(job.slug), tags.jobList, tags.sitemap],
+      paths: [`/careers/${job.slug}`, '/careers'],
+    });
+    logger.info({ jobId: job.id, status }, 'Job status changed');
+    res.json({ job });
+  }),
+);
+
+/**
+ * Remove a vacancy.
+ *
+ * requireAdmin, like every other delete on this router: withdrawing a job from
+ * the listing is a status change any editor can make, and deleting the record
+ * is not.
+ */
+adminRouter.delete(
+  '/jobs/:id',
+  requireAdmin,
+  asyncHandler(async (req, res) => {
+    const job = await prisma.job.findUnique({ where: { id: req.params.id } });
+    if (!job) {
+      res.status(404).json({ error: 'Job not found' });
+      return;
+    }
+
+    await prisma.job.delete({ where: { id: job.id } });
+    revalidateInBackground({
+      tags: [tags.job(job.slug), tags.jobList, tags.sitemap],
+      paths: [`/careers/${job.slug}`, '/careers'],
+    });
+    logger.warn({ jobId: job.id, slug: job.slug }, 'Job deleted');
     res.json({ ok: true });
   }),
 );

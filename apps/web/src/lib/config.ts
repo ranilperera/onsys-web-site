@@ -232,7 +232,7 @@ export const navigation = {
       { label: 'Certifications', href: '/expertise#certifications' },
       { label: 'Products', href: '/products' },
       { label: 'Insights', href: '/blog' },
-      { label: 'Careers', href: '/contact' },
+      { label: 'Careers', href: '/careers' },
     ],
     Support: [
       { label: 'Free SQL Server Health Check', href: '/free-20-point-sql-server-health-check' },

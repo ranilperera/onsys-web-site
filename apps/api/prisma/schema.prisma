@@ -16,6 +16,80 @@ datasource db {
 // Content
 // ---------------------------------------------------------------
 
+/// Job types as posted. Mirrors the enum from the standalone careers app this
+/// was ported from, so existing job records and copy carry over unchanged.
+enum JobType {
+  PERMANENT
+  CONTRACT
+  INTERN
+  TRAINEE
+  CASUAL
+  PART_TIME
+}
+
+/// Where the role sits. The two delivery locations, named as the entity that
+/// employs: Australia for the Melbourne office, Sri Lanka for Colombo.
+enum JobLocation {
+  AUSTRALIA
+  SRI_LANKA
+}
+
+enum WorkArrangement {
+  ONSITE
+  HYBRID
+  REMOTE
+}
+
+/// A vacancy, managed from /admin/jobs and listed on /careers.
+///
+/// Ported from the standalone cv-post-app. Two deliberate changes: it reuses
+/// ContentStatus rather than that app's isPublished boolean, so a job drafts
+/// and publishes exactly as a page or post does; and it is owned by a `User`
+/// (the existing admin account) rather than that app's separate HrUser table,
+/// so there is one set of admin credentials with one MFA enrolment.
+///
+/// Applications are deliberately NOT here yet. They carry CVs and salary
+/// expectations — personal information with storage, retention and privacy
+/// obligations that need deciding before any of it is collected.
+model Job {
+  id              String          @id @default(cuid())
+  slug            String          @unique
+  title           String
+  /// One or two lines for the listing. The description is the full advert.
+  summary         String
+  type            JobType
+  location        JobLocation
+  workArrangement WorkArrangement
+  descriptionHtml String          @db.Text
+  /// Published salary range, e.g. "AUD 120,000 - 140,000 + super". Optional,
+  /// but this site publishes its prices and the same argument applies to pay.
+  salaryRange     String?
+  /// Applications close at end of this day. A published job past its close
+  /// date drops off /careers without anyone having to remember to unpublish.
+  closesAt        DateTime
+  /// Where applications go until the in-site application form exists. Falls
+  /// back to the organisation's published address when unset.
+  applyEmail      String?
+
+  status      ContentStatus @default(DRAFT)
+  publishedAt DateTime?
+
+  seoTitle       String?
+  seoDescription String?
+
+  /// Who posted it. SetNull rather than Cascade: removing an admin account
+  /// must never delete live vacancies.
+  createdById String?
+  createdBy   User?   @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  /// The public listing query: published, not past its close date.
+  @@index([status, closesAt])
+  @@map("jobs")
+}
+
 enum ContentStatus {
   DRAFT
   PUBLISHED
@@ -397,6 +471,7 @@ model User {
   recoveryCodes  String[]  @default([])
 
   challenges   MfaChallenge[]
+  jobs         Job[]
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

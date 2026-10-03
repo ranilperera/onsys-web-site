@@ -1,3 +1,4 @@
+import type { JobRecord, JobSummary } from '@onsys/shared';
 import { siteConfig, navigation } from './config';
 import { blockSchema, type Block } from '@onsys/shared';
 
@@ -153,6 +154,8 @@ export const cacheTags = {
   categories: 'categories',
   footerNav: 'nav:footer',
   sitemap: 'sitemap',
+  job: (slug: string) => `job:${slug}`,
+  jobList: 'jobs',
   redirects: 'redirects',
 } as const;
 
@@ -277,6 +280,23 @@ export const getCategories = async (): Promise<CategoryRecord[]> =>
     cacheTags.categories,
   ]))?.categories ?? [];
 
+/** Open vacancies for /careers. */
+export const getJobs = async (): Promise<JobSummary[]> =>
+  (await apiGet<{ jobs: JobSummary[] }>('/jobs', REVALIDATE_SECONDS, [cacheTags.jobList]))?.jobs ??
+  [];
+
+/**
+ * One vacancy, or null.
+ *
+ * Returns closed jobs as well as open ones — a candidate following a link from
+ * an email or a job board is better told the role has closed than handed a 404.
+ */
+export const getJob = async (slug: string): Promise<JobRecord | null> =>
+  (await apiGet<{ job: JobRecord }>(`/jobs/${slug}`, REVALIDATE_SECONDS, [
+    cacheTags.job(slug),
+    cacheTags.jobList,
+  ]))?.job ?? null;
+
 export const getSitemapData = async () =>
   (await apiGet<{
     /**
@@ -293,6 +313,7 @@ export const getSitemapData = async () =>
     }>;
     categories: Array<{ slug: string }>;
     authors: Array<{ slug: string; updatedAt: string }>;
+    jobs: Array<{ slug: string; updatedAt: string }>;
     // 300, not 3600. The sitemap is the artefact used to verify a deploy,
     // and an hour-long cache on it produced two rounds of audit findings that
     // described content already replaced in the database.
@@ -300,6 +321,7 @@ export const getSitemapData = async () =>
     pages: [],
     posts: [],
     categories: [],
+    jobs: [],
     authors: [],
   };
 

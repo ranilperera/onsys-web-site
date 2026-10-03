@@ -181,11 +181,63 @@ contentRouter.get(
   }),
 );
 
+/**
+ * Open vacancies for /careers.
+ *
+ * "Open" is published AND not past its closing date, so a job drops off the
+ * listing on its own rather than waiting for someone to remember to unpublish
+ * it. The date filter is `gte` on the start of today rather than on `now`,
+ * because closesAt means end of that day — a job closing today is open today.
+ */
+contentRouter.get(
+  '/jobs',
+  asyncHandler(async (_req, res) => {
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const jobs = await prisma.job.findMany({
+      where: { status: 'PUBLISHED', closesAt: { gte: startOfToday } },
+      orderBy: [{ closesAt: 'asc' }, { publishedAt: 'desc' }],
+      select: {
+        id: true, slug: true, title: true, summary: true, type: true,
+        location: true, workArrangement: true, salaryRange: true,
+        closesAt: true, applyEmail: true, seoTitle: true, seoDescription: true,
+        publishedAt: true, updatedAt: true,
+      },
+    });
+    res.json({ jobs });
+  }),
+);
+
+/**
+ * One vacancy.
+ *
+ * A closed job still resolves: a candidate who follows a link from an email or
+ * a job board should be told the role has closed, not handed a 404. The page
+ * decides how to present that; the API just reports it.
+ */
+contentRouter.get(
+  '/jobs/:slug',
+  asyncHandler(async (req, res) => {
+    const job = await prisma.job.findFirst({
+      where: { slug: req.params.slug, status: 'PUBLISHED' },
+    });
+    if (!job) {
+      res.status(404).json({ error: 'Job not found' });
+      return;
+    }
+    res.json({ job });
+  }),
+);
+
 /** Feeds the dynamic sitemap in the web app. */
 contentRouter.get(
   '/sitemap',
   asyncHandler(async (_req, res) => {
-    const [pages, posts, categories, authors] = await Promise.all([
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const [pages, posts, categories, authors, jobs] = await Promise.all([
       prisma.page.findMany({
         where: { ...publishedPage, noindex: false },
         select: { slug: true, updatedAt: true, contentUpdatedAt: true },
@@ -204,8 +256,17 @@ contentRouter.get(
         where: { posts: { some: { status: 'PUBLISHED', noindex: false } } },
         select: { slug: true, updatedAt: true },
       }),
+      /**
+       * Open vacancies only. A closed job still resolves for anyone holding
+       * the link, but asking Google to index a role nobody can apply for
+       * earns the site a page that disappoints every visitor it gets.
+       */
+      prisma.job.findMany({
+        where: { status: 'PUBLISHED', closesAt: { gte: startOfToday } },
+        select: { slug: true, updatedAt: true },
+      }),
     ]);
-    res.json({ pages, posts, categories, authors });
+    res.json({ pages, posts, categories, authors, jobs });
   }),
 );
 

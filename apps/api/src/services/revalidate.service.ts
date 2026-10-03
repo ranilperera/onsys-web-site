@@ -26,6 +26,8 @@ export const tags = {
   categories: 'categories',
   footerNav: 'nav:footer',
   sitemap: 'sitemap',
+  job: (slug: string) => `job:${slug}`,
+  jobList: 'jobs',
   redirects: 'redirects',
 } as const;
 
