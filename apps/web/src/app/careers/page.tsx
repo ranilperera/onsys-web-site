@@ -47,8 +47,7 @@ export default async function CareersIndex() {
             <h1>Work at Onsys</h1>
             <p>
               We run production databases and the infrastructure around them for Australian
-              organisations, from offices in Melbourne and Colombo. Roles are posted here as they
-              open.
+              organisations. Roles are posted here as they open.
             </p>
           </div>
 
@@ -62,8 +61,8 @@ export default async function CareersIndex() {
                 <p>
                   Nothing is advertised at the moment. If you are a senior DBA or a cloud or
                   security engineer, send a CV to{' '}
-                  <a href={`mailto:${siteConfig.email}`}>{siteConfig.email}</a> and we will keep it
-                  on file.
+                  <a href={`mailto:${siteConfig.careersEmail}`}>{siteConfig.careersEmail}</a> and we
+                  will keep it on file.
                 </p>
               </div>
             </div>

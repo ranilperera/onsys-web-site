@@ -310,7 +310,7 @@ export function JobEditor({ jobId }: { jobId?: string }) {
               value={form.applyEmail}
               onChange={(e) => setForm((f) => ({ ...f, applyEmail: e.target.value }))}
               maxLength={200}
-              placeholder={siteConfig.email}
+              placeholder={siteConfig.careersEmail}
             />
           </div>
         </div>

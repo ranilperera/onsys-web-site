@@ -40,6 +40,18 @@ export const siteConfig = {
     process.env.NEXT_PUBLIC_ORG_TAGLINE ||
     'Melbourne-based database, cloud, managed IT and security specialists. Databases are handled by our Australian consultants; our Colombo delivery centre covers managed IT, software and security.',
   email: process.env.NEXT_PUBLIC_ORG_EMAIL || 'sales@onsys.com.au',
+  /**
+   * Where job applications go. Separate from the general address because a CV
+   * is not a sales enquiry: it goes to whoever is hiring, and it carries
+   * personal information that the sales inbox has no reason to hold.
+   *
+   * Falls back to the general address so a deployment that has not set it still
+   * shows something reachable rather than an empty mailto.
+   */
+  careersEmail:
+    process.env.NEXT_PUBLIC_ORG_CAREERS_EMAIL ||
+    process.env.NEXT_PUBLIC_ORG_EMAIL ||
+    'sales@onsys.com.au',
   phone: process.env.NEXT_PUBLIC_ORG_PHONE || '1800 431 416',
   phoneE164: process.env.NEXT_PUBLIC_ORG_PHONE_E164 || '+611800431416',
   bookingUrl: process.env.NEXT_PUBLIC_ORG_BOOKING_URL || '/book',

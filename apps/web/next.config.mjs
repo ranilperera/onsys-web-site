@@ -18,7 +18,7 @@ const rootEnvPath = path.resolve(here, '../../.env');
 const rootEnv = fs.existsSync(rootEnvPath) ? parseEnv(fs.readFileSync(rootEnvPath)) : {};
 
 const ORG_KEYS = [
-  'NAME', 'SHORT_NAME', 'LEGAL_NAME', 'ABN', 'ACN', 'EMAIL', 'PHONE', 'PHONE_E164',
+  'NAME', 'SHORT_NAME', 'LEGAL_NAME', 'ABN', 'ACN', 'EMAIL', 'CAREERS_EMAIL', 'PHONE', 'PHONE_E164',
   'STREET', 'LOCALITY', 'REGION', 'POSTCODE', 'COUNTRY', 'BOOKING_URL',
   'DESCRIPTION', 'TAGLINE', 'LOGO', 'LOGO_HEADER', 'LINKEDIN', 'FACEBOOK', 'TWITTER', 'YOUTUBE',
 ];

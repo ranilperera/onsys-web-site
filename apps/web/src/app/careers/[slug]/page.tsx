@@ -46,7 +46,8 @@ export default async function JobPage({ params }: Props) {
   if (!job) notFound();
 
   const open = isJobOpen(job.closesAt);
-  const applyTo = job.applyEmail || siteConfig.email;
+  // Per-job address when the advert sets one, the careers mailbox otherwise.
+  const applyTo = job.applyEmail || siteConfig.careersEmail;
   const subject = encodeURIComponent(`Application — ${job.title}`);
 
   return (

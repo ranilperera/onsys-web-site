@@ -100,6 +100,7 @@ services:
         ORG_ABN: ${ORG_ABN:-}
         ORG_ACN: ${ORG_ACN:-}
         ORG_EMAIL: ${ORG_EMAIL:-}
+        ORG_CAREERS_EMAIL: ${ORG_CAREERS_EMAIL:-}
         ORG_PHONE: ${ORG_PHONE:-}
         ORG_PHONE_E164: ${ORG_PHONE_E164:-}
         ORG_STREET: ${ORG_STREET:-}
