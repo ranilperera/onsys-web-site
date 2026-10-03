@@ -15,7 +15,6 @@ Internet ─▶ HAProxy ─┤                    data /opt/data           image
 ```
 
 ## What keeps the two apart
-
 Four values, all in `/opt/onsys-au/.env`. Each one is something that damages the
 live site quietly rather than failing loudly, which is why there is a preflight
 script that refuses to start without them.
@@ -32,7 +31,6 @@ script that refuses to start without them.
 assumed — `docker compose config` resolves to `onsys-au`.
 
 ## 1. Clone the branch
-
 ```bash
 sudo mkdir -p /opt/onsys-au /opt/data-au
 sudo chown "$USER":"$USER" /opt/onsys-au /opt/data-au
@@ -41,7 +39,6 @@ cd /opt/onsys-au
 ```
 
 ## 2. Build its `.env`
-
 ```bash
 cp .env.au.example .env
 ```
@@ -67,7 +64,6 @@ grep -E '^(ORG_|GRAPH_|TURNSTILE_|STRIPE_|LEAD_NOTIFY_TO|HEALTHCHECK_)' /opt/ons
 ```
 
 ## 3. Preflight
-
 ```bash
 ./scripts/preflight-au-stack.sh
 ```
@@ -76,40 +72,101 @@ It refuses to continue on a shared project name, image tag, data directory,
 port, secret or placeholder password, and it checks both ports are actually
 free. Expected output ends `PREFLIGHT OK`.
 
-## 4. Bring it up
-
-Both files, every time — the second adds the overlay that pins the data
-directory and publishes Postgres on loopback:
+## 4. Bring up the database only
+The order matters. A full stack would start the API, which runs
+`prisma migrate deploy` against an empty cluster and creates every table — and
+the old database then has nowhere to be restored to. So Postgres first:
 
 ```bash
-docker compose -f docker-compose.prod.yml -f docker-compose.au.yml up -d --build
+docker compose -f docker-compose.prod.yml -f docker-compose.au.yml up -d --build postgres
 ```
 
 Confirm the two stacks are genuinely separate before going further:
 
 ```bash
-docker compose -p onsys    ps --format '{{.Name}}\t{{.Image}}'   # :latest, untouched
-docker compose -p onsys-au ps --format '{{.Name}}\t{{.Image}}'   # :au
+docker compose -p onsys    ps --format '{{.Name}}	{{.Image}}'   # :latest, untouched
+docker compose -p onsys-au ps --format '{{.Name}}	{{.Image}}'   # :au
 docker image ls | grep -E 'onsys-(api|web)'                      # both tags present
 ```
 
-## 5. Migrate and seed the new database
+## 5. Copy the live database across
+**Not a fresh seed.** Most of this site does not exist in the seed files:
 
-It is an empty cluster. The API container applies migrations on start
-(`docker-entrypoint-api.sh`), so this is the content and the first admin user:
+| Table | In the seed | Only in the database |
+|---|---|---|
+| `posts` | 3 | **52** — the WordPress archive, which is most of the site's traffic |
+| `redirects` | — | **53** — built by the blog-redirect backfill |
+| `content_chunks` | — | **139** — chatbot embeddings, rebuilt only by paying for them again |
+| `users` | — | the admin account, its TOTP secret and its recovery codes |
+| `leads`, `bookings`, `chat_sessions`, `health_check_tokens` | — | everything anyone has ever submitted |
+
+Seeding a new cluster would produce a site with three blog posts. Dump and
+restore instead:
 
 ```bash
-cd /opt/onsys-au
-docker compose -f docker-compose.prod.yml -f docker-compose.au.yml exec api npm run seed -w @onsys/api
-docker compose -f docker-compose.prod.yml -f docker-compose.au.yml exec api npm run seed:nav -w @onsys/api
-docker compose -f docker-compose.prod.yml -f docker-compose.au.yml exec api npm run create:admin -w @onsys/api
+# From the live stack. 12 MB or so; check you have room first.
+df -h /opt
+cd /opt/onsys
+docker compose exec -T postgres pg_dump -U onsys -d onsys --no-owner --no-privileges   | gzip > /tmp/onsys-$(date +%F-%H%M).sql.gz
+ls -lh /tmp/onsys-*.sql.gz
 ```
 
-`seed` is required, not optional: it is what applies the held-as-draft status to
-the staff augmentation page and loads every page this branch changed.
+Note the time you took it — step 8 checks whether anything arrived afterwards.
 
-## 6. Verify on 3010, before HAProxy knows it exists
+```bash
+# Into the new cluster, which is empty.
+cd /opt/onsys-au
+gunzip -c /tmp/onsys-<the file you just made>.sql.gz   | docker compose -f docker-compose.prod.yml -f docker-compose.au.yml       exec -T postgres psql -U onsys -d onsys -v ON_ERROR_STOP=1
+```
 
+`ON_ERROR_STOP=1` matters: without it psql reports errors and carries on, and a
+half-restored database looks like a working one. The dump carries its own
+`CREATE EXTENSION vector`, and both clusters run the same pgvector image, so the
+embeddings restore as they are.
+
+Check the counts match before going on:
+
+```bash
+for t in posts pages redirects content_chunks users leads bookings chat_sessions; do
+  old=$(cd /opt/onsys && docker compose exec -T postgres psql -U onsys -d onsys -At -c "select count(*) from $t")
+  new=$(cd /opt/onsys-au && docker compose -f docker-compose.prod.yml -f docker-compose.au.yml exec -T postgres psql -U onsys -d onsys -At -c "select count(*) from $t")
+  printf '%-18s old=%-6s new=%-6s %s
+' "$t" "$old" "$new" "$([ "$old" = "$new" ] && echo OK || echo MISMATCH)"
+done
+```
+
+## 6. Start the rest, migrate, then seed
+```bash
+cd /opt/onsys-au
+docker compose -f docker-compose.prod.yml -f docker-compose.au.yml up -d --build
+docker compose -f docker-compose.prod.yml -f docker-compose.au.yml logs api | grep -i migrat
+```
+
+The API applies migrations on start, so it adds exactly the two this branch
+introduces — `leads.country` and the `jobs` table — on top of the restored
+history. Then apply this branch's content changes:
+
+```bash
+docker compose -f docker-compose.prod.yml -f docker-compose.au.yml exec api npm run seed -w @onsys/api
+```
+
+That is what rewrites the home page, retires the withdrawn claims, sets the
+canonical on `/managed-database-services`, applies the 3-business-day turnaround
+and holds the staff augmentation page as a draft. It rewrites seeded pages, so
+any page edit made in `/admin` and not reflected in `seed-content.ts` is
+replaced — the same as every deploy to the live stack today.
+
+The nav seed is **not** run: the footer rows were restored from the live
+database, including the Careers link, which is updated in place instead:
+
+```bash
+docker compose -f docker-compose.prod.yml -f docker-compose.au.yml exec -T postgres   psql -U onsys -d onsys -c "update nav_links set href='/careers', \"updatedAt\"=now() where label='Careers';"
+```
+
+No `create:admin`: the restored `users` row is the existing account, with its
+password and MFA enrolment intact.
+
+## 7. Verify on 3010, before HAProxy knows it exists
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:3010/                      # 200
 curl -s http://127.0.0.1:3010/healthz                                                # ok
@@ -132,8 +189,27 @@ curl -s http://127.0.0.1:3009/ | grep -c 'Keep your critical systems running'   
 Then log into `https://<vm>:3010`-equivalent via a tunnel, or check
 `/admin/jobs` through HAProxy after the cutover, and post a job.
 
-## 7. Cut HAProxy over
+## Two things to know before the cutover
 
+**HAProxy currently intercepts some paths itself.** `/remote-database-support-plan-a`,
+`-plan-b` and `-plan-c` return 200 from HAProxy rather than following the
+repository's 301 to `/managed-sql-server-support#plans`. Moving the backend does
+not change that — whatever rule is doing it will still apply, to the new stack
+as it did to the old. Worth finding while you are in the file:
+
+```bash
+sudo grep -nE 'plan-a|plan-b|plan-c|redirect|acl' /etc/haproxy/haproxy.cfg
+```
+
+**Anything submitted between the dump and the cutover exists only in the old
+database.** While HAProxy still points at 3009, a lead, a booking or a
+health-check claim lands in `/opt/data`, and the copy taken in step 5 already
+happened. Keep the window short — ideally dump, restore, verify and cut over in
+one sitting — and run the straggler check in step 9 before stopping the old
+stack. It is a handful of rows at most, but `health_check_tokens` is the one
+that matters: each row is a customer who has already had their free check.
+
+## 8. Cut HAProxy over
 The HAProxy config is **not in this repository**, so this is the one step that
 cannot be scripted from here. On the VM, find the backend that currently sends
 traffic to `127.0.0.1:3009` — typically `/etc/haproxy/haproxy.cfg`:
@@ -171,41 +247,44 @@ sudo cp /etc/haproxy/haproxy.cfg.bak-$(date +%F) /etc/haproxy/haproxy.cfg
 sudo haproxy -c -f /etc/haproxy/haproxy.cfg && sudo systemctl reload haproxy
 ```
 
-## Two things to know before the cutover
+## 9. Stop the old stack
+Only now, with the site verified through HAProxy on the new backend.
 
-**HAProxy currently intercepts some paths itself.** `/remote-database-support-plan-a`,
-`-plan-b` and `-plan-c` return 200 from HAProxy rather than following the
-repository's 301 to `/managed-sql-server-support#plans`. Moving the backend does
-not change that — whatever rule is doing it will still apply. Worth finding
-while you are in the file:
-
-```bash
-sudo grep -nE 'plan-a|plan-b|plan-c|redirect|acl' /etc/haproxy/haproxy.cfg
-```
-
-**The two databases diverge from the moment both are up.** Leads, bookings,
-chat sessions and health-check requests that arrive while HAProxy still points
-at 3009 land in `/opt/data`, and anything after the cutover lands in
-`/opt/data-au`. Content is reproducible from the seed; **submissions are not**.
-If the cutover is more than a few minutes after step 5, dump and restore the
-operational tables, or do the cutover immediately after seeding:
+First check nothing arrived in the old database after the dump — leads, bookings
+or a health-check claim submitted during the cutover window:
 
 ```bash
 cd /opt/onsys
-docker compose exec -T postgres pg_dump -U onsys -d onsys \
-  -t leads -t bookings -t emergency_requests -t chat_sessions -t chat_messages \
-  -t health_check_tokens --data-only > /tmp/ops.sql
-cd /opt/onsys-au
-docker compose -f docker-compose.prod.yml -f docker-compose.au.yml \
-  exec -T postgres psql -U onsys -d onsys < /tmp/ops.sql
+for t in leads bookings emergency_requests chat_sessions health_check_tokens; do
+  printf '%-22s ' "$t"
+  docker compose exec -T postgres psql -U onsys -d onsys -At     -c "select count(*) from $t where \"createdAt\" > '<the dump timestamp>'"
+done
 ```
 
-Check the row counts match before and after, and remember `health_check_tokens`
-carries the one-free-check-per-customer rule — losing it lets a previous
+Anything non-zero is a row that exists only in the old database. Copy those few
+across by hand before stopping it — `health_check_tokens` especially, because it
+carries the one-free-check-per-customer rule, and losing a row lets a past
 recipient claim a second free check.
 
-## Decommissioning the old stack, later
+Then stop it:
 
+```bash
+cd /opt/onsys
+docker compose stop
+docker compose ps        # all four Exited
+docker ps                # kimai-prod and kimai-prod-lk still running, untouched
+```
+
+`stop`, not `down`: the containers stay, so rollback is `docker compose start`
+and a one-line HAProxy change. Use `down` only once you are certain, and never
+delete `/opt/data` — it is the only copy of everything the old stack collected.
+
+Two containers on this VM belong to another application entirely —
+`kimai-prod` on 8001 and `kimai-prod-lk` on 8002. Nothing in this procedure
+touches them, and `docker compose stop` from `/opt/onsys` cannot reach them
+because it is scoped to the `onsys` project. Do not use bare `docker stop $(docker ps -q)`.
+
+## Decommissioning the old stack, later
 Only once the new one has served real traffic for long enough to trust:
 
 ```bash
