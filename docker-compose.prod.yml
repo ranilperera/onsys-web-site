@@ -16,6 +16,26 @@
 #   docker compose -f docker-compose.prod.yml up -d --build
 #
 # Values come from the .env file sitting beside this file. See DOCKER-DEPLOYMENT.md.
+#
+# RUNNING A SECOND STACK ON THE SAME VM
+#
+# This file is reused for a parallel deployment (a second checkout, its own
+# database, its own port) — see docs/DEPLOY-AU-STACK.md. Four things keep the
+# two apart, and all four live in the second stack's own .env:
+#
+#   COMPOSE_PROJECT_NAME  containers, networks and volumes are namespaced by it.
+#                         Set in .env, it beats the `name:` below with no flag
+#                         to remember on the command line.
+#   IMAGE_TAG             the built image tag. Without it both stacks build to
+#                         onsys-api:latest and onsys-web:latest, and the second
+#                         build replaces the image the first one restarts onto.
+#   DATA_ROOT             the Postgres data directory is a bind mount. Two
+#                         clusters on one directory is not a conflict Postgres
+#                         survives.
+#   APP_PORT              the edge publishes it on loopback.
+#
+# scripts/preflight-au-stack.sh refuses to start a stack that collides on any
+# of them. Run it before `up`.
 
 name: onsys
 
@@ -48,7 +68,7 @@ services:
     build:
       context: .
       dockerfile: infra/Dockerfile.api
-    image: onsys-api:latest
+    image: onsys-api:${IMAGE_TAG:-latest}
     restart: unless-stopped
     depends_on:
       postgres:
@@ -116,7 +136,7 @@ services:
         ORG_FACEBOOK: ${ORG_FACEBOOK:-}
         ORG_TWITTER: ${ORG_TWITTER:-}
         ORG_YOUTUBE: ${ORG_YOUTUBE:-}
-    image: onsys-web:latest
+    image: onsys-web:${IMAGE_TAG:-latest}
     restart: unless-stopped
     depends_on:
       api:
