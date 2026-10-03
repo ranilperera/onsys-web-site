@@ -66,8 +66,8 @@
     works but is not required.
 
     Send the zip it produces to healthcheck@onsys.com.au, quoting your company
-    name. We return a written report within 7 business days of receiving it, and
-    book a free Teams call to walk you through it within 2 weeks.
+    name. We return a written report within 3 business days of receiving it, and
+    book a free Teams call to walk you through it within 5 business days.
 
     ---------------------------------------------------------------------------
     Copyright (c) 2026 Onsys Pty Ltd. All rights reserved.
@@ -978,8 +978,8 @@ if ($bad -gt 0) {
 Write-Host '  Next step: email the zip to healthcheck@onsys.com.au,' -ForegroundColor White
 Write-Host '  quoting your company name.' -ForegroundColor White
 Write-Host ''
-Write-Host '  We send a written report within 7 business days of receiving it, and' -ForegroundColor White
-Write-Host '  book a free Teams call to walk you through it within 2 weeks.' -ForegroundColor White
+Write-Host '  We send a written report within 3 business days of receiving it, and' -ForegroundColor White
+Write-Host '  book a free Teams call to walk you through it within 5 business days.' -ForegroundColor White
 Write-Host ''
 Write-Host '  Provided as is, without warranty. (c) 2026 Onsys Pty Ltd.' -ForegroundColor DarkGray
 Write-Host ''

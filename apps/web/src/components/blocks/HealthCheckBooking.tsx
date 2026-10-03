@@ -151,8 +151,8 @@ export function HealthCheckBooking({ eyebrow, heading, body, note }: HealthCheck
           ) : (
             <p className="emergency-alt">
               Once your results reach us we send the written report within{' '}
-              <strong>7 business days</strong>, and book a Teams walkthrough within{' '}
-              <strong>2 weeks</strong>. The call is free and there is no obligation. If
+              <strong>3 business days</strong>, and book a Teams walkthrough within{' '}
+              <strong>5 business days</strong>. The call is free and there is no obligation. If
               production is down right now, call{' '}
               <a href={`tel:${siteConfig.phoneE164}`}>{siteConfig.phone}</a> instead of waiting.
             </p>
@@ -284,11 +284,11 @@ export function HealthCheckBooking({ eyebrow, heading, body, note }: HealthCheck
                 </div>
                 <div>
                   <dt>3. Written report</dt>
-                  <dd>Within 7 business days</dd>
+                  <dd>Within 3 business days</dd>
                 </div>
                 <div>
                   <dt>4. Teams walkthrough</dt>
-                  <dd>Within 2 weeks</dd>
+                  <dd>Within 5 business days</dd>
                 </div>
               </dl>
               {note && <p className="emergency-note">{note}</p>}

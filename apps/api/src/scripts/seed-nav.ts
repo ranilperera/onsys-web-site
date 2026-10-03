@@ -35,7 +35,10 @@ const FOOTER: Array<{ group: string; links: Array<{ label: string; href: string 
       { label: 'Certifications', href: '/expertise#certifications' },
       { label: 'Products', href: '/products' },
       { label: 'Insights', href: '/blog' },
-      { label: 'Careers', href: '/contact' },
+      // /careers is a real page now, managed from /admin/jobs. It pointed at
+      // the contact form since launch, which every review flagged as a trust
+      // problem: a buyer checking whether the people exist found a form.
+      { label: 'Careers', href: '/careers' },
     ],
   },
   {
