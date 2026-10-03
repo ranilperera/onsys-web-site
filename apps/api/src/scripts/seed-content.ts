@@ -14,180 +14,102 @@ import { org } from '../lib/env';
  * Trust" hero, the eight service pillars from the tabbed section, the six
  * "Why Onsys Technologies?" reasons and the free-consultation offer.
  *
- * Claims (up to 50% cost reduction, 250+ certified experts, the 2025 awards)
- * are Onsys's own, lifted verbatim from the live site rather than invented.
+ * Claims were originally Onsys's own, lifted verbatim from the live site
+ * rather than invented. Two of them — "250+ certified experts" and "2 delivery
+ * hubs" — were retired on 3 October 2026 on the sales plan's recommendation:
+ * see the note on the /about stats band for the reasoning.
  */
 const homeBlocks: Block[] = [
   {
-    // Rotating hero. This block is slide one; `slides` carries the rest. The
-    // interval is NEXT_PUBLIC_HERO_ROTATE_SECONDS, and 0 pins it to slide one.
+    // Single hero, one still image, no carousel.
     //
-    // Only slide one renders as the page's h1 — the others are visually
-    // identical paragraphs, so the homepage keeps exactly one heading rather
-    // than three competing ones.
+    // `heading` and `highlight` render as "{heading} {highlight}", so the
+    // headline is split in reading order and the emphasis falls on the phrase
+    // that qualifies the buyer. The three rotating slides each argued a
+    // different position — database support, then cost saving, then "technology
+    // expertise that keeps your business moving" — so the first thing a visitor
+    // read depended on when they arrived. The sales plan of 3 October 2026
+    // settles it on one: 24/7 database support for teams with no DBA, with the
+    // free health check as the single primary action.
     //
-    // Slide one's body opens with SQL Server on purpose. It used to list five
-    // service categories and commit to none of them, which left the first
-    // sentence a retrieval system reads saying nothing about what this site is
-    // actually for. The other platforms still appear, after the commitment
-    // rather than instead of it.
+    // `slides: []` rather than no slides at all: the zod default makes it a
+    // required field on Block, which is the output type. Empty is what matters
+    // — the renderer only mounts the carousel when slides exist, so this is
+    // what turns rotation off, and NEXT_PUBLIC_HERO_ROTATE_SECONDS now has
+    // nothing to rotate whatever it is set to.
     type: 'hero',
-    eyebrow: '24/7 database & IT expertise',
-    heading: 'Keep your critical systems running.',
-    highlight: '24/7.',
-    body: 'Senior SQL Server DBAs on call around the clock for Australian businesses, with Oracle, PostgreSQL and MySQL covered on the same team. Monitoring, patching, tuning and incident response — under a response SLA that starts when the alert fires, not when somebody notices.',
-    platforms: 'SQL Server · Oracle · PostgreSQL · MySQL · Azure · AWS',
+    eyebrow: 'Remote DBA services · Australia & New Zealand',
+    heading: '24/7 database support for teams',
+    highlight: 'without a DBA.',
+    body: 'Senior Australian DBAs on call around the clock, across SQL Server, Oracle, PostgreSQL, MySQL and MongoDB. Plans from $1,500 a month, every price published, no lock-in.',
+    platforms: 'SQL Server · Oracle · PostgreSQL · MySQL · MongoDB',
     backgroundImage: '/images/hero-home-1.jpg',
     ctas: [
-      { label: 'Talk to an Expert', href: '/book' },
-      { label: 'Explore Our Services', href: '/expertise' },
+      { label: 'Get the free health check', href: '/free-20-point-sql-server-health-check' },
+      { label: 'See published pricing', href: '/pricing-and-plans' },
     ],
-    slides: [
-      {
-        eyebrow: '24/7 managed database services',
-        heading: 'Your databases never stop.',
-        highlight: 'Neither does our support.',
-        body: 'Get senior DBA expertise without the cost and complexity of building a 24/7 in-house database team. Onsys helps Australian organisations monitor, manage, optimise and protect business-critical databases across SQL Server, Oracle, PostgreSQL and MySQL — backed by expertise across cloud, infrastructure and security.',
-        platforms: 'From $1,500 a month · Response from one hour · No lock-in contracts',
-        backgroundImage: '/images/hero-home-2.jpg',
-        ctas: [
-          { label: 'Get DBA Support', href: '/remote-database-support' },
-          { label: 'Explore Managed Database Services', href: '/managed-database-services' },
-        ],
-      },
-      {
-        eyebrow: 'Database · Cloud · Infrastructure · Security',
-        heading: 'Technology expertise that keeps',
-        highlight: 'your business moving.',
-        body: 'Onsys provides Australian organisations with senior specialists across database management, cloud, infrastructure, cybersecurity and IT services — from critical projects to ongoing 24/7 operational support.',
-        platforms: 'Expertise when you need it. Support you can depend on.',
-        backgroundImage: '/images/hero-home-3.jpg',
-        ctas: [
-          { label: 'Talk to Our Team', href: '/contact' },
-          { label: 'Explore Our Services', href: '/expertise' },
-        ],
-      },
-    ],
+    slides: [],
   },
   {
     type: 'quicklinks',
+    // Database-only, per the 3 October sales plan: managed IT, software, AI and
+    // security come off the home page entirely. They keep their own pages and
+    // their footer links; what changes is that the home page stops arguing for
+    // breadth. "Remote DBA" points at /remote-database-support, which is now
+    // the canonical of that pair — an internal link to a page that declares a
+    // different canonical spends the equity and then disclaims it.
     items: [
-      // WP7.4: the SQL Server hub gets a link from the homepage, first in the
-      // row. It is the silo's entry point and had nothing pointing at it.
       { label: 'SQL Server DBA', href: '/sql-server-dba-services', icon: '#s-managed', color: '#EAF1FB' },
-      { label: 'Remote DBA', href: '/managed-database-services', icon: '#s-managed', color: '#EAF1FB' },
-      { label: 'Managed IT', href: '/managed-it-services', icon: '#s-consult', color: '#E7F5EC' },
-      { label: 'Cloud & Migration', href: '/cloud-migrations', icon: '#s-cloud', color: '#FFF1E0' },
-      { label: 'Fixed-Price Projects', href: '/pricing-and-plans', icon: '#s-ha', color: '#EAF1FB' },
-      { label: 'Software & AI', href: '/custom-software-development', icon: '#s-code', color: '#E7F5EC' },
-      { label: 'Cyber Security', href: '/managed-security-services', icon: '#s-shield', color: '#FFF1E0' },
+      { label: 'Remote DBA', href: '/remote-database-support', icon: '#s-managed', color: '#EAF1FB' },
+      { label: 'Free health check', href: '/free-20-point-sql-server-health-check', icon: '#s-shield', color: '#E7F5EC' },
+      { label: 'Plans & pricing', href: '/pricing-and-plans', icon: '#s-ha', color: '#FFF1E0' },
+      { label: 'SQL Server projects', href: '/sql-server-migration-and-upgrade-services', icon: '#s-consult', color: '#EAF1FB' },
+      { label: 'Emergency support', href: '/emergency-database-support', icon: '#s-emergency', color: '#FFE9E9' },
     ],
   },
   {
-    // WP7.4: the H1 is a slogan carrying no keyword. This is the first H2 on
-    // the page and names what Onsys actually sells, so the homepage has a
-    // keyword-bearing heading without rewriting the brand line above it.
-    type: 'stats',
-    eyebrow: 'Why teams move to Onsys',
-    heading: 'SQL Server DBA services and 24/7 database support, Australia-wide',
-    stats: [
-      { value: 'Up to 50%', label: 'Lower DBA & IT operating cost' },
-      { value: '24/7', label: 'Monitoring, support and on-call cover' },
-      { value: '250+', label: 'Certified experts available on demand' },
-      { value: '2', label: 'Delivery hubs — Melbourne & Colombo' },
+    /**
+     * How a plan works, in four steps.
+     *
+     * This replaces two card grids: eight service cards that argued for breadth
+     * ("one supplier, one accountable team") and six reasons headed "One partner
+     * accountable for the whole stack". Both sold the catalogue rather than the
+     * database practice, and the 3 October sales plan retires that framing
+     * outright.
+     *
+     * The steps are not new claims. They are the onboarding sequence already
+     * published on /managed-database-services and /on-call-dba-services, with
+     * step one changed from "free consultation" to the health check because that
+     * is now the single primary action on the page.
+     *
+     * It also carries the keyword-bearing h2 that the deleted stats band used to
+     * provide. The h1 now names the service, so the page no longer depends on a
+     * stats heading to say what Onsys sells.
+     */
+    type: 'steps',
+    eyebrow: 'How it works',
+    heading: 'How 24/7 database support works, from health check to cover',
+    body: 'No discovery call needed to learn a price. Start with a free read-only check of one instance, and you will know what is wrong before you decide whether to buy anything.',
+    steps: [
+      { title: 'Free 20-point health check', body: 'You run read-only scripts on one SQL Server instance and send us the output. Nothing is installed, and you can read every line before it runs.' },
+      { title: 'Findings, on a call', body: 'A senior DBA walks you through what the check found and what it would take to fix — in writing, and on a Teams call rather than by email alone.' },
+      { title: 'Secure access & onboarding', body: 'If you go ahead: we confirm instance count, versions and platform, establish secure remote access, document escalation paths and issue your support number.' },
+      { title: 'Cover goes live', body: 'Monitoring, alerting and your response SLA start. The clock begins when the alert fires, not when somebody notices.' },
     ],
   },
-  {
-    type: 'cardGrid',
-    eyebrow: 'What we do',
-    heading: 'Partner with Onsys for reliable, scalable and cost-effective IT',
-    body: 'Trusted, cost-effective solutions from consultancy and managed IT services through to full-scale software development — one supplier, one accountable team.',
-    centered: true,
-    altBackground: true,
-    columns: 4,
-    cards: [
-      {
-        title: 'Remote DBA Support',
-        body: 'Round-the-clock monitoring and proactive support that resolves issues before they hit your business, across SQL Server, Oracle, PostgreSQL, MySQL, Azure SQL and MongoDB.',
-        icon: '#s-managed',
-        coverColor: '#EAF1FB',
-        tag: 'From $1,500/mo',
-        link: { label: 'See plans', href: '/pricing-and-plans' },
-      },
-      {
-        title: 'Fixed-Price Database Projects',
-        body: 'Migrations, upgrades and HA builds on milestone-based payments. Know exactly what you will pay — no overruns, no hidden costs, guaranteed timelines.',
-        icon: '#s-ha',
-        coverColor: '#FFF1E0',
-        tag: 'Milestone-based',
-        link: { label: 'How it works', href: '/pricing-and-plans' },
-      },
-      {
-        title: '24/7 Managed IT Services',
-        body: 'End-to-end management across infrastructure, cloud, networks, security and applications — backed by NOC and SOC teams and outcome-driven SLAs.',
-        icon: '#s-consult',
-        coverColor: '#E7F5EC',
-        tag: 'NOC + SOC',
-        link: { label: 'Managed IT plans', href: '/managed-it-services' },
-      },
-      {
-        title: 'Cloud Consultancy & Support',
-        body: 'Design, migrate and optimise across Azure, AWS and Oracle Cloud — zero-downtime migration, security built into every layer, DevOps and automation.',
-        icon: '#s-cloud',
-        coverColor: '#F3F2F1',
-        tag: 'Azure · AWS · OCI',
-        link: { label: 'Learn more', href: '/expertise' },
-      },
-      {
-        title: 'Artificial Intelligence',
-        body: 'Automate workflows and accelerate decisions with AI agents, document processing, advanced analytics and generative AI — delivered cloud-native and secure.',
-        icon: '#s-code',
-        coverColor: '#EAF1FB',
-        tag: 'AI & automation',
-        link: { label: 'Learn more', href: '/expertise' },
-      },
-      {
-        title: 'Software Development',
-        body: 'Tailored applications built by offshore talent under Australian project leadership, on fixed-cost, milestone or dedicated-team engagements.',
-        icon: '#s-etl',
-        coverColor: '#FFF1E0',
-        tag: 'Fixed-cost options',
-        link: { label: 'Learn more', href: '/expertise' },
-      },
-      {
-        title: 'Mobile App Development',
-        body: 'High-performance iOS, Android, Flutter and React Native apps — ideation, UI/UX, build, QA, launch and ongoing support under one engagement.',
-        icon: '#s-emergency',
-        coverColor: '#E7F5EC',
-        tag: 'iOS · Android',
-        link: { label: 'Learn more', href: '/expertise' },
-      },
-      {
-        title: 'Cyber Security Services',
-        body: 'Managed security services and managed EDR with real-time threat detection, SIEM optimisation and rapid incident response.',
-        icon: '#s-shield',
-        coverColor: '#F3F2F1',
-        tag: 'Managed EDR',
-        link: { label: 'Learn more', href: '/expertise' },
-      },
-    ],
-  },
-  {
-    type: 'cardGrid',
-    eyebrow: 'Why Onsys Technologies?',
-    heading: 'One partner accountable for the whole stack',
-    centered: true,
-    altBackground: false,
-    columns: 3,
-    cards: [
-      { title: 'End-to-end technology expertise', body: 'Database services, managed IT, cloud migration, cyber security, software development, AI and mobile apps — integrated solutions delivered under one roof.' },
-      { title: '24/7 availability and support', body: 'Always-on monitoring and on-call support that minimises downtime, improves availability and drives rapid incident resolution.' },
-      { title: 'Proven enterprise-grade delivery', body: 'Deep experience across SQL Server, Oracle, PostgreSQL, MySQL, Azure, AWS and OCI, keeping mission-critical systems secure and reliable.' },
-      { title: 'Innovation with AI and cloud', body: 'AI-driven SaaS products, automation and cloud-native solutions that help customers modernise and stay competitive.' },
-      { title: 'Flexible engagement models', body: 'Fixed-price projects, remote DBA plans, managed services or offshore development teams — budget predictability with room to scale.' },
-      { title: 'Customer-centric approach', body: 'Offshore scale with local accountability: up to 50% savings on IT operations, software and security, while your databases stay with our Australian consultants.' },
-    ],
-  },
+  /**
+   * GAP — anonymised outcome notes go here.
+   *
+   * The sales plan asks for three case studies at this position. There are
+   * none, and there is no client permission yet, so rather than publish an
+   * invented outcome the slot is marked and left empty. The agreed interim
+   * (3 October) is the sqldba.org model, which needs nobody's permission:
+   * three notes of a sector, a measured result and a first name — for example
+   * "Manufacturing · 92% fewer deadlocks · Daniel". It renders as a cardGrid,
+   * so it needs no new block type and no deploy: three facts, one admin edit.
+   *
+   * Blocked on three real outcomes with figures.
+   */
   {
     type: 'platformChips',
     eyebrow: 'Multi-platform database expertise',
@@ -244,31 +166,115 @@ const homeBlocks: Block[] = [
     },
   },
   {
-    type: 'checkList',
-    eyebrow: 'Free consultation',
-    heading: 'Talk to an Onsys expert',
-    body: "Speak with a senior database consultant at no cost. Let's explore how we can help you:",
-    items: [
-      'Boost database reliability and uptime',
-      'Accelerate performance with expert tuning',
-      'Eliminate staffing overhead with remote DBA support',
-      'Cut IT operating costs without losing enterprise-grade quality',
+    /**
+     * The plans, on the home page, with the per-instance figure shown.
+     *
+     * The sales plan's first pillar is that no competitor publishes a
+     * multi-platform price at all, so the home page should say the number
+     * rather than link to it. Figures are copied from /pricing-and-plans
+     * unchanged — this is the same price list, not a second one.
+     *
+     * Per-instance arithmetic is stated only for Plan A, where "$150 per
+     * instance" is already published as the title of
+     * /managed-sql-server-support. Plans B and C mix SQL Server with Oracle and
+     * PostgreSQL instances, which are not interchangeable units, so dividing
+     * their price by an instance count would manufacture a comparison nobody
+     * has agreed to.
+     */
+    type: 'pricing',
+    anchor: 'plans',
+    // Another zod default that is required on the output type. White here: the
+    // health-check band below it is the one that should carry the tint, so the
+    // eye lands on the free offer rather than the price list.
+    altBackground: false,
+    eyebrow: 'Published pricing',
+    heading: 'Monthly DBA plans, priced in public',
+    body: 'Every figure below is on the site because you should not need a discovery call to learn a price. GST exclusive, no lock-in, cancel with notice.',
+    columns: 3,
+    plans: [
+      {
+        name: '24/7 DBA Plan A',
+        price: '$1,500',
+        unit: 'per month — $150 per instance',
+        description: 'For teams running SQL Server without an in-house DBA.',
+        featured: false,
+        featuresTitle: 'Key features',
+        features: [
+          { label: 'Instances:', text: 'up to 10 SQL Server' },
+          { label: 'Response SLA:', text: '2 hours, guaranteed, 24/7' },
+          { label: 'Service hours:', text: '10 professional hours per month' },
+        ],
+        cta: { label: 'See full plan detail', href: '/pricing-and-plans#database-plans' },
+      },
+      {
+        name: '24/7 DBA Plan B',
+        price: '$3,000',
+        unit: 'per month',
+        featured: true,
+        badge: 'Most chosen',
+        description: 'For critical database infrastructure with no in-house DBA.',
+        featuresTitle: 'Key features',
+        features: [
+          { label: 'Instances:', text: '10 SQL Server plus 4 MySQL/PostgreSQL' },
+          { label: 'Response SLA:', text: '1 hour, 24/7' },
+          { label: 'Service hours:', text: '20 professional hours per month' },
+        ],
+        cta: { label: 'See full plan detail', href: '/pricing-and-plans#database-plans' },
+      },
+      {
+        name: '24/7 DBA Plan C',
+        price: '$7,500',
+        unit: 'per month',
+        description: 'For mixed estates across SQL Server, PostgreSQL and Oracle.',
+        featured: false,
+        featuresTitle: 'Key features',
+        features: [
+          { label: 'Instances:', text: '20 SQL Server, 4 MySQL/PostgreSQL, 6 Oracle' },
+          { label: 'Response SLA:', text: '1 hour, 24/7' },
+          { label: 'Service hours:', text: '50 professional hours per month' },
+        ],
+        cta: { label: 'See full plan detail', href: '/pricing-and-plans#database-plans' },
+      },
     ],
-    sidebar: {
-      title: 'What the call covers',
-      rows: [
-        { label: 'Duration', value: '30 minutes' },
-        { label: 'Cost', value: 'Free, no obligation' },
-        { label: 'You speak to', value: 'A senior consultant' },
-        { label: 'You walk away with', value: 'A risk review & recommended plan' },
-      ],
-    },
+    note: 'Standby cover without a plan starts at $100 per SQL Server instance a month. Consultancy is $150 an hour, four-hour minimum.',
+  },
+  {
+    /**
+     * The health check form itself, not a link to it.
+     *
+     * It replaces a "free consultation" checklist whose action was the contact
+     * form. The sales plan makes the health check the one primary call to
+     * action on this page, and a specific, free, scoped offer converts better
+     * than "get in touch" — so the form is embedded where the offer is made.
+     */
+    type: 'healthCheckBooking',
+    eyebrow: 'Start here',
+    heading: 'Free 20-point SQL Server health check',
+    body: 'One instance, no charge, no obligation. You run read-only scripts we publish in full and send us the output — nothing is installed and nothing connects out. A senior Australian DBA reviews it and walks you through the findings on a call.',
+    note: 'One free check per organisation. Configuration, backups, security and patch currency, with a written report.',
+  },
+  {
+    /**
+     * A5: the data-sovereignty answer, on the home page rather than in the
+     * footer.
+     *
+     * Wording is reused verbatim from the lede of /who-can-access-your-database,
+     * which was settled with the client and must stay consistent everywhere it
+     * appears. The split is a fixed rule, not a preference: Australian
+     * consultants on the databases, Colombo for the services around them. Do
+     * not reword this to imply round-the-clock offshore cover.
+     */
+    type: 'relatedService',
+    eyebrow: 'Data sovereignty',
+    heading: 'Who touches your database',
+    body: 'Your production databases are accessed by Onsys DBAs based in Australia, and only by them. No offshore engineer holds credentials to a client database — on every plan, by default, not as an upgrade.',
+    cta: { label: 'Read the access policy', href: '/who-can-access-your-database' },
   },
   {
     type: 'ctaBand',
-    heading: 'Focus on growth, not downtime.',
-    body: 'Onsys delivers reliable, cost-effective IT support, consultancy and managed solutions — so your team can get on with the business.',
-    cta: { label: 'Schedule a Free Consultation', href: '/contact' },
+    heading: 'Find out what is wrong before you buy anything.',
+    body: 'The free 20-point check covers one SQL Server instance, costs nothing and commits you to nothing. If the estate is healthy, we will tell you that.',
+    cta: { label: 'Get the free health check', href: '/free-20-point-sql-server-health-check' },
   },
 ];
 
@@ -419,6 +425,23 @@ const mdsBlocks: Block[] = [
     heading: 'What would an outage cost you tonight?',
     body: 'If you cannot answer that, book a free 30-minute consultation. A senior DBA will assess your environment and tell you where you are exposed — no obligation.',
     cta: { label: 'Book Your Free Consultation', href: '/contact' },
+  },
+  {
+    /**
+     * A5: the data-sovereignty block, on every page that sells a plan.
+     *
+     * Wording is identical to /who-can-access-your-database and to the home
+     * page, verbatim and on purpose — it was settled with the client, it is the
+     * answer to the objection every offshore-capable provider gets, and it must
+     * read the same wherever a buyer meets it. The rule is fixed: Australian
+     * consultants on the databases, Colombo for the services around them.
+     * Never reword this to imply round-the-clock offshore cover.
+     */
+    type: 'relatedService',
+    eyebrow: 'Data sovereignty',
+    heading: 'Who touches your database',
+    body: 'Your production databases are accessed by Onsys DBAs based in Australia, and only by them. No offshore engineer holds credentials to a client database — on every plan, by default, not as an upgrade.',
+    cta: { label: 'Read the access policy', href: '/who-can-access-your-database' },
   },
 ];
 
@@ -643,7 +666,7 @@ const aboutBlocks: Block[] = [
     columns: 3,
     cards: [
       { title: 'Database support & consultancy', body: 'Expert advice to optimise performance, migrate platforms, strengthen disaster recovery and build modern infrastructure.', icon: '#s-consult', coverColor: '#EAF1FB', link: { label: 'Database consultancy', href: '/database-consultancy' } },
-      { title: 'Managed database services', body: 'Proactive monitoring, incident management and system optimisation aligned with ITIL service delivery best practice.', icon: '#s-managed', coverColor: '#FFF1E0', link: { label: 'See what is included', href: '/managed-database-services' } },
+      { title: 'Managed database services', body: 'Proactive monitoring, incident management and system optimisation aligned with ITIL service delivery best practice.', icon: '#s-managed', coverColor: '#FFF1E0', link: { label: 'See what is included', href: '/remote-database-support' } },
       { title: 'Ad-hoc DBA support', body: 'On-demand staffing to fill resource gaps, support project rollouts and resolve urgent issues without a permanent hire.', icon: '#s-etl', coverColor: '#E7F5EC', link: { label: 'On-call cover', href: '/on-call-dba-services' } },
       { title: '24×7 remote DBA support', body: 'Around-the-clock access to experienced DBAs, keeping mission-critical databases operational at any hour.', icon: '#s-ha', coverColor: '#F3F2F1', link: { label: 'Compare plans', href: '/pricing-and-plans' } },
       { title: 'Emergency support', body: 'Rapid response to outages with root-cause analysis, to minimise downtime and protect business continuity.', icon: '#s-emergency', coverColor: '#EAF1FB', link: { label: 'Outage response', href: '/emergency-database-support' } },
@@ -717,14 +740,28 @@ const aboutBlocks: Block[] = [
     },
   },
   {
+    /**
+     * "250+ certified experts" and "2 delivery hubs — Melbourne & Colombo" are
+     * retired here as well as on the home page. Both were inherited verbatim
+     * from the old WordPress site, and the sales plan of 3 October 2026 is
+     * blunt about why they hurt: a large unverifiable headcount sits badly
+     * beside the one claim this business actually competes on, which is that
+     * only Australian consultants touch a client database. A buyer who reads
+     * "250+ experts" and then "Australian DBAs only" doubts the second.
+     *
+     * The three numbers meant to replace them — Australian DBAs on the team,
+     * instances under management, median first response in minutes — are not
+     * published yet, so what is left here are the figures that are already
+     * verifiable from the pricing page and the service levels.
+     */
     type: 'stats',
     eyebrow: 'By the numbers',
     heading: 'Enterprise-grade cover, without the enterprise headcount',
     stats: [
-      { value: 'Up to 50%', label: 'Lower DBA & IT operating cost' },
-      { value: '24/7', label: 'Monitoring, support and on-call cover' },
-      { value: '250+', label: 'Certified experts available on demand' },
-      { value: '2', label: 'Delivery hubs — Melbourne & Colombo' },
+      { value: '24/7', label: 'Monitoring, support and on-call cover, every day of the year' },
+      { value: '1 hour', label: 'P1 response SLA on Plan B and Plan C' },
+      { value: 'Australia', label: 'Where every DBA who touches your database is based' },
+      { value: 'None', label: 'Lock-in contracts, on any plan' },
     ],
   },
   {
@@ -1083,6 +1120,23 @@ const pricingBlocks: Block[] = [
     body: "Book a free 30-minute call with a senior consultant. We'll size a plan against your instance count, data volume and response times — no obligation.",
     cta: { label: 'Book a Free Consultation', href: '/contact' },
   },
+  {
+    /**
+     * A5: the data-sovereignty block, on every page that sells a plan.
+     *
+     * Wording is identical to /who-can-access-your-database and to the home
+     * page, verbatim and on purpose — it was settled with the client, it is the
+     * answer to the objection every offshore-capable provider gets, and it must
+     * read the same wherever a buyer meets it. The rule is fixed: Australian
+     * consultants on the databases, Colombo for the services around them.
+     * Never reword this to imply round-the-clock offshore cover.
+     */
+    type: 'relatedService',
+    eyebrow: 'Data sovereignty',
+    heading: 'Who touches your database',
+    body: 'Your production databases are accessed by Onsys DBAs based in Australia, and only by them. No offshore engineer holds credentials to a client database — on every plan, by default, not as an upgrade.',
+    cta: { label: 'Read the access policy', href: '/who-can-access-your-database' },
+  },
 ];
 
 /**
@@ -1276,6 +1330,23 @@ const onCallBlocks: Block[] = [
     heading: 'Tailor-made database support for your environment',
     body: 'Every business is different. Tell us your instance count and the hours you need covered, and we will put together a solution that fits — at no cost.',
     cta: { label: 'Schedule a Free Consultation', href: '/contact' },
+  },
+  {
+    /**
+     * A5: the data-sovereignty block, on every page that sells a plan.
+     *
+     * Wording is identical to /who-can-access-your-database and to the home
+     * page, verbatim and on purpose — it was settled with the client, it is the
+     * answer to the objection every offshore-capable provider gets, and it must
+     * read the same wherever a buyer meets it. The rule is fixed: Australian
+     * consultants on the databases, Colombo for the services around them.
+     * Never reword this to imply round-the-clock offshore cover.
+     */
+    type: 'relatedService',
+    eyebrow: 'Data sovereignty',
+    heading: 'Who touches your database',
+    body: 'Your production databases are accessed by Onsys DBAs based in Australia, and only by them. No offshore engineer holds credentials to a client database — on every plan, by default, not as an upgrade.',
+    cta: { label: 'Read the access policy', href: '/who-can-access-your-database' },
   },
 ];
 
@@ -4498,6 +4569,12 @@ export interface SeedPage {
   seoDescription: string;
   navOrder?: number;
   /**
+   * Absolute URL to declare as this page's canonical, when the page should be
+   * served but another URL should be the one indexed. Used to resolve two pages
+   * that sell the same thing to the same buyer without deleting either.
+   */
+  canonicalUrl?: string;
+  /**
    * Defaults to PUBLISHED. Set DRAFT to hold a finished page out of the index
    * without deleting it — the content stays in the repo and in /admin, and
    * publishing is one word and a re-seed. Used when a page is written but the
@@ -4539,7 +4616,7 @@ const healthCheckBlocks: Block[] = [
   {
     type: 'richText',
     html: `
-<p>The <strong>free 20-point SQL Server health check</strong> is a read-only assessment of one SQL Server instance. Every checkpoint is collected by a script you can read first, run yourself, and keep. We analyse the output and send a written report rating all twenty points, then present it on a free Teams call. The report arrives within 7 business days of your results reaching us and the call is booked within 2 weeks. There is no obligation to engage us afterwards. One free check per customer, on one instance.</p>`,
+<p>The <strong>free 20-point SQL Server health check</strong> is a read-only assessment of one SQL Server instance. Every checkpoint is collected by a script you can read first, run yourself, and keep. We analyse the output and send a written report rating all twenty points, then present it on a free Teams call. The report arrives within 3 business days of your results reaching us and the call is booked within 5 business days. There is no obligation to engage us afterwards. One free check per customer, on one instance.</p>`,
   },
   {
     type: 'steps',
@@ -4597,7 +4674,7 @@ const healthCheckBlocks: Block[] = [
       },
       {
         title: 'About 20 minutes to collect',
-        body: 'The queries are read-only and safe to run during business hours. The analysis is our time, not yours — you spend twenty minutes collecting, and the report is back within 7 business days.',
+        body: 'The queries are read-only and safe to run during business hours. The analysis is our time, not yours — you spend twenty minutes collecting, and the report is back within 3 business days.',
         tag: '~20 minutes',
         icon: '#s-managed',
         coverColor: '#FFF1E0',
@@ -4611,10 +4688,10 @@ const healthCheckBlocks: Block[] = [
     heading: 'What you receive',
     body: 'A written report you own, whether or not you become a client. Both timings below run from the day your results reach us, not from the day you ask.',
     items: [
-      'A findings report rating each of the 20 points, with the script output behind every rating, within 7 business days.',
+      'A findings report rating each of the 20 points, with the script output behind every rating, within 3 business days.',
       'A prioritised remediation list separating what is urgent from what is merely untidy.',
       'An estimate of effort for each item, so you can budget or schedule it internally.',
-      'A free 30-minute Teams walkthrough with the senior DBA who analysed the output, within 2 weeks of your results reaching us.',
+      'A free 30-minute Teams walkthrough with the senior DBA who analysed the output, within 5 business days of your results reaching us.',
       'The script bundle itself, so your team can re-run any check whenever they want.',
       'No obligation to engage Onsys for the remediation — plenty of clients do it themselves.',
     ],
@@ -4623,8 +4700,8 @@ const healthCheckBlocks: Block[] = [
       rows: [
         { label: 'Cost', value: 'Free, one instance' },
         { label: 'Your time', value: 'About 20 minutes' },
-        { label: 'Written report', value: 'Within 7 business days' },
-        { label: 'Teams walkthrough', value: 'Within 2 weeks' },
+        { label: 'Written report', value: 'Within 3 business days' },
+        { label: 'Teams walkthrough', value: 'Within 5 business days' },
         { label: 'Send results to', value: 'healthcheck@onsys.com.au' },
         { label: 'Access needed', value: 'None — you run the scripts' },
         { label: 'Production impact', value: 'None, read-only queries' },
@@ -4641,14 +4718,14 @@ const healthCheckBlocks: Block[] = [
       { title: 'Request your health check', body: 'Tell us the company, a contact and which SQL Server version you are running. You get the collector immediately — there is nothing to wait for before you can start reading it.' },
       { title: 'Read it, then run it', body: 'Every query is published on this page in full, and the same queries are in the download. Review it with whoever needs to sign off, then run it against one instance. About twenty minutes, read-only throughout.' },
       { title: 'Send us the results', body: 'The script writes one zip file. Email it to healthcheck@onsys.com.au, quoting your company name. It holds configuration and performance metadata only — no table data, and query text is excluded unless you choose to include it.' },
-      { title: 'Written report, then a free Teams call', body: 'We send a written report rating all twenty points within 7 business days of receiving your results, and book a Teams call to walk you through it within 2 weeks. The call is free and carries no obligation.' },
+      { title: 'Written report, then a free Teams call', body: 'We send a written report rating all twenty points within 3 business days of receiving your results, and book a Teams call to walk you through it within 5 business days. The call is free and carries no obligation.' },
     ],
   },
   {
     type: 'healthCheckBooking',
     eyebrow: 'Request your health check',
     heading: 'Book your free 20-point SQL Server health check',
-    body: 'One SQL Server instance, no charge, no obligation. Tell us what you are running and you get the collector straight away — run it yourself and send the zip to healthcheck@onsys.com.au. We return a written report within 7 business days and book a free Teams call to present it within 2 weeks.',
+    body: 'One SQL Server instance, no charge, no obligation. Tell us what you are running and you get the collector straight away — run it yourself and send the zip to healthcheck@onsys.com.au. We return a written report within 3 business days and book a free Teams call to present it within 5 business days.',
     note: 'One free health check per customer, on one instance. If production is down right now, this is the wrong page — call us instead.',
   },
 ];
@@ -4795,6 +4872,23 @@ const sqlServerDbaBlocks: Block[] = [
     body: 'Twenty checkpoints across one SQL Server instance, with a written report and no obligation. It is the fastest way to find out whether your estate needs us at all.',
     cta: { label: 'Book your free health check', href: '/free-20-point-sql-server-health-check' },
   },
+  {
+    /**
+     * A5: the data-sovereignty block, on every page that sells a plan.
+     *
+     * Wording is identical to /who-can-access-your-database and to the home
+     * page, verbatim and on purpose — it was settled with the client, it is the
+     * answer to the objection every offshore-capable provider gets, and it must
+     * read the same wherever a buyer meets it. The rule is fixed: Australian
+     * consultants on the databases, Colombo for the services around them.
+     * Never reword this to imply round-the-clock offshore cover.
+     */
+    type: 'relatedService',
+    eyebrow: 'Data sovereignty',
+    heading: 'Who touches your database',
+    body: 'Your production databases are accessed by Onsys DBAs based in Australia, and only by them. No offshore engineer holds credentials to a client database — on every plan, by default, not as an upgrade.',
+    cta: { label: 'Read the access policy', href: '/who-can-access-your-database' },
+  },
 ];
 
 /**
@@ -4924,6 +5018,23 @@ const managedSqlServerBlocks: Block[] = [
     heading: 'Not sure which plan fits your estate?',
     body: 'Start with the free 20-point health check on one instance. It tells us the size and shape of the estate, and tells you what condition it is actually in.',
     cta: { label: 'Book the free health check', href: '/free-20-point-sql-server-health-check' },
+  },
+  {
+    /**
+     * A5: the data-sovereignty block, on every page that sells a plan.
+     *
+     * Wording is identical to /who-can-access-your-database and to the home
+     * page, verbatim and on purpose — it was settled with the client, it is the
+     * answer to the objection every offshore-capable provider gets, and it must
+     * read the same wherever a buyer meets it. The rule is fixed: Australian
+     * consultants on the databases, Colombo for the services around them.
+     * Never reword this to imply round-the-clock offshore cover.
+     */
+    type: 'relatedService',
+    eyebrow: 'Data sovereignty',
+    heading: 'Who touches your database',
+    body: 'Your production databases are accessed by Onsys DBAs based in Australia, and only by them. No offshore engineer holds credentials to a client database — on every plan, by default, not as an upgrade.',
+    cta: { label: 'Read the access policy', href: '/who-can-access-your-database' },
   },
 ];
 
@@ -5267,6 +5378,20 @@ const remoteSupportBlocks: Block[] = [
     body: 'A 30-minute call with the consultant who would run your estate — not a salesperson, and not a form response.',
     cta: { label: 'Book a free consultation', href: org.bookingUrl },
   },
+  {
+    /**
+     * A5: the data-sovereignty block. Identical wording to
+     * /who-can-access-your-database and to every other plan page, verbatim and
+     * on purpose. The sidebar above says the same thing in passing; this says
+     * it as the page's own claim and links to the policy, which is what a buyer
+     * comparing providers is looking for.
+     */
+    type: 'relatedService',
+    eyebrow: 'Data sovereignty',
+    heading: 'Who touches your database',
+    body: 'Your production databases are accessed by Onsys DBAs based in Australia, and only by them. No offshore engineer holds credentials to a client database — on every plan, by default, not as an upgrade.',
+    cta: { label: 'Read the access policy', href: '/who-can-access-your-database' },
+  },
 ];
 
 export const pages: SeedPage[] = [
@@ -5324,6 +5449,23 @@ export const pages: SeedPage[] = [
     ],
   },
   {
+    /**
+     * A6: canonicalised to /remote-database-support.
+     *
+     * Two pages sold the same thing to the same buyer — a monthly plan with an
+     * SLA, from $1,500 — and four consecutive audits have flagged URL
+     * fragmentation on this site. /remote-database-support wins because it is
+     * an indexed WordPress URL carrying legacy equity (see the note in
+     * middleware.ts on why it is absent from the redirect map), the 3 October
+     * sales plan maps the "remote DBA Australia" cluster to it, and "remote" is
+     * how buyers search.
+     *
+     * The page stays published and keeps working. A canonical asks a crawler to
+     * credit the other URL; it does not take the content away from anyone
+     * already linking here. Internal links that pointed here now point at the
+     * survivor, because spending equity on a page that disclaims it is waste.
+     */
+    canonicalUrl: 'https://www.onsys.com.au/remote-database-support',
     slug: 'managed-database-services',
     title: 'Managed Database Services',
     heading: 'Managed database services',
@@ -6109,18 +6251,18 @@ export const pages: SeedPage[] = [
     ],
     seoTitle: 'Free SQL Server Health Check Australia | 20 Points',
     seoDescription:
-      '20-point SQL Server health check, free on one instance. Read-only, about 20 minutes to collect, written report in 7 business days. Melbourne-based senior DBAs.',
+      '20-point SQL Server health check, free on one instance. Read-only, about 20 minutes to collect, written report in 3 business days. Melbourne-based senior DBAs.',
     navOrder: 3,
     blocks: healthCheckBlocks,
     faqs: [
       { question: 'Is the SQL Server health check really free?', answer: 'Yes — one free health check per customer, on one SQL Server instance. No charge, no obligation and no requirement to engage us afterwards. You keep the report and the scripts either way, and you can re-run the scripts yourself as often as you like. We offer it because roughly half the environments we review turn out to have a finding serious enough that the owner wants help fixing it, and the other half tell someone we were straight with them.' },
-      { question: 'How long does a SQL Server health check take?', answer: 'About twenty minutes of your time. The data collection is a set of read-only scripts you run yourself, or that we run together on a screen share while you watch. Analysing the output is our time, not yours — the written report follows within 7 business days of your results reaching us, and we book a free 30-minute Teams walkthrough within 2 weeks. You send the results to healthcheck@onsys.com.au.' },
+      { question: 'How long does a SQL Server health check take?', answer: 'About twenty minutes of your time. The data collection is a set of read-only scripts you run yourself, or that we run together on a screen share while you watch. Analysing the output is our time, not yours — the written report follows within 3 business days of your results reaching us, and we book a free 30-minute Teams walkthrough within 5 business days. You send the results to healthcheck@onsys.com.au.' },
       { question: 'What access do you need for the health check?', answer: 'None. You run the scripts and send us the output, so we never need a login to your instance at all. If you would rather we drove, we do it on a screen share while you watch. The scripts need a login with VIEW SERVER STATE and VIEW ANY DEFINITION, plus a local Windows session on the host for the two PowerShell checks — sysadmin is not required.' },
-      { question: 'What do we get at the end of it?', answer: 'A findings report rating each of the 20 points with the script output behind every rating, a prioritised remediation list with effort estimates, the script bundle itself so your team can re-run any check whenever they like, and a free 30-minute Teams walkthrough with the DBA who analysed it. The report arrives within 7 business days of your results reaching us and the call is booked within 2 weeks.' },
+      { question: 'What do we get at the end of it?', answer: 'A findings report rating each of the 20 points with the script output behind every rating, a prioritised remediation list with effort estimates, the script bundle itself so your team can re-run any check whenever they like, and a free 30-minute Teams walkthrough with the DBA who analysed it. The report arrives within 3 business days of your results reaching us and the call is booked within 5 business days.' },
       { question: 'Will the health check affect production performance?', answer: 'No. Every check is a read-only query against system views and dynamic management views, plus read-only PowerShell for the host and disk checks. Nothing is written, no configuration is changed, no business data is read, and no maintenance window is required. Index fragmentation is collected in LIMITED mode, which samples rather than reading every page.' },
       { question: 'Can you health check Oracle, PostgreSQL or MySQL instead?', answer: 'Yes, though the free offer covers SQL Server. Oracle, PostgreSQL, EDB and MySQL health checks are run as a fixed-price engagement — usually a half day per instance at $150 per hour, quoted before the work starts.' },
       { question: 'Can we see the scripts before agreeing to anything?', answer: 'Yes — they are published in full at /onsys-sql-server-health-check.html before you speak to anybody. Every PowerShell command and every T-SQL query we run is there, with a note on what each one looks for. Nobody should approve a script they have not read, least of all one a supplier sent them.' },
-      { question: 'How do we send you the results, and how long does the report take?', answer: 'Email the zip the collector produces to healthcheck@onsys.com.au, quoting your company name. There is no slot to book first and nothing to wait for — you get the script as soon as you ask, and you run it whenever your change process allows. Once your results reach us we send the written report within 7 business days and book a free Teams walkthrough within 2 weeks. If production is down right now this is the wrong process entirely — call 1800 431 416.' },
+      { question: 'How do we send you the results, and how long does the report take?', answer: 'Email the zip the collector produces to healthcheck@onsys.com.au, quoting your company name. There is no slot to book first and nothing to wait for — you get the script as soon as you ask, and you run it whenever your change process allows. Once your results reach us we send the written report within 3 business days and book a free Teams walkthrough within 5 business days. If production is down right now this is the wrong process entirely — call 1800 431 416.' },
       { question: 'Do we have to send you data?', answer: 'Only the script output, and only if you want to. The queries return configuration, counters and metadata — file sizes, wait statistics, backup dates, login names — never rows from your tables. If you would rather send nothing at all, we run the scripts together on a screen share and take notes as we go.' },
       { question: 'Which SQL Server versions can you check?', answer: 'SQL Server 2012 and later for the full set. Most checks work on 2008 R2 as well, with a handful of DMVs unavailable — the script bundle notes which ones and gives the older alternative. Azure SQL Managed Instance is covered; Azure SQL Database omits the host and disk checks, since there is no host you control.' },
       { question: 'Do you have to be in Melbourne to book one?', answer: 'No. The check is run remotely, so we cover organisations anywhere in Australia and New Zealand. Our consultants are Melbourne-based and work Australian business hours, with 24/7 cover available on a support plan.' },
