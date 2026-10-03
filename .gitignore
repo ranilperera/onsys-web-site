@@ -15,13 +15,11 @@ uploads/
 dist-seed/
 
 # Any env file, however it got named — Windows "- Copy.env", .env.old, backups.
-# Only the example files are allowed through. The negation has to come after
-# the `.env*` line, or the broader pattern wins.
+# Only .env.example is allowed through.
 *.env
 !.env.example
 .env*
 !.env.example
-!.env.au.example
 *.bak
 *.orig
 
