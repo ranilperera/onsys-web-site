@@ -74,7 +74,7 @@ const DOUBLED_WORDS: Array<[RegExp, string]> = [
  */
 const META_DESCRIPTIONS: Record<string, string> = {
   'how-to-save-with-onsys-remote-database-services':
-    'How Australian businesses cut DBA costs by up to 50% with remote database support — what the model covers, where the savings come from, and when it fits.',
+    'What remote database support actually covers, where the cost difference against an in-house DBA comes from, and when the model does not fit.',
 };
 
 async function main(): Promise<void> {

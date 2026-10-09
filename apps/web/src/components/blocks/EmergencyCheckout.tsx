@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { siteConfig } from '@/lib/config';
+import { Turnstile } from '../Turnstile';
 import { GOALS, trackGoal } from '@/lib/analytics';
 
 interface SummaryRow {
@@ -42,6 +43,9 @@ export function EmergencyCheckout({
 }: EmergencyCheckoutProps) {
   const [phase, setPhase] = useState<Phase>('form');
   const [error, setError] = useState<string | null>(null);
+  const [captchaToken, setCaptchaToken] = useState('');
+  // Single-use tokens: a resubmit after a failure needs a fresh one.
+  const [captchaNonce, setCaptchaNonce] = useState(0);
   const [busy, setBusy] = useState(false);
   const [paidName, setPaidName] = useState<string | null>(null);
 
@@ -104,11 +108,14 @@ export function EmergencyCheckout({
           phone: form.get('phone'),
           email: form.get('email'),
           summary: form.get('summary') || undefined,
+          website: form.get('website') || undefined, // honeypot
+          captchaToken,
         }),
       });
       const data = await res.json();
 
       if (!res.ok) {
+        setCaptchaNonce((n) => n + 1);
         setError(data.error ?? `Something went wrong. Please call ${siteConfig.phone}.`);
         return;
       }
@@ -274,6 +281,20 @@ export function EmergencyCheckout({
                 />
               </div>
             </div>
+
+            {/* Anti-spam. Off-screen rather than display:none, which some bots
+                skip. This endpoint feeds the payment flow, so it is the one
+                that most needed closing. */}
+            <input
+              type="text"
+              name="website"
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden="true"
+              className="hp-field"
+            />
+
+            <Turnstile onToken={setCaptchaToken} resetKey={captchaNonce} />
 
             {error && (
               <div className="form-status error" role="alert">

@@ -115,6 +115,64 @@ export const blockSchema = z.discriminatedUnion('type', [
         /// emphasis without embedding HTML in the CMS.
         features: z.array(z.union([z.string(), z.object({ label: z.string(), text: z.string() })])),
         cta: linkSchema,
+        /**
+         * Show a two-field enquiry on the card instead of only a link.
+         *
+         * Every plan card sent people to the generic contact form, which asked
+         * for name, email, company, phone, service and a message before anyone
+         * could ask what a plan would cost them. The enquiry asks for a work
+         * email and an instance count, records which plan was being looked at,
+         * and offers a sizing call — the plan name is the one thing the contact
+         * form could never capture.
+         *
+         * The `cta` stays and is rendered alongside, because some visitors
+         * want the detail page before they want a conversation.
+         */
+        /*
+         * `.optional()` rather than `.default(false)` on purpose. Block is
+         * zod's *output* type, so a defaulted field becomes required on it —
+         * which would mean adding `enquiry: false` to all twenty existing plan
+         * cards in the seed to satisfy the compiler, for no behavioural gain.
+         */
+        enquiry: z.boolean().optional(),
+      }),
+    ),
+  }),
+  /**
+   * Testimonials.
+   *
+   * Five consecutive SEO reports recorded zero testimonials on this site while
+   * every competitor that outranks it shows named clients. This is the block
+   * that fixes that when quotes exist.
+   *
+   * `attribution` is deliberately one free-text field rather than separate
+   * name/role/company fields. A quote can be attributed as "IT Manager,
+   * Australian healthcare group" when the client will not be named, and that
+   * has to be as easy to enter as a full name — otherwise the pressure is to
+   * leave the fields blank or to invent something to fill them.
+   *
+   * There is no `rating`, and no Review schema is emitted. AggregateRating on
+   * testimonials that were never collected as reviews is the kind of markup
+   * that earns a manual action.
+   */
+  z.object({
+    type: z.literal('testimonial'),
+    eyebrow: z.string().optional(),
+    heading: z.string().optional(),
+    body: z.string().optional(),
+    anchor: z.string().optional(),
+    altBackground: z.boolean().default(false),
+    quotes: z.array(
+      z.object({
+        /// The quote itself, without surrounding quotation marks — the markup
+        /// supplies those, so a pasted quote cannot end up double-quoted.
+        quote: z.string(),
+        /// "IT Manager, Australian healthcare group" or a name and title.
+        attribution: z.string(),
+        /// Optional second line: sector, region, or which service it concerns.
+        context: z.string().optional(),
+        /// Path under /public. Omitted for an anonymous attribution.
+        logo: z.string().optional(),
       }),
     ),
   }),

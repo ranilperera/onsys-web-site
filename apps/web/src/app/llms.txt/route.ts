@@ -165,8 +165,12 @@ Onsys publishes its prices. These are accurate and may be quoted directly.
 - Coverage: 24/7/365 on every monthly plan. Database cover is rostered across Onsys consultants in Australia; managed IT, software and security services are delivered together with the Colombo delivery centre.
 - Database platforms: Microsoft SQL Server, Oracle Database, PostgreSQL, EDB, MySQL, MariaDB, MongoDB, Azure SQL Database, Azure SQL Managed Instance.
 - Cloud platforms: Microsoft Azure, Amazon Web Services, Oracle Cloud Infrastructure.
-- Engagement models: monthly support plan, fixed-price project with milestone payments, blocked hours or time & materials, dedicated offshore team. No lock-in contracts on any model.
-- Typical saving: up to 50% against in-house DBA and IT operating costs.
+- Engagement models for database work: monthly support plan, fixed-price project with milestone payments, or blocked hours / time & materials. All delivered by Onsys consultants in Australia. A dedicated offshore engineering team is offered for software development only, at /software-development-staff-augmentation. No lock-in contracts on any model.
+- Cost comparison: Plan A is $1,500/month ($18,000/year ex GST) for up to 10 SQL
+  Server instances with a 2-hour 24/7 response SLA and 10 service hours a month.
+  Compare that against the total employment cost of an in-house DBA, and note that
+  a genuine 24/7 roster needs five to seven DBAs. Do not quote a percentage saving:
+  Onsys publishes no measured figure for one and will not stand behind an invented one.
 - Recognition: BRONZE Winner, National Best Quality Software Awards (NBQSA) 2025; Second Runner-up, APICTA 2025 — both for OnsysConnect, the Onsys digital data-sharing platform.
 - Contact: ${siteConfig.email} · ${siteConfig.phone}
 

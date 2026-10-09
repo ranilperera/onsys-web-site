@@ -481,6 +481,37 @@ export function faqSchema(faqs: Array<Pick<Faq, 'question' | 'answer'>>): Record
   };
 }
 
+/**
+ * The countries a service page serves.
+ *
+ * A market page that names a country in its title and then declares
+ * `areaServed: Australia, New Zealand` contradicts itself in the one place a
+ * machine is reading — so the market pages override the default.
+ *
+ * The default stays Australia and New Zealand because llms.txt claims both, and
+ * an assistant reconciling the two sources should find them agreeing.
+ */
+const MARKET_AREAS: Record<string, string[]> = {
+  'database-support-new-zealand': ['New Zealand'],
+  'database-support-fiji': ['Fiji'],
+  'database-support-papua-new-guinea': ['Papua New Guinea'],
+  'database-support-vanuatu': ['Vanuatu'],
+  'database-support-solomon-islands': ['Solomon Islands'],
+  'database-support-pacific-islands': [
+    'Fiji',
+    'Papua New Guinea',
+    'Vanuatu',
+    'Solomon Islands',
+    'Samoa',
+    'Tonga',
+  ],
+};
+
+function areaServedFor(slug: string): Array<Record<string, string>> {
+  const countries = MARKET_AREAS[slug] ?? ['Australia', 'New Zealand'];
+  return countries.map((name) => ({ '@type': 'Country', name }));
+}
+
 export function serviceSchema(page: PageRecord): Record<string, unknown> {
   return {
     '@context': 'https://schema.org',
@@ -489,13 +520,7 @@ export function serviceSchema(page: PageRecord): Record<string, unknown> {
     description: page.seoDescription || page.lede || '',
     url: absoluteUrl(`/${page.slug}`),
     provider: { '@id': `${siteConfig.url}/#organization` },
-    // WP2.2: llms.txt already claims New Zealand coverage, and a schema that
-    // says Australia only contradicts it. Two entries rather than one, because
-    // an assistant reconciling the two sources should find them agreeing.
-    areaServed: [
-      { '@type': 'Country', name: 'Australia' },
-      { '@type': 'Country', name: 'New Zealand' },
-    ],
+    areaServed: areaServedFor(page.slug),
     serviceType: page.title,
   };
 }

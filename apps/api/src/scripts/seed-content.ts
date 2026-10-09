@@ -7,6 +7,10 @@
  * verification.
  */
 import type { Block } from '@onsys/shared';
+import { pacificPages } from './seed-pacific-pages';
+import { sqlServer2017Pages } from './seed-sql-server-2017';
+import { industryPages } from './seed-industry-pages';
+import { cityPages } from './seed-city-pages';
 import { org } from '../lib/env';
 
 /**
@@ -19,36 +23,145 @@ import { org } from '../lib/env';
  * hubs" — were retired on 3 October 2026 on the sales plan's recommendation:
  * see the note on the /about stats band for the reasoning.
  */
+/**
+ * Certifications held by Onsys engineers and consultants.
+ *
+ * One list, used by the home page, /certifications and /expertise#certifications.
+ * It was previously written out twice and was about to be written out a third
+ * time; three copies of a credential list is three places for it to go stale,
+ * and a stale credential list is a claim nobody has checked.
+ *
+ * Badge artwork is assigned only where it matches the credential level. The
+ * Microsoft SVGs are the level-generic Fundamentals, Associate, Expert and
+ * plain Certified badges, so each is correct for any credential at its level —
+ * showing an Associate badge against a Fundamentals credential would overstate
+ * it, which is the whole reason the levels are kept straight here.
+ *
+ * The two MCSE entries other than Data Management and Analytics use the plain
+ * Microsoft Certified badge, on the client's instruction. MCSE is a retired
+ * programme with its own artwork and the only MCSE badge held here is specific
+ * to Data Management and Analytics; the generic mark is the closest available
+ * and keeps the row visually consistent. The credential names are stated in
+ * full beneath each badge, which is what a reader checks.
+ */
+const certificationLogos = [
+  // Oracle
+  { name: 'Oracle Certified Professional', issuer: 'Oracle', image: '/certifications/oracle-certified-professional.png', alt: 'Oracle Certified Professional badge' },
+
+  // Microsoft — Expert
+  { name: 'Azure Solutions Architect Expert', issuer: 'Microsoft', image: '/certifications/microsoft-certified-expert.svg', alt: 'Microsoft Certified Expert badge' },
+
+  // Microsoft — Associate
+  { name: 'Azure Database Administrator Associate', issuer: 'Microsoft', image: '/certifications/microsoft-certified-associate.svg', alt: 'Microsoft Certified Associate badge' },
+  { name: 'Azure Administrator Associate', issuer: 'Microsoft', image: '/certifications/microsoft-certified-associate.svg', alt: 'Microsoft Certified Associate badge' },
+  { name: 'Azure Security Engineer Associate', issuer: 'Microsoft', image: '/certifications/microsoft-certified-associate.svg', alt: 'Microsoft Certified Associate badge' },
+  { name: 'Azure AI Engineer Associate', issuer: 'Microsoft', image: '/certifications/microsoft-certified-associate.svg', alt: 'Microsoft Certified Associate badge' },
+
+  // Microsoft — Fundamentals. No Fundamentals badge held, so no image.
+  { name: 'Azure Data Fundamentals', issuer: 'Microsoft', image: '/certifications/microsoft-certified-fundamentals.svg', alt: 'Microsoft Certified Fundamentals badge' },
+  { name: 'Azure AI Fundamentals', issuer: 'Microsoft', image: '/certifications/microsoft-certified-fundamentals.svg', alt: 'Microsoft Certified Fundamentals badge' },
+
+  // Microsoft Certified Solutions Expert. The badge we hold is specific to
+  // Data Management and Analytics, so the other two MCSE entries carry none.
+  { name: 'MCSE: Data Management and Analytics', issuer: 'Microsoft · Charter Member', image: '/certifications/data-management-analytics.png', alt: 'Microsoft Certified Solutions Expert Data Management and Analytics badge' },
+  { name: 'MCSE: Data Platform', issuer: 'Microsoft', image: '/certifications/microsoft-certified-general.svg', alt: 'Microsoft Certified badge' },
+  { name: 'MCSE: Business Intelligence', issuer: 'Microsoft', image: '/certifications/microsoft-certified-general.svg', alt: 'Microsoft Certified badge' },
+  { name: 'Microsoft Certified Professional', issuer: 'Microsoft', image: '/certifications/microsoft-certified-general.svg', alt: 'Microsoft Certified badge' },
+
+];
+
 const homeBlocks: Block[] = [
   {
-    // Single hero, one still image, no carousel.
-    //
-    // `heading` and `highlight` render as "{heading} {highlight}", so the
-    // headline is split in reading order and the emphasis falls on the phrase
-    // that qualifies the buyer. The three rotating slides each argued a
-    // different position — database support, then cost saving, then "technology
-    // expertise that keeps your business moving" — so the first thing a visitor
-    // read depended on when they arrived. The sales plan of 3 October 2026
-    // settles it on one: 24/7 database support for teams with no DBA, with the
-    // free health check as the single primary action.
-    //
-    // `slides: []` rather than no slides at all: the zod default makes it a
-    // required field on Block, which is the output type. Empty is what matters
-    // — the renderer only mounts the carousel when slides exist, so this is
-    // what turns rotation off, and NEXT_PUBLIC_HERO_ROTATE_SECONDS now has
-    // nothing to rotate whatever it is set to.
+    /*
+     * Rotating hero, five messages, from the "sliding hero" brief.
+     *
+     * The block's own fields are slide one and the `slides` array carries the
+     * other four, so the first paint is server-rendered and a visitor without
+     * JavaScript sees a complete hero rather than an empty one.
+     *
+     * Only slide one is an <h1>. The brief makes the point itself and it is the
+     * right one: five rotating <h1> elements would give the home page five
+     * competing topics and dilute the "remote DBA services Australia" position
+     * the page already holds. The renderer puts the later headlines in <p
+     * class="hero-heading">, styled identically, so the page reads as one
+     * document and looks like five.
+     *
+     * Each slide argues a different reason to buy, so a visitor who arrives
+     * mid-rotation still meets a complete argument:
+     *   1. price and expertise      4. cheaper than hiring
+     *   2. no in-house DBA          5. multi-platform credibility
+     *   3. risk and continuity
+     *
+     * Every price here is published elsewhere on the site: $150/hour is the
+     * ad-hoc consultancy rate with a four-hour minimum, and $1,500/month is
+     * Plan A. The brief's own instruction not to put an unevidenced saving in
+     * the hero is why no percentage appears on any slide.
+     */
     type: 'hero',
-    eyebrow: 'Remote DBA services · Australia & New Zealand',
-    heading: '24/7 database support for teams',
-    highlight: 'without a DBA.',
-    body: 'Senior Australian DBAs on call around the clock, across SQL Server, Oracle, PostgreSQL, MySQL and MongoDB. Plans from $1,500 a month, every price published, no lock-in.',
-    platforms: 'SQL Server · Oracle · PostgreSQL · MySQL · MongoDB',
+    eyebrow: 'Remote DBA services · Australia, New Zealand & Pacific',
+    heading: 'Senior Australian DBAs. 24/7 support.',
+    highlight: 'From $150 per hour.',
+    body: 'Get the database expertise you need without hiring another full-time DBA. Our Australian team monitors, troubleshoots and supports SQL Server, Oracle, PostgreSQL, MySQL and MongoDB around the clock — across on-premises, cloud and hybrid environments.',
+    platforms: 'Plans from $1,500/month · Published pricing · No lock-in',
     backgroundImage: '/images/hero-home-1.jpg',
     ctas: [
-      { label: 'Get the free health check', href: '/free-20-point-sql-server-health-check' },
-      { label: 'See published pricing', href: '/pricing-and-plans' },
+      // Straight to the embedded form rather than to the landing page: the
+      // offer is already made in the headline, so another page that re-sells it
+      // is a step, not a step forward. The quicklinks row below still carries
+      // the internal link to /free-20-point-sql-server-health-check.
+      { label: 'Get a free health check', href: '#request-health-check' },
+      { label: 'See plans & pricing', href: '/pricing-and-plans' },
     ],
-    slides: [],
+    slides: [
+      {
+        eyebrow: '24/7 database support · Australia & Pacific',
+        heading: 'No in-house DBA?',
+        highlight: 'Your databases still need one at 2am.',
+        body: 'Get a senior Australian DBA team watching your critical databases around the clock. We monitor, troubleshoot, tune and support SQL Server, Oracle, PostgreSQL, MySQL and MongoDB — so your IT team gets expert database capability without hiring another full-time specialist.',
+        platforms: 'Plans from $1,500/month · Published pricing · No lock-in',
+        backgroundImage: '/images/hero-dba-oncall.jpg',
+        ctas: [
+          { label: 'Explore 24/7 DBA support', href: '/remote-database-support' },
+          { label: 'Check my database for free', href: '#request-health-check' },
+        ],
+      },
+      {
+        eyebrow: 'Database support · Australia, New Zealand & Pacific',
+        heading: 'Your database should not become an emergency',
+        highlight: 'before you call a DBA.',
+        body: 'Performance problems, failed backups, replication issues and unexpected outages rarely arrive at a convenient time. Get senior Australian DBAs monitoring and supporting your environment 24/7, with defined response SLAs and expertise across SQL Server, Oracle, PostgreSQL, MySQL and MongoDB.',
+        platforms: 'Know the risk before it becomes downtime.',
+        backgroundImage: '/images/hero-db-emergency.jpg',
+        ctas: [
+          { label: 'Get the free 20-point health check', href: '#request-health-check' },
+          { label: 'Talk to a DBA', href: `tel:${org.phoneE164}` },
+        ],
+      },
+      {
+        eyebrow: 'Remote DBA services · Australia & Pacific',
+        heading: 'Get a DBA team',
+        highlight: 'for less than the cost of hiring one.',
+        body: 'Access senior Australian database specialists 24/7 without recruitment, leave coverage or dependence on a single employee. From routine monitoring and performance tuning through to outages, upgrades, migrations and high availability, one team supports your environment when you need it.',
+        platforms: 'Plans from $1,500/month · No lock-in · Pricing published upfront',
+        backgroundImage: '/images/hero-home-2.jpg',
+        ctas: [
+          { label: 'Compare DBA plans', href: '/pricing-and-plans' },
+          { label: 'Book a consultation', href: org.bookingUrl },
+        ],
+      },
+      {
+        eyebrow: 'Database experts · Australia, New Zealand & Pacific',
+        heading: 'One expert team for every database',
+        highlight: 'your business depends on.',
+        body: 'SQL Server. Oracle. PostgreSQL. MySQL. MongoDB. Azure SQL. Whether your databases run on-premises, in Azure, AWS, OCI or across a hybrid environment, our Australian specialists help you monitor, optimise, secure, migrate and keep them available 24/7.',
+        platforms: 'One support team · Multiple platforms · No lock-in',
+        backgroundImage: '/images/hero-home-3.jpg',
+        ctas: [
+          { label: 'Explore our database expertise', href: '/expertise' },
+          { label: 'Speak with a DBA', href: `tel:${org.phoneE164}` },
+        ],
+      },
+    ],
   },
   {
     type: 'quicklinks',
@@ -66,104 +179,6 @@ const homeBlocks: Block[] = [
       { label: 'SQL Server projects', href: '/sql-server-migration-and-upgrade-services', icon: '#s-consult', color: '#EAF1FB' },
       { label: 'Emergency support', href: '/emergency-database-support', icon: '#s-emergency', color: '#FFE9E9' },
     ],
-  },
-  {
-    /**
-     * How a plan works, in four steps.
-     *
-     * This replaces two card grids: eight service cards that argued for breadth
-     * ("one supplier, one accountable team") and six reasons headed "One partner
-     * accountable for the whole stack". Both sold the catalogue rather than the
-     * database practice, and the 3 October sales plan retires that framing
-     * outright.
-     *
-     * The steps are not new claims. They are the onboarding sequence already
-     * published on /managed-database-services and /on-call-dba-services, with
-     * step one changed from "free consultation" to the health check because that
-     * is now the single primary action on the page.
-     *
-     * It also carries the keyword-bearing h2 that the deleted stats band used to
-     * provide. The h1 now names the service, so the page no longer depends on a
-     * stats heading to say what Onsys sells.
-     */
-    type: 'steps',
-    eyebrow: 'How it works',
-    heading: 'How 24/7 database support works, from health check to cover',
-    body: 'No discovery call needed to learn a price. Start with a free read-only check of one instance, and you will know what is wrong before you decide whether to buy anything.',
-    steps: [
-      { title: 'Free 20-point health check', body: 'You run read-only scripts on one SQL Server instance and send us the output. Nothing is installed, and you can read every line before it runs.' },
-      { title: 'Findings, on a call', body: 'A senior DBA walks you through what the check found and what it would take to fix — in writing, and on a Teams call rather than by email alone.' },
-      { title: 'Secure access & onboarding', body: 'If you go ahead: we confirm instance count, versions and platform, establish secure remote access, document escalation paths and issue your support number.' },
-      { title: 'Cover goes live', body: 'Monitoring, alerting and your response SLA start. The clock begins when the alert fires, not when somebody notices.' },
-    ],
-  },
-  /**
-   * GAP — anonymised outcome notes go here.
-   *
-   * The sales plan asks for three case studies at this position. There are
-   * none, and there is no client permission yet, so rather than publish an
-   * invented outcome the slot is marked and left empty. The agreed interim
-   * (3 October) is the sqldba.org model, which needs nobody's permission:
-   * three notes of a sector, a measured result and a first name — for example
-   * "Manufacturing · 92% fewer deadlocks · Daniel". It renders as a cardGrid,
-   * so it needs no new block type and no deploy: three facts, one admin edit.
-   *
-   * Blocked on three real outcomes with figures.
-   */
-  {
-    type: 'platformChips',
-    eyebrow: 'Multi-platform database expertise',
-    heading: 'One expert team across your entire database estate',
-    body: 'From legacy enterprise databases to modern cloud platforms, Onsys brings deep expertise across the technologies your business depends on — helping you manage, modernise, optimise and protect critical environments across on-premises, hybrid and cloud.',
-    groups: [
-      {
-        // Labels lead with the vendor's full product name rather than the
-        // abbreviation a DBA would use — this page is read by people choosing a
-        // supplier, not only by the engineers who will work with us. Exact
-        // version ranges still appear on /remote-database-support and
-        // /database-upgrades-migrations-dr, which is where a version-specific
-        // search should land anyway.
-        title: 'Database expertise',
-        chips: [
-          { label: 'Microsoft SQL Server — legacy to latest', color: '#CC2927' },
-          { label: 'Oracle Database — legacy to 23ai', color: '#C74634' },
-          { label: 'Azure SQL Database & Managed Instance', color: '#0078D4' },
-          { label: 'PostgreSQL & EDB Postgres', color: '#336791' },
-          { label: 'MySQL & MariaDB', color: '#00758F' },
-          { label: 'MongoDB', color: '#13AA52' },
-        ],
-      },
-      {
-        title: 'Availability, resilience & data services',
-        chips: [
-          { label: 'Oracle RAC & Data Guard', color: '#C74634' },
-          { label: 'SQL Server Always On & clustering', color: '#CC2927' },
-          { label: 'Replication & log shipping', color: '#A4373A' },
-          { label: 'Backup & recovery — RMAN and native', color: '#8A5A44' },
-          { label: 'Encryption, TDE & data protection', color: '#605E5C' },
-          { label: 'Reporting & ETL — SSRS, SSIS, SSAS', color: '#0E336A' },
-        ],
-      },
-      {
-        title: 'Cloud & infrastructure',
-        chips: [
-          { label: 'Microsoft Azure', color: '#0078D4' },
-          { label: 'Amazon Web Services (AWS)', color: '#FF9900' },
-          { label: 'Oracle Cloud Infrastructure (OCI)', color: '#C74634' },
-          { label: 'Windows Server', color: '#00A4EF' },
-          { label: 'Linux — Red Hat, Ubuntu & Oracle Linux', color: '#EE0000' },
-          { label: 'Solaris, AIX & HP-UX', color: '#605E5C' },
-        ],
-      },
-    ],
-    sidebar: {
-      title: 'Recognised work',
-      items: [
-        'BRONZE Winner — National Best Quality Software Awards (NBQSA) 2025',
-        'Second Runner-up — APICTA 2025',
-        'Both awarded to OnsysConnect, our digital data-sharing platform',
-      ],
-    },
   },
   {
     /**
@@ -253,6 +268,313 @@ const homeBlocks: Block[] = [
     body: 'One instance, no charge, no obligation. You run read-only scripts we publish in full and send us the output — nothing is installed and nothing connects out. A senior Australian DBA reviews it and walks you through the findings on a call.',
     note: 'One free check per organisation. Configuration, backups, security and patch currency, with a written report.',
   },
+  {
+    /**
+     * B5: proof, stated as problems solved rather than as counted metrics.
+     *
+     * This was a stats band — seven projects, three regions, fixed price, the
+     * SLA. The client's instruction on 3 October was to drop the numbers
+     * entirely and say what problem each engagement solved and what the client
+     * ended up with, which is the better argument anyway: a buyer recognises
+     * their own situation in a problem statement and cannot do anything with a
+     * count of projects.
+     *
+     * Every card is a real engagement, and each links to the case study behind
+     * it. No figures are claimed because none of the source documents records a
+     * measured outcome — what is stated instead is what the design guarantees,
+     * which is checkable.
+     */
+    type: 'cardGrid',
+    anchor: 'what-we-solve',
+    /*
+     * No eyebrow. "Sound familiar?" was doing the heading's job badly, and the
+     * heading now states the promise outright.
+     *
+     * The body is three paragraphs separated by blank lines, which SectionHead
+     * renders side by side across the full row. It also renders **bold** and
+     * [label](href), the only two bits of markup this plain-text field knows.
+     *
+     * The health-check link jumps up to #request-health-check, the id on the
+     * "Start here" booking form higher up this page, so the offer named in the
+     * copy lands on the form rather than on another page that re-sells it.
+     *
+     * The offer is named in full here. It assesses one SQL Server instance, so
+     * calling it a "database health check" on the busiest page on the site
+     * invites Oracle and Postgres enquiries the free check does not cover.
+     */
+    heading: 'Real Client Problems — and the Solutions We Delivered',
+    body:
+      'These are the challenges our clients call us about most — and they are problems we have solved before.\n\nEvery example below is based on real client work, delivered with a clearly defined scope, agreed pricing and a practical path to resolution. So if one of these situations sounds familiar, you are not starting from scratch — we already know what to look for, what typically causes it, and how to fix it.\n\nNot sure exactly what is going wrong in your environment? Start with our [free 20-point SQL Server health check](#request-health-check). We will help identify the risks, performance issues and areas that need attention — so you know what to fix first.',
+    centered: false,
+    altBackground: true,
+    columns: 3,
+    /*
+     * One card per published case study, in the same order the index lists
+     * them, and each card states the problem the page it opens actually
+     * describes. Re-synced 9 October 2026 after the case studies were
+     * rewritten: three cards had drifted off their pages.
+     *
+     * `tag` mirrors the study's own sector, because a visitor who clicks a
+     * card tagged Payments and lands on a page whose eyebrow says
+     * Telecommunications has caught the site contradicting itself.
+     *
+     * The three telecommunications engagements are deliberately not adjacent.
+     * Consecutively they read as a telco-only practice; interleaved with
+     * healthcare, manufacturing and financial services they read as range.
+     */
+    cards: [
+      {
+        title: 'A critical database that depends on one server',
+        body: 'Business-critical databases on standalone servers, with backups but no database-level high availability — so a failure meant someone restoring while the applications waited. Now: a two-node availability group with automatic failover, a listener the applications keep using when the primary moves, and encryption at rest on both replicas.',
+        icon: '#s-managed',
+        coverColor: '#EAF1FB',
+        tag: 'Healthcare',
+        link: { label: 'Read more', href: '/case-studies/sql-server-always-on-healthcare-australia' },
+      },
+      {
+        title: 'Single points of failure, at three different levels',
+        body: 'A standalone database under a critical application, where fixing the server still left the routing layer and the site itself as ways to take the service down. Now: a cluster that elects its own primary, redundant routers behind a floating address, and a replica at a second site.',
+        icon: '#s-etl',
+        coverColor: '#E7F5EC',
+        tag: 'Telecommunications',
+        link: { label: 'Read more', href: '/case-studies/telecommunications-mysql-group-replication-cluster-migration' },
+      },
+      {
+        title: 'A DR plan nobody has ever tested',
+        body: 'Disaster recovery that existed on paper, because testing it meant an outage and the test kept being postponed. Now: two data centres joined as one distributed group, and a written procedure that runs the DR test while production stays open to applications.',
+        icon: '#s-ha',
+        coverColor: '#FFF1E0',
+        tag: 'Manufacturing',
+        link: { label: 'Read more', href: '/case-studies/manufacturing-distributed-availability-groups-two-data-centres' },
+      },
+      {
+        title: 'New storage under a database that cannot stop',
+        body: 'Replacing the storage beneath a production Oracle cluster puts the databases, the applications, failover and disaster recovery at risk at once. Now: a replacement cluster built alongside production and tested against real applications before anything moved, with the old one kept as the way back.',
+        icon: '#s-emergency',
+        coverColor: '#FDECEC',
+        tag: 'Telecommunications',
+        link: { label: 'Read more', href: '/case-studies/oracle-rac-migration-australian-telco' },
+      },
+      {
+        title: 'A launch with nothing to fall back to',
+        body: 'A new-market launch has nothing to compare against, so the only evidence the platform works is the testing done before it carries traffic. Now: clustered databases, availability groups, backups and monitoring proven in advance, because there was no previous system to fall back to.',
+        icon: '#s-consult',
+        coverColor: '#F3F2F1',
+        tag: 'Financial services',
+        link: { label: 'Read more', href: '/case-studies/mobile-money-platform-new-market-launch-design' },
+      },
+      {
+        title: 'A move to cloud with nothing allowed to be lost',
+        body: 'A business-critical database had to reach the cloud without losing a transaction, or leaving behind a scheduled job, a login or an encryption key the applications depend on. Now: a managed Azure database, a cutover rehearsed before it was run, and a second region that holds the recovery copy and takes read traffic.',
+        icon: '#s-cloud',
+        coverColor: '#EAF1FB',
+        tag: 'Telecommunications',
+        link: { label: 'Read more', href: '/case-studies/sql-server-azure-sql-mi-migration-pacific-telco' },
+      },
+    ],
+  },
+  {
+    type: 'relatedService',
+    eyebrow: 'Proof',
+    heading: 'Read what we actually built',
+    body: 'All six are written up properly — the architecture, the decisions and the reasoning behind them — so your own DBA or architect can judge the work rather than take our word for it.',
+    cta: { label: 'See the case studies', href: '/case-studies' },
+  },
+  {
+    /**
+     * How a plan works, in four steps.
+     *
+     * This replaces two card grids: eight service cards that argued for breadth
+     * ("one supplier, one accountable team") and six reasons headed "One partner
+     * accountable for the whole stack". Both sold the catalogue rather than the
+     * database practice, and the 3 October sales plan retires that framing
+     * outright.
+     *
+     * The steps are not new claims. They are the onboarding sequence already
+     * published on /managed-database-services and /on-call-dba-services, with
+     * step one changed from "free consultation" to the health check because that
+     * is now the single primary action on the page.
+     *
+     * It also carries the keyword-bearing h2 that the deleted stats band used to
+     * provide. The h1 now names the service, so the page no longer depends on a
+     * stats heading to say what Onsys sells.
+     *
+     * Sits after the problems and the proof, not before them. A reader who has
+     * just recognised their own situation and seen that it has been solved
+     * before is ready to be told how to start; one who has not is being given
+     * a process for a problem they have not yet admitted to.
+     */
+    type: 'steps',
+    eyebrow: 'How it works',
+    heading: 'How 24/7 database support works, from health check to cover',
+    body: 'No discovery call needed to learn a price. Start with a free read-only check of one instance, and you will know what is wrong before you decide whether to buy anything.',
+    steps: [
+      { title: 'Free 20-point health check', body: 'You run read-only scripts on one SQL Server instance and send us the output. Nothing is installed, and you can read every line before it runs.' },
+      { title: 'Findings, on a call', body: 'A senior DBA walks you through what the check found and what it would take to fix — in writing, and on a Teams call rather than by email alone.' },
+      { title: 'Secure access & onboarding', body: 'If you go ahead: we confirm instance count, versions and platform, establish secure remote access, document escalation paths and issue your support number.' },
+      { title: 'Cover goes live', body: 'Monitoring, alerting and your response SLA start. The clock begins when the alert fires, not when somebody notices.' },
+    ],
+  },
+  {
+    type: 'platformChips',
+    eyebrow: 'Multi-platform database expertise',
+    heading: 'One expert team across your entire database estate',
+    body: 'One team covers the lot. If your estate mixes an ageing Oracle instance, a SQL Server cluster and something newer running in Azure, you should not need three suppliers to keep it alive — or three conversations to work out whose problem an outage is.',
+    groups: [
+      {
+        // Labels lead with the vendor's full product name rather than the
+        // abbreviation a DBA would use — this page is read by people choosing a
+        // supplier, not only by the engineers who will work with us. Exact
+        // version ranges still appear on /remote-database-support and
+        // /database-upgrades-migrations-dr, which is where a version-specific
+        // search should land anyway.
+        title: 'Database expertise',
+        chips: [
+          { label: 'Microsoft SQL Server — legacy to latest', color: '#CC2927' },
+          { label: 'Oracle Database — legacy to 23ai', color: '#C74634' },
+          { label: 'Azure SQL Database & Managed Instance', color: '#0078D4' },
+          { label: 'PostgreSQL & EDB Postgres', color: '#336791' },
+          { label: 'MySQL & MariaDB', color: '#00758F' },
+          { label: 'MongoDB', color: '#13AA52' },
+        ],
+      },
+      {
+        title: 'Availability, resilience & data services',
+        chips: [
+          { label: 'Oracle RAC & Data Guard', color: '#C74634' },
+          { label: 'SQL Server Always On & clustering', color: '#CC2927' },
+          { label: 'Replication & log shipping', color: '#A4373A' },
+          { label: 'Backup & recovery — RMAN and native', color: '#8A5A44' },
+          { label: 'Encryption, TDE & data protection', color: '#605E5C' },
+          { label: 'Reporting & ETL — SSRS, SSIS, SSAS', color: '#0E336A' },
+        ],
+      },
+      {
+        title: 'Cloud & infrastructure',
+        chips: [
+          { label: 'Microsoft Azure', color: '#0078D4' },
+          { label: 'Amazon Web Services (AWS)', color: '#FF9900' },
+          { label: 'Oracle Cloud Infrastructure (OCI)', color: '#C74634' },
+          { label: 'Windows Server', color: '#00A4EF' },
+          { label: 'Linux — Red Hat, Ubuntu & Oracle Linux', color: '#EE0000' },
+          { label: 'Solaris, AIX & HP-UX', color: '#605E5C' },
+        ],
+      },
+    ],
+  },
+  {
+    /**
+     * Vendor partnerships.
+     *
+     * A buyer comparing providers checks two different things: whether the
+     * individuals are certified, which is on /certifications, and whether the
+     * firm is recognised by the vendors whose products it is proposing to run.
+     * This is the second one, and it sits directly after the platform list
+     * because "these are the platforms we run" and "these are the vendors who
+     * recognise us on them" is one argument, not two.
+     *
+     * Placed before the pricing block on purpose. A trust signal is worth more
+     * to a visitor before they look at a number than after.
+     *
+     * Marks supplied by the client from the vendor programmes. They range from
+     * 1:1 to 4:1 in aspect ratio, so the default `.logo-tile img` rule — a
+     * fixed 64px height — would make the square one look twice the weight of
+     * the wide ones. `#partners` has its own sizing rule in globals.css that
+     * fits each into a common box instead.
+     *
+     * Only Dell's artwork states a tier, and the label here matches it exactly:
+     * "Authorized Partner". The others are vendor marks rather than tiered
+     * badges, so they are labelled plainly. "Gold", "Solutions Partner" or a
+     * named competency would be a stronger claim than the artwork supports.
+     */
+    type: 'logoGrid',
+    anchor: 'partners',
+    eyebrow: 'Vendor partnerships',
+    heading: 'Recognised by the vendors whose platforms we run',
+    body: 'Partnerships matter for two practical reasons: they are how we reach vendor support escalation paths when a problem turns out to be a product defect, and they are how we stay current on roadmaps before they affect your estate.',
+    altBackground: false,
+    logos: [
+      {
+        name: 'Microsoft Partner',
+        image: '/partners/microsoft-partner.png',
+        alt: 'Microsoft Partner',
+      },
+      {
+        name: 'Oracle Partner',
+        image: '/partners/oracle-partner.png',
+        alt: 'Oracle Partner',
+      },
+      {
+        name: 'Dell Technologies Authorized Partner',
+        image: '/partners/dell-technologies-authorized-partner.png',
+        alt: 'Dell Technologies Authorized Partner',
+      },
+      {
+        name: 'N-able Partner',
+        image: '/partners/n-able.png',
+        alt: 'N-able',
+      },
+      {
+        name: 'Dbvisit Partner',
+        image: '/partners/dbvisit.png',
+        alt: 'Dbvisit',
+      },
+    ],
+  },
+  {
+    /**
+     * Credentials, directly after the vendor partnerships.
+     *
+     * The two answer different questions and a buyer asks both: partnerships
+     * are whether the firm is recognised by the vendors whose products it
+     * proposes to run, and this is whether the people who turn up have been
+     * examined on them. One without the other is half an answer.
+     *
+     * Shares `certificationLogos` with /certifications and
+     * /expertise#certifications — one list, so a credential added or allowed
+     * to lapse is changed in one place rather than three.
+     */
+    type: 'logoGrid',
+    anchor: 'certifications',
+    eyebrow: 'Credentials',
+    heading: 'Certifications held by our engineers and consultants',
+    body: 'Held by the consultants who do the work, not by a sales team — and there is no first-line triage layer between you and them.',
+    altBackground: true,
+    logos: certificationLogos,
+  },
+  /*
+   * TESTIMONIAL PLACEHOLDER — the block is built and ready; the quotes are not.
+   *
+   * Uncomment this and replace the three entries with real quotes. Nothing is
+   * published in the meantime, on purpose: an invented quote is a fabricated
+   * testimonial, and a visible "testimonials coming soon" panel tells a buyer
+   * the one thing you do not want to tell them. Both are worse than the section
+   * being absent.
+   *
+   * `attribution` is free text so a quote can be credited without naming the
+   * client — "IT Manager, Australian healthcare group" is a valid attribution
+   * and is the form these will need, since every engagement is covered by
+   * confidentiality.
+   *
+   * This exact JSON can also be pasted into the home page in /admin → Pages,
+   * which publishes it without a deploy.
+   *
+   * {
+   *   type: 'testimonial',
+   *   eyebrow: 'In their words',
+   *   heading: 'What clients say',
+   *   altBackground: false,
+   *   quotes: [
+   *     {
+   *       quote: '<the quote, without surrounding quotation marks>',
+   *       attribution: 'IT Manager, Australian healthcare group',
+   *       context: '24/7 DBA Plan B',
+   *     },
+   *     { quote: '...', attribution: '...', context: '...' },
+   *     { quote: '...', attribution: '...', context: '...' },
+   *   ],
+   * },
+   */
   {
     /**
      * A5: the data-sovereignty answer, on the home page rather than in the
@@ -424,7 +746,7 @@ const mdsBlocks: Block[] = [
     type: 'ctaBand',
     heading: 'What would an outage cost you tonight?',
     body: 'If you cannot answer that, book a free 30-minute consultation. A senior DBA will assess your environment and tell you where you are exposed — no obligation.',
-    cta: { label: 'Book Your Free Consultation', href: '/contact' },
+    cta: { label: 'Book Your Free Consultation', href: org.bookingUrl },
   },
   {
     /**
@@ -518,7 +840,7 @@ const expertiseBlocks: Block[] = [
       items: [
         'Every engagement is staffed by certified specialists, not first-line triage.',
         'The consultant who assesses your environment is the one who delivers the work.',
-        'Vendor-neutral advice — we hold credentials across Oracle, Microsoft, Red Hat and VMware.',
+        'Certified where the work is — Oracle Certified Professional, and Microsoft credentials across Azure data, AI, security and architecture.',
       ],
     },
   },
@@ -588,22 +910,9 @@ const expertiseBlocks: Block[] = [
     anchor: 'certifications',
     eyebrow: 'Credentials',
     heading: 'Certifications held by our engineers and consultants',
-    body: 'Vendor-neutral advice is only credible if the certifications sit across the vendors. Ours do.',
+    body: 'Concentrated where the work is: Oracle and the Microsoft data, AI and cloud stack. Held by the consultants who deliver, not by a sales team.',
     altBackground: true,
-    note: 'Badges are the property of their respective certification bodies and are shown to indicate credentials held by Onsys engineers.',
-    logos: [
-      { name: 'Oracle Certified Professional', issuer: 'Oracle', image: '/certifications/oracle-certified-professional.png', alt: 'Oracle Certified Professional badge' },
-      { name: 'Oracle Certified Master', issuer: 'Oracle' },
-      { name: 'Azure Database Administrator Associate', issuer: 'Microsoft', image: '/certifications/microsoft-certified-associate.svg', alt: 'Microsoft Certified Associate badge' },
-      { name: 'Azure Solutions Architect Expert', issuer: 'Microsoft', image: '/certifications/microsoft-certified-expert.svg', alt: 'Microsoft Certified Expert badge' },
-      { name: 'Azure Security Engineer Associate', issuer: 'Microsoft', image: '/certifications/microsoft-certified-associate.svg', alt: 'Microsoft Certified Associate badge' },
-      { name: 'Azure AI Engineer Associate', issuer: 'Microsoft', image: '/certifications/microsoft-certified-associate.svg', alt: 'Microsoft Certified Associate badge' },
-      { name: 'Power BI Data Analyst Associate', issuer: 'Microsoft', image: '/certifications/microsoft-certified-associate.svg', alt: 'Microsoft Certified Associate badge' },
-      { name: 'Data Management and Analytics', issuer: 'Microsoft', image: '/certifications/data-management-analytics.png', alt: 'Data Management and Analytics badge' },
-      { name: 'Red Hat Certified Engineer', issuer: 'Red Hat', image: '/certifications/redhat-certified-engineer.jpeg', alt: 'Red Hat Certified Engineer badge' },
-      { name: 'VMware Certified Professional — DCV', issuer: 'VMware', image: '/certifications/vmware-vcp-dcv.png', alt: 'VMware Certified Professional Data Center Virtualization badge' },
-      { name: 'NSE 7 Network Security Architect', issuer: 'Fortinet', image: '/certifications/fortinet-nse-7.png', alt: 'Fortinet NSE 7 Network Security Architect badge' },
-    ],
+    logos: certificationLogos,
   },
   {
     type: 'steps',
@@ -849,7 +1158,12 @@ const pricingBlocks: Block[] = [
           'Secure remote access by certified, experienced DBAs',
           'Service desk access at no additional cost',
         ],
-        cta: { label: 'Get Started', href: '/contact' },
+        // B2: a two-field enquiry on the card. "Get Started" went to the
+        // generic contact form, which asked for six fields before anyone could
+        // find out what a plan cost them, and recorded nothing about which
+        // plan they were looking at.
+        enquiry: true,
+        cta: { label: 'What every plan includes', href: '/managed-sql-server-support#included' },
       },
       {
         name: '24/7 DBA Plan B',
@@ -871,7 +1185,12 @@ const pricingBlocks: Block[] = [
           'Secure remote access by certified database experts',
           'Service desk access at no extra cost',
         ],
-        cta: { label: 'Get Started', href: '/contact' },
+        // B2: a two-field enquiry on the card. "Get Started" went to the
+        // generic contact form, which asked for six fields before anyone could
+        // find out what a plan cost them, and recorded nothing about which
+        // plan they were looking at.
+        enquiry: true,
+        cta: { label: 'What every plan includes', href: '/managed-sql-server-support#included' },
       },
       {
         name: '24/7 DBA Plan C',
@@ -893,7 +1212,12 @@ const pricingBlocks: Block[] = [
           'Secure remote access by certified database experts',
           'Service desk access at no additional cost',
         ],
-        cta: { label: 'Get Started', href: '/contact' },
+        // B2: a two-field enquiry on the card. "Get Started" went to the
+        // generic contact form, which asked for six fields before anyone could
+        // find out what a plan cost them, and recorded nothing about which
+        // plan they were looking at.
+        enquiry: true,
+        cta: { label: 'What every plan includes', href: '/managed-sql-server-support#included' },
       },
     ],
   },
@@ -1118,7 +1442,7 @@ const pricingBlocks: Block[] = [
     type: 'ctaBand',
     heading: 'Not sure which plan fits your environment?',
     body: "Book a free 30-minute call with a senior consultant. We'll size a plan against your instance count, data volume and response times — no obligation.",
-    cta: { label: 'Book a Free Consultation', href: '/contact' },
+    cta: { label: 'Book a Free Consultation', href: org.bookingUrl },
   },
   {
     /**
@@ -1193,7 +1517,12 @@ const onCallBlocks: Block[] = [
           'Secure remote access for issue resolution',
           'Certified, experienced DBAs — no first-line triage layer',
         ],
-        cta: { label: 'Get Started', href: '/contact' },
+        // B2: a two-field enquiry on the card. "Get Started" went to the
+        // generic contact form, which asked for six fields before anyone could
+        // find out what a plan cost them, and recorded nothing about which
+        // plan they were looking at.
+        enquiry: true,
+        cta: { label: 'Compare the monthly plans', href: '/pricing-and-plans#database-plans' },
       },
       {
         name: 'Support calls',
@@ -1329,7 +1658,7 @@ const onCallBlocks: Block[] = [
     type: 'ctaBand',
     heading: 'Tailor-made database support for your environment',
     body: 'Every business is different. Tell us your instance count and the hours you need covered, and we will put together a solution that fits — at no cost.',
-    cta: { label: 'Schedule a Free Consultation', href: '/contact' },
+    cta: { label: 'Schedule a Free Consultation', href: org.bookingUrl },
   },
   {
     /**
@@ -1721,7 +2050,7 @@ const consultancyBlocks: Block[] = [
     type: 'ctaBand',
     heading: 'Planning a new database project?',
     body: 'Book a meeting with an experienced database consultant to plan it properly. The first conversation is free, and we will tell you if the work is not worth doing.',
-    cta: { label: 'Schedule a Call', href: '/contact' },
+    cta: { label: 'Schedule a Call', href: org.bookingUrl },
   },
 ];
 
@@ -2647,7 +2976,7 @@ const upgradeDrBlocks: Block[] = [
     type: 'ctaBand',
     heading: 'Still on a version nobody supports?',
     body: 'Book a free scoping call. We will assess the upgrade path, flag the dependencies that usually bite, and tell you what it would take — with no obligation to proceed.',
-    cta: { label: 'Book a Free Scoping Call', href: '/contact' },
+    cta: { label: 'Book a Free Scoping Call', href: org.bookingUrl },
   },
 ];
 
@@ -3216,7 +3545,7 @@ const cloudConsultancyBlocks: Block[] = [
     type: 'ctaBand',
     heading: 'Not sure whether cloud is the right move?',
     body: 'That is a fine place to start. Book a free call with a cloud architect — if the honest answer is that your workload should stay where it is, we will tell you.',
-    cta: { label: 'Book a Free Consultation', href: '/contact' },
+    cta: { label: 'Book a Free Consultation', href: org.bookingUrl },
   },
 ];
 
@@ -3321,7 +3650,7 @@ const cloudMigrationBlocks: Block[] = [
     type: 'ctaBand',
     heading: 'Thinking about a move this year?',
     body: 'Start with a cloud readiness assessment. You get the workload inventory, the cost model and the risk list before committing to anything — for a fixed price.',
-    cta: { label: 'Book a Free Scoping Call', href: '/contact' },
+    cta: { label: 'Book a Free Scoping Call', href: org.bookingUrl },
   },
 ];
 
@@ -3816,7 +4145,7 @@ const customSoftwareBlocks: Block[] = [
     type: 'ctaBand',
     heading: 'Ready to turn the idea into something shipped?',
     body: 'Book a free consultation. We will tell you what it would take, what it would cost, and honestly whether building it is the right move at all.',
-    cta: { label: 'Book a Free Consultation', href: '/contact' },
+    cta: { label: 'Book a Free Consultation', href: org.bookingUrl },
   },
 ];
 
@@ -3905,7 +4234,7 @@ const mobileBlocks: Block[] = [
     type: 'ctaBand',
     heading: 'Got an app idea that keeps getting deferred?',
     body: 'Book a free consultation. We will scope it, tell you what cross-platform would save against native, and give you a realistic number.',
-    cta: { label: 'Book a Free Consultation', href: '/contact' },
+    cta: { label: 'Book a Free Consultation', href: org.bookingUrl },
   },
 ];
 
@@ -4019,7 +4348,7 @@ const integrationBlocks: Block[] = [
     type: 'ctaBand',
     heading: 'Still moving data between systems by hand?',
     body: 'Tell us which systems need to talk and what the manual process costs you today. We will scope the integration and quote it as a fixed price.',
-    cta: { label: 'Book a Free Scoping Call', href: '/contact' },
+    cta: { label: 'Book a Free Scoping Call', href: org.bookingUrl },
   },
 ];
 
@@ -4556,6 +4885,176 @@ const contactBlocks: Block[] = [
   },
 ];
 
+/**
+ * B7: the single page the non-database disciplines live behind.
+ *
+ * The 3 October sales plan demotes managed IT, cloud, software, mobile, AI and
+ * security off the home page and behind one link. The home page change shipped
+ * first; this is the page that link goes to. Every service page it names stays
+ * published at its own URL with its own content — nothing is unpublished, and
+ * no indexed URL changes — so this is an index, not a replacement.
+ *
+ * The navigation itself is unchanged: that reverses menu arrangements the
+ * client directed over several rounds, and is held pending their decision.
+ */
+const otherServicesBlocks: Block[] = [
+  {
+    type: 'richText',
+    html: `<p>Onsys is a database company. Databases are what we are asked for, what we publish prices for, and what our consultants do all day.</p><p>Everything on this page is real work we deliver, and most of it exists because database clients asked for it. It is here rather than on the front page because a company that leads with eight disciplines is telling you it specialises in none of them.</p>`,
+  },
+  {
+    type: 'cardGrid',
+    eyebrow: 'Infrastructure and cloud',
+    heading: 'The platforms databases run on',
+    centered: false,
+    altBackground: true,
+    columns: 3,
+    cards: [
+      { title: 'Managed IT services', body: 'Service desk, infrastructure, cloud, security and vendor management under one accountable SLA, for Australian SMBs.', icon: '#s-consult', coverColor: '#E7F5EC', link: { label: 'Managed IT', href: '/managed-it-services' } },
+      { title: 'Cloud consultancy', body: 'Vendor-neutral advice across Azure, AWS and Oracle Cloud — strategy, landing zones, cost modelling and FinOps.', icon: '#s-cloud', coverColor: '#FFF1E0', link: { label: 'Cloud consultancy', href: '/cloud-consultancy' } },
+      { title: 'Cloud migrations', body: 'Dependencies mapped, waves planned, cutover rehearsed and rollback tested before anything moves.', icon: '#s-cloud', coverColor: '#EAF1FB', link: { label: 'Cloud migrations', href: '/cloud-migrations' } },
+      { title: 'System administration', body: 'Windows and Linux administration, patching, Active Directory, Microsoft 365 and server hardening, covered around the clock.', icon: '#s-managed', coverColor: '#F3F2F1', link: { label: 'System administration', href: '/system-administration' } },
+      { title: 'Network and firewalls', body: 'Managed networks and firewalls across the major vendors — segmentation, VPN, WAF and monitoring.', icon: '#s-shield', coverColor: '#EAF1FB', link: { label: 'Network and firewalls', href: '/network-and-firewalls' } },
+      { title: 'Virtualisation and storage', body: 'Hypervisor and storage management, capacity planning and backup across the major platforms.', icon: '#s-etl', coverColor: '#E7F5EC', link: { label: 'Virtualisation and storage', href: '/virtualization-and-storage' } },
+    ],
+  },
+  {
+    type: 'cardGrid',
+    eyebrow: 'Applications, data and AI',
+    heading: 'Software built and integrated',
+    centered: false,
+    altBackground: false,
+    columns: 2,
+    cards: [
+      { title: 'Software development', body: 'Web, API and SaaS development under Australian project leadership, on fixed-cost or milestone engagements.', icon: '#s-code', coverColor: '#EAF1FB', link: { label: 'Software development', href: '/custom-software-development' } },
+      { title: 'Mobile app development', body: 'iOS, Android and cross-platform apps from ideation through store release, then maintained under a support SLA.', icon: '#s-code', coverColor: '#FFF1E0', link: { label: 'Mobile apps', href: '/mobile-app-development' } },
+      { title: 'Integration services', body: 'Pipeline builds, failure triage and job scheduling across the common integration stacks.', icon: '#s-etl', coverColor: '#E7F5EC', link: { label: 'Integration services', href: '/integration-services' } },
+      { title: 'AI development', body: 'Retrieval chatbots that cite their sources, document processing and analytics, delivered on the cloud you already use.', icon: '#s-code', coverColor: '#F3F2F1', link: { label: 'AI solutions', href: '/artificial-intelligence-solutions' } },
+    ],
+  },
+  {
+    type: 'cardGrid',
+    eyebrow: 'Security',
+    heading: 'Managed security and compliance',
+    centered: false,
+    altBackground: true,
+    columns: 2,
+    cards: [
+      { title: 'Managed security services', body: '24/7 SOC, managed SIEM and threat hunting, with monthly evidence an auditor will accept.', icon: '#s-shield', coverColor: '#EAF1FB', link: { label: 'Managed security', href: '/managed-security-services' } },
+      { title: 'Managed EDR', body: 'Endpoint detection and response with analyst triage and containment, not just an agent and a dashboard.', icon: '#s-shield', coverColor: '#FFF1E0', link: { label: 'Managed EDR', href: '/managed-endpoint-detection-and-response' } },
+      { title: 'Data and application security', body: 'Find the sensitive data you hold, control who can reach it, and secure the code that touches it.', icon: '#s-shield', coverColor: '#E7F5EC', link: { label: 'Data security', href: '/data-and-application-security' } },
+      { title: 'GRC and compliance', body: 'Controls mapped to ISO 27001, the ACSC Essential Eight, APRA CPS 234 and SOC 2, with the gaps closed and the evidence produced.', icon: '#s-shield', coverColor: '#F3F2F1', link: { label: 'GRC and compliance', href: '/grc-and-compliance' } },
+    ],
+  },
+  {
+    type: 'relatedService',
+    eyebrow: 'Who does the work',
+    heading: 'Where these teams sit',
+    body: 'These services are delivered together with the Onsys delivery centre in Colombo, under Australian engagement leadership. Databases are the exception and always have been: every login to a client database instance is made by an Onsys consultant in Australia, on every plan, by default.',
+    cta: { label: 'Read the access policy', href: '/who-can-access-your-database' },
+  },
+  {
+    type: 'ctaBand',
+    heading: 'Already a database client?',
+    body: 'Most of this work starts with somebody asking whether we also look after the servers, the network or the backups. The answer is usually yes.',
+    cta: { label: 'Ask us', href: '/contact' },
+  },
+];
+
+/**
+ * B8: /certifications and /clients.
+ *
+ * /certifications lifts the credential grid out of /expertise#certifications
+ * onto a page of its own, because "do these people hold the certifications
+ * they claim" is a question a buyer asks directly and an anchor halfway down
+ * another page is not an answer. The anchor keeps working; this adds a URL that
+ * can be linked and sent.
+ *
+ * It carries no ISO 27001 claim. Onsys helps clients map controls to ISO 27001
+ * on the GRC page, which is a different statement from holding the certificate,
+ * and whether Onsys holds it has not been confirmed. Nothing goes on this page
+ * that cannot be evidenced.
+ *
+ * /clients is not a logo wall. The sales plan asked for one; it cannot exist,
+ * because the case studies are anonymous — the work was done under
+ * confidentiality and no client has been asked to waive it. So the page answers
+ * the question a logo wall is a proxy for: who does this firm actually work
+ * for, and have they done anything like my situation.
+ */
+const certificationsBlocks: Block[] = [
+  {
+    type: 'richText',
+    html: `<p>Every badge below is held by a named Onsys engineer or consultant, and the people who hold them are the people who do the work — there is no first-line triage layer between you and them.</p><p>The list is deliberately concentrated rather than broad. These are the platforms we are asked to run: Oracle, and the Microsoft data, AI, security and cloud stack. We work across other vendors as well, and we would rather show the credentials that bear on a database engagement than pad the page.</p>`,
+  },
+    {
+      type: 'logoGrid',
+      eyebrow: 'Credentials',
+      heading: 'Certifications held by our engineers and consultants',
+      body: 'Concentrated where the work is: Oracle and the Microsoft data, AI and cloud stack. Held by the consultants who deliver, not by a sales team.',
+      altBackground: true,
+        logos: certificationLogos,
+    },
+  {
+    type: 'relatedService',
+    eyebrow: 'A note on what is not here',
+    heading: 'Organisational certifications',
+    body: 'The credentials above are held by individuals. Onsys maps client control frameworks to ISO 27001, the ACSC Essential Eight, APRA CPS 234 and SOC 2 as consulting work, which is a different thing from holding those certificates as an organisation — and this page does not claim otherwise.',
+    cta: { label: 'How we handle compliance work', href: '/grc-and-compliance' },
+  },
+  {
+    type: 'ctaBand',
+    heading: 'Want to know who would be on your account?',
+    body: 'Ask, and we will tell you which consultants would hold it and what they are certified in, before you sign anything.',
+    cta: { label: 'Ask about the team', href: '/contact' },
+  },
+];
+
+const clientsBlocks: Block[] = [
+  {
+    type: 'richText',
+    html: `<p>We do not publish client names or logos. Every engagement is covered by confidentiality, and that does not lapse because a logo would be useful on a website. Several of our clients operate payment and telecommunications infrastructure where even the fact of a supplier relationship is sensitive.</p><p>What we can do is tell you exactly what we have built, for which sectors, in which regions — and let you judge the engineering rather than the logo.</p>`,
+  },
+  {
+    type: 'cardGrid',
+    eyebrow: 'Who we work for',
+    heading: 'Sectors we have delivered in',
+    centered: false,
+    altBackground: true,
+    columns: 3,
+    cards: [
+      { title: 'Healthcare', body: 'A business-critical system moved onto a two-node Always On platform with automatic failover and encryption at rest, in Australia.', icon: '#s-shield', coverColor: '#E7F5EC', link: { label: 'Read more', href: '/case-studies/sql-server-always-on-healthcare-australia' } },
+      { title: 'Manufacturing', body: 'Distributed availability groups across two data centres, with disaster recovery testable without an outage.', icon: '#s-managed', coverColor: '#EAF1FB', link: { label: 'Read more', href: '/case-studies/manufacturing-distributed-availability-groups-two-data-centres' } },
+      { title: 'Telecommunications', body: 'A group replication cluster with automatic promotion and a phased migration onto it, and an Oracle RAC estate moved onto new storage and proven against real applications before production followed it.', icon: '#s-etl', coverColor: '#FFF1E0', link: { label: 'Read more', href: '/case-studies/telecommunications-mysql-group-replication-cluster-migration' } },
+      { title: 'Payments', body: 'A business-critical database moved onto a managed Azure platform with no transaction lost at cutover, geo-replicated to a second region that also carries read traffic.', icon: '#s-cloud', coverColor: '#EAF1FB', link: { label: 'Read more', href: '/case-studies/sql-server-azure-sql-mi-migration-pacific-telco' } },
+      { title: 'Financial services', body: 'The database platform behind a mobile money launch in a new market, proven before it carried traffic.', icon: '#s-consult', coverColor: '#F3F2F1', link: { label: 'Read more', href: '/case-studies/mobile-money-platform-new-market-launch-design' } },
+    ],
+  },
+  {
+    /**
+     * A counted-metrics band sat here. Removed on the same instruction as the
+     * one on the home page: say what the work was, not how much of it there
+     * was. A buyer recognises a problem; they cannot act on a project count.
+     */
+    type: 'checkList',
+    eyebrow: 'Where we work',
+    heading: 'Australia, Sri Lanka and the Pacific',
+    body: 'Delivered from Melbourne, with a delivery centre in Colombo. Database work is the exception to that and always has been — every login to a client database instance is made by an Onsys consultant based in Australia.',
+    items: [
+      'Australian clients across healthcare and telecommunications, including high availability, encryption at rest and disaster recovery rebuilt to carry a full production workload',
+      'A Sri Lankan manufacturing group, with availability groups distributed across two data centres and a disaster-recovery test that does not interrupt production',
+      'Pacific telecommunications and payments operators, including a group replication cluster, a payments platform moved to the cloud across two regions, and the platform behind a mobile money launch',
+      'Every engagement delivered as a fixed-price project against written acceptance criteria, to the agreed timeline, without a cost variation',
+    ],
+  },
+  {
+    type: 'relatedService',
+    eyebrow: 'Due diligence',
+    heading: 'Reference calls',
+    body: 'Anonymised case studies are not a substitute for talking to someone who has used us. We will arrange a reference conversation with a comparable client where that client agrees to it — which is the honest version of a logo wall, and it is why we ask them rather than publishing their name without asking.',
+    cta: { label: 'Request a reference', href: '/contact' },
+  },
+];
+
 export interface SeedPage {
   slug: string;
   title: string;
@@ -4888,6 +5387,44 @@ const sqlServerDbaBlocks: Block[] = [
     heading: 'Who touches your database',
     body: 'Your production databases are accessed by Onsys DBAs based in Australia, and only by them. No offshore engineer holds credentials to a client database — on every plan, by default, not as an upgrade.',
     cta: { label: 'Read the access policy', href: '/who-can-access-your-database' },
+  },
+  {
+    /*
+     * The industry pages hang off this hub rather than off the top navigation.
+     * The service is identical on all four; what differs is the failure mode
+     * and the obligation, so the right place to offer them is after a reader
+     * has understood the service — not as four more rows in a menu.
+     */
+    type: 'cardGrid',
+    anchor: 'by-industry',
+    eyebrow: 'By sector',
+    heading: 'SQL Server support for your industry',
+    body: 'Same service, same prices, same Australian DBAs. These pages cover the failure modes and the obligations specific to each sector, because those are what actually differ.',
+    centered: true,
+    altBackground: true,
+    columns: 4,
+    cards: [
+      { title: 'Healthcare', body: 'PAS, EMR, pathology and radiology databases, under the Privacy Act, the My Health Records Act and vendor certification constraints.', icon: '#s-shield', coverColor: '#E7F5EC', link: { label: 'Read more', href: '/sql-server-support-healthcare' } },
+      { title: 'Local government', body: 'Rates, property, planning and ERP, with published pricing and no lock-in — written for a council procurement file.', icon: '#s-managed', coverColor: '#EAF1FB', link: { label: 'Read more', href: '/sql-server-support-local-government' } },
+      { title: 'ERP systems', body: 'When month-end is slow and the vendor says the application is behaving correctly. Dynamics, SAP, JD Edwards, Epicor and the rest.', icon: '#s-consult', coverColor: '#FFF1E0', link: { label: 'Read more', href: '/sql-server-support-erp-systems' } },
+      { title: 'Finance systems', body: 'Banking, payments and insurance, where the recovery objective has to be evidenced rather than asserted.', icon: '#s-ha', coverColor: '#F3F2F1', link: { label: 'Read more', href: '/sql-server-support-finance-systems' } },
+    ],
+  },
+  {
+    /*
+     * City pages, linked from the hub for the same reason. Each is built on
+     * something genuinely local — a time-zone offset, or where the cloud
+     * regions physically are — rather than on the city name.
+     */
+    type: 'quicklinks',
+    items: [
+      { label: 'Melbourne', href: '/sql-server-dba-melbourne', icon: '#s-managed', color: '#EAF1FB' },
+      { label: 'Sydney', href: '/sql-server-dba-sydney', icon: '#s-cloud', color: '#E7F5EC' },
+      { label: 'Brisbane', href: '/sql-server-dba-brisbane', icon: '#s-ha', color: '#FFF1E0' },
+      { label: 'Perth', href: '/sql-server-dba-perth', icon: '#s-emergency', color: '#FDECEC' },
+      { label: 'Adelaide', href: '/sql-server-dba-adelaide', icon: '#s-consult', color: '#F3F2F1' },
+      { label: 'Auckland', href: '/sql-server-dba-auckland', icon: '#s-shield', color: '#EAF1FB' },
+    ],
   },
 ];
 
@@ -5223,6 +5760,16 @@ const sqlServer2016Blocks: Block[] = [
     ],
   },
   {
+    /* Reciprocal: the 2017 page links back here. Most estates we assess run
+       both, and the two answer different questions — 2016 is an exposure that
+       exists today, 2017 is one that can still be planned for. */
+    type: 'relatedService',
+    eyebrow: 'Running 2017 as well?',
+    heading: 'SQL Server 2017 support ends 12 October 2027',
+    body: 'If the estate has both versions, 2016 is the exposure you are carrying now and 2017 is the deadline you can still plan around. Doing them as one programme is almost always cheaper than doing them a year apart.',
+    cta: { label: 'SQL Server 2017 end of support', href: '/sql-server-2017-end-of-support' },
+  },
+  {
     type: 'ctaBand',
     heading: 'Still on SQL Server 2016?',
     body: 'Start with the free 20-point health check. It tells you the patch level, the edition and what is depending on the instance — which is what any upgrade decision needs before it can be made.',
@@ -5395,6 +5942,16 @@ const remoteSupportBlocks: Block[] = [
 ];
 
 export const pages: SeedPage[] = [
+  /**
+   * New Zealand and Pacific market pages, kept in their own module. Six pages
+   * of market copy in this file would bury the service pages, and they share a
+   * set of rules — no named clients, Australian access, no invented country
+   * specifics — that are easier to hold in one place.
+   */
+  ...pacificPages,
+  ...sqlServer2017Pages,
+  ...industryPages,
+  ...cityPages,
   {
     slug: 'home',
     title: 'Home',
@@ -5420,8 +5977,26 @@ export const pages: SeedPage[] = [
       { question: 'What database platforms does Onsys support?', answer: 'Onsys supports Microsoft SQL Server, Oracle Database, PostgreSQL, EDB Postgres, MySQL, MariaDB and MongoDB, plus Azure SQL Database and Azure SQL Managed Instance. Environments are covered on-premises and on Microsoft Azure, AWS and Oracle Cloud Infrastructure.' },
       { question: 'Does Onsys provide 24/7 database and IT support?', answer: 'Yes. Every monthly plan includes 24/7/365 monitoring and remote support. Database monitoring and support is delivered by Onsys consultants in Australia, who are the only people who access your instances. Managed IT, software and security services are delivered together with our Colombo delivery centre. Response SLAs are two hours on Plan A and one hour on Plans B and C, guaranteed at any hour.' },
       { question: 'How quickly does Onsys respond to a database incident?', answer: 'Within one hour on the Plan B and Plan C support tiers, and within two hours on Plan A. The SLA clock runs 24 hours a day, including weekends and public holidays, and applies from the moment an alert or ticket is raised.' },
-      { question: 'How much can a business save by outsourcing DBA work to Onsys?', answer: 'Onsys clients reduce DBA and IT operating costs by up to 50% compared with hiring in-house. You pay a fixed monthly plan instead of salary, recruitment, training and leave cover, and you get a certified team rather than a single person.' },
-      { question: 'What engagement models does Onsys offer?', answer: 'Four: a fixed monthly support plan, a fixed-price project with milestone-based payments, blocked hours or time and materials, or a dedicated offshore development team. Models can be combined — many clients run a monthly plan alongside project work.' },
+      /*
+       * "Up to 50%" was removed rather than restated. Nothing on this site,
+       * and nothing in the engagement record, measures a client's in-house DBA
+       * cost before and after — so the figure could not be evidenced if a
+       * prospect, a competitor or the ACCC asked where it came from. What
+       * replaces it is arithmetic a reader can check against our own published
+       * prices and against any salary guide they choose, with no number
+       * attributed to us that we cannot show.
+       */
+      { question: 'Is a monthly plan cheaper than hiring a DBA?', answer: 'Compare the published numbers rather than a percentage. Plan A is $1,500 a month — $18,000 a year excluding GST — for up to 10 SQL Server instances, a two-hour response SLA at any hour, and 10 professional service hours a month. Against that, price one DBA at your own salary guide and add recruitment, superannuation, training, leave cover and the on-call loading. The other half of the comparison is cover: one person cannot staff nights, weekends, leave and resignation, so a genuine 24/7 roster is five to seven DBAs. Where a plan does not stack up — a very large estate needing someone on site daily — we will say so.' },
+      /*
+       * The dedicated offshore development team was the fourth model listed
+       * here. On the home page, where every other answer is about databases and
+       * where the access rule is that no offshore engineer touches a client
+       * database, offering an offshore team two answers above that rule reads
+       * as a contradiction. The model is real and still sold — it lives on
+       * /software-development-staff-augmentation, which is where it is
+       * explained properly.
+       */
+      { question: 'What engagement models does Onsys offer for database work?', answer: 'Three: a fixed monthly support plan, a fixed-price project with milestone-based payments, or blocked hours and time-and-materials consultancy at $150 an hour. Models combine — many clients run a monthly plan alongside project work. Every one of them is delivered by Onsys consultants in Australia. If you are after a dedicated offshore engineering team for software development rather than database work, that is a separate service and it is explained on our staff augmentation page.' },
       { question: 'Does Onsys require a lock-in contract?', answer: 'No. Onsys does not use lock-in contracts. Monthly support plans run on a rolling basis, and hourly consultancy and fixed-price projects carry no ongoing commitment once the work is complete.' },
       { question: 'Where is Onsys Technologies based?', answer: `Onsys Technologies is an Australian company with its head office at ${org.postalAddress}, and a delivery centre in Colombo, Sri Lanka. Database consultancy and support is delivered from Australia; Colombo delivers managed IT support, software development and security services.` },
     ],
@@ -5431,7 +6006,7 @@ export const pages: SeedPage[] = [
     title: 'Expertise',
     heading: 'Database and cloud expertise',
     eyebrow: 'Platforms & capability',
-    lede: 'Across the platforms your business actually runs on. Our experienced, certified team designs, builds and manages your database, cloud and on-premises infrastructure projects — staffed by senior specialists holding credentials across Oracle, Microsoft, Red Hat, VMware and Fortinet.',
+    lede: 'Across the platforms your business actually runs on. Our experienced, certified team designs, builds and manages your database, cloud and on-premises infrastructure projects — staffed by senior specialists holding Oracle and Microsoft credentials across databases, AI, security and cloud architecture.',
     // No brand suffix — the root layout's title template appends it.
     heroImage: '/images/hero-expertise.jpg',
     heroCtas: [
@@ -5446,6 +6021,85 @@ export const pages: SeedPage[] = [
     faqs: [
       { question: 'Is Onsys tied to a particular vendor?', answer: 'No. We give vendor-neutral advice across SQL Server, Oracle, PostgreSQL, EDB, Azure, AWS and Oracle Cloud, and recommend what fits your environment rather than a single vendor stack.' },
       { question: 'Do you work with hybrid on-premises and cloud environments?', answer: 'Yes. Our managed plans and consultancy cover on-premises, cloud-hosted and hybrid estates across all supported database and infrastructure platforms.' },
+    ],
+  },
+  {
+    slug: 'certifications',
+    title: 'Certifications',
+    heading: 'Certifications our engineers hold',
+    eyebrow: 'Credentials',
+    lede: 'Oracle and Microsoft credentials across databases, AI, security and cloud architecture — held by the consultants who do the work, not by a sales team.',
+    seoTitle: 'Certifications | Oracle & Microsoft Credentials',
+    seoDescription:
+      'The Oracle and Microsoft Azure certifications held by Onsys engineers and consultants — database administration, AI, security and solutions architecture, from the same people who deliver the work.',
+    blocks: certificationsBlocks,
+    faqs: [
+      {
+        question: 'Is Onsys ISO 27001 certified?',
+        answer:
+          'Onsys maps client control frameworks to ISO 27001, the ACSC Essential Eight, APRA CPS 234 and SOC 2 as consulting work. That is a different statement from holding the certificate as an organisation, and this site does not claim to hold it. If organisational certification matters for your procurement, ask us directly and we will tell you exactly where we stand.',
+      },
+      {
+        question: 'Do the certified people actually work on our systems?',
+        answer:
+          'Yes. The consultants who hold these credentials are the ones who deliver consultancy and respond to incidents — there is no first-line triage layer in front of them. For database work they are Onsys consultants based in Australia, on every plan, by default.',
+      },
+    ],
+  },
+  {
+    slug: 'clients',
+    title: 'Clients',
+    heading: 'Who we work for',
+    eyebrow: 'Clients and sectors',
+    lede: 'We do not publish client names. We do publish exactly what we built, for which sectors and in which regions — and we will arrange a reference call where the client agrees to it.',
+    seoTitle: 'Our Clients | Sectors & Regions We Deliver In',
+    seoDescription:
+      'The sectors and regions Onsys delivers database and cloud work in — healthcare, manufacturing, telecommunications, payments and financial services across Australia, Sri Lanka and the Pacific.',
+    blocks: clientsBlocks,
+    faqs: [
+      {
+        question: 'Why do you not name your clients?',
+        answer:
+          'Every engagement is covered by confidentiality, and several of our clients operate payment and telecommunications infrastructure where even the existence of a supplier relationship is sensitive. We would rather describe the engineering in full and leave the name out than publish a logo we have not been given permission to use.',
+      },
+      {
+        question: 'Can we speak to an existing client?',
+        answer:
+          'Where a comparable client agrees to it, yes — we will arrange a reference conversation. We ask them first, which is why we cannot promise it before you ask us.',
+      },
+      {
+        question: 'How do we judge you without named references?',
+        answer:
+          'Read the case studies. They describe the architecture, the decisions and the reasoning in enough detail that your own DBA or architect can tell whether the people who did the work knew what they were doing. Every engagement listed was delivered as a fixed-price project, to the agreed timeline, without a cost variation.',
+      },
+    ],
+  },
+  {
+    slug: 'other-services',
+    title: 'Other Services',
+    heading: 'Everything else Onsys does',
+    eyebrow: 'Beyond databases',
+    lede: 'Managed IT, cloud, software, mobile, AI and security — real work we deliver, kept off the front page so the database practice can say one thing clearly.',
+    seoTitle: 'Other Services | Managed IT, Cloud, Software & Security',
+    seoDescription:
+      'Managed IT, cloud consultancy and migration, system administration, networks, software and mobile development, AI and managed security — the Onsys services beyond database management.',
+    blocks: otherServicesBlocks,
+    faqs: [
+      {
+        question: 'Is Onsys a database company or an IT company?',
+        answer:
+          'A database company that also does the IT around databases. Microsoft SQL Server database administration is the specialisation, with Oracle, PostgreSQL, MySQL and MongoDB on the same team. Managed IT, cloud, software, mobile, AI and security are real services we deliver, and most of that work exists because database clients asked for it.',
+      },
+      {
+        question: 'Who delivers the non-database services?',
+        answer:
+          'They are delivered together with the Onsys delivery centre in Colombo, under Australian engagement leadership. Databases are the exception: every login to a client database instance is made by an Onsys consultant based in Australia, on every plan, by default and not as an upgrade. No offshore engineer holds credentials to a client database environment.',
+      },
+      {
+        question: 'Can we buy managed IT without a database plan?',
+        answer:
+          'Yes. Managed IT for small and medium business starts at $4,500 a month ex-GST for up to 30 users, and does not require a database plan. The reverse is also true — a database plan does not oblige you to take anything else.',
+      },
     ],
   },
   {
@@ -6246,7 +6900,10 @@ export const pages: SeedPage[] = [
     lede: 'A SQL Server health check is a structured review of an instance against a fixed set of configuration, performance, backup and security checks. Onsys runs 20 of them free of charge on one Australian SQL Server instance, using read-only access, and gives you the written findings whether or not you engage us afterwards.',
     heroImage: '/images/hero-dba-oncall.jpg',
     heroCtas: [
-      { label: 'Book the free health check', href: org.bookingUrl },
+      // The form is on this page. Sending the hero to /book made the primary
+      // action a calendar invitation for a free, self-service offer — an extra
+      // step, and a different commitment from the one the button promises.
+      { label: 'Book the free health check', href: '#request-health-check' },
       { label: `Call ${org.phone}`, href: `tel:${org.phoneE164}` },
     ],
     seoTitle: 'Free SQL Server Health Check Australia | 20 Points',
@@ -6417,7 +7074,7 @@ export const pages: SeedPage[] = [
       { question: 'Is it safe to give an external company access to our production database?', answer: 'It is, provided the access is named, least-privilege, logged and revocable — and you should require all four from any provider. Onsys uses individually named accounts rather than shared credentials, connects over your preferred secure channel, and every session is logged and auditable. We document which engineers hold access before you sign, and access is revoked the day an engagement ends. If your policy prohibits external logins entirely, we work screen-shared with your own staff driving.' },
       { question: 'Should we hire an in-house DBA or outsource to a managed service?', answer: 'True 24/7/365 database cover needs five to seven DBAs, because one person cannot cover nights, weekends, leave and resignation. Below roughly three full-time DBAs of genuine workload, a managed service is almost always cheaper and more resilient than hiring. Above that, a hybrid is common: in-house staff own the application-facing work and an external team carries after-hours and specialist platforms.' },
       { question: 'What happens when a production database goes down at 2am?', answer: 'You call the 24/7 number and reach an on-call senior DBA, not a first-line triage queue. On a monthly plan the first response is guaranteed within one to two hours depending on tier, and triage starts on the phone. We hold your runbooks and access already, so no time is lost establishing who you are or how to reach the estate.' },
-      { question: 'Where are your engineers located, and who can see our data?', answer: 'Australian-based senior consultants lead every engagement and hold the client relationship from Melbourne. Round-the-clock coverage is delivered together with our Colombo delivery centre. We tell you exactly which engineers hold access to your environment before you sign, and it is written into the agreement. If you require Australian-resident-only access for regulatory reasons, say so during scoping and we will tell you plainly whether we can meet it.' },
+      { question: 'Where are your engineers located, and who can see our data?', answer: 'In Australia. Database work is Australian-only: every login to a client database instance is made by an Onsys consultant based in Australia, and the round-the-clock roster is staffed by those same consultants rather than handed offshore overnight. No offshore engineer holds credentials to a client database. Our Colombo delivery centre exists and delivers managed IT, software development and security services — it does not touch databases. We tell you exactly which engineers hold access to your environment before you sign, and it goes into the agreement.' },
       { question: 'How long does onboarding take?', answer: 'Two weeks from signature to full coverage is typical: one week for discovery, access and runbooks, one week for monitoring configuration and tuning. Nothing is billed until coverage actually starts.' },
       { question: 'Are we locked into a contract?', answer: 'No. Monthly plans run on a rolling basis with no minimum term and no exit fee. If the service is not worth what it costs, you should be able to stop paying for it.' },
     ],

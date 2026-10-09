@@ -37,6 +37,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 /** Pages that describe a commercial offering get Service schema. */
 const SERVICE_SLUGS = new Set([
+  // Market pages are services with a defined area served, which is the
+  // whole point of them — so they emit Service schema like any other.
+  'database-support-new-zealand',
+  'database-support-pacific-islands',
+  'database-support-fiji',
+  'database-support-papua-new-guinea',
+  'database-support-vanuatu',
+  'database-support-solomon-islands',
   'remote-database-support',
   'free-20-point-sql-server-health-check',
   'managed-database-services',
