@@ -70,6 +70,23 @@ const STATIC_REDIRECTS: Record<string, string> = {
   '/book-a-call': '/book',
   '/request-a-callback': '/contact',
 
+  // Two retired payments/Azure studies. Both described parts of one Azure
+  // programme that the SQL Managed Instance migration page now covers, so both
+  // point straight at it — a redirect to a redirect is a wasted hop and
+  // breaks the moment the middle one is tidied away.
+  '/case-studies/payments-cloud-infrastructure-acquiring-and-ticketing':
+    '/case-studies/sql-server-azure-sql-mi-migration-pacific-telco',
+  '/case-studies/payments-platform-migration-to-azure-multi-region':
+    '/case-studies/sql-server-azure-sql-mi-migration-pacific-telco',
+
+  // Retired 8 October 2026, replaced by the RAC migration study.
+  '/case-studies/oracle-rac-disaster-recovery-full-production-load':
+    '/case-studies/oracle-rac-migration-australian-telco',
+
+  // Retired 9 October 2026, rewritten at a new slug.
+  '/case-studies/healthcare-sql-server-high-availability-encryption':
+    '/case-studies/sql-server-always-on-healthcare-australia',
+
   '/our-expertise': '/expertise',
   '/about-us': '/about',
   '/contact-us': '/contact',
