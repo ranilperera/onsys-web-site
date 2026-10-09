@@ -63,6 +63,23 @@ describe('readAttribution', () => {
     expect(readAttribution(`${SITE}/contact`, `${SITE}/blog/x`).referrer).toBeUndefined();
   });
 
+  it('records the landing path, which is the page that did the convincing', () => {
+    const a = readAttribution(`${SITE}/blog/sql-server-dba-support-cost-australia?utm_source=google`);
+    expect(a.landingPath).toBe('/blog/sql-server-dba-support-cost-australia');
+  });
+
+  it('keeps the query string out of the landing path', () => {
+    // A landing URL can carry a collector token or an email address, and
+    // neither belongs in a lead record.
+    const a = readAttribution(`${SITE}/download/collector?token=secret-token-value`);
+    expect(a.landingPath).toBe('/download/collector');
+    expect(JSON.stringify(a)).not.toContain('secret-token-value');
+  });
+
+  it('records / for the homepage', () => {
+    expect(readAttribution(`${SITE}/`).landingPath).toBe('/');
+  });
+
   it('carries the browser timezone and locale through', () => {
     const a = readAttribution(`${SITE}/`, '', {
       timezone: 'Australia/Melbourne',
@@ -72,8 +89,12 @@ describe('readAttribution', () => {
   });
 
   it('omits empty keys instead of sending blank strings', () => {
+    // A plain visit with no campaign records where it landed and nothing else.
+    // The guard is that absent values are absent, not empty strings — a blank
+    // utmSource would show up in the console as a source that was never there.
     const a = readAttribution(`${SITE}/contact`);
-    expect(Object.keys(a)).toHaveLength(0);
+    expect(a).toEqual({ landingPath: '/contact' });
+    expect(Object.values(a).every((v) => v !== '')).toBe(true);
   });
 
   it('truncates to the width the API schema accepts', () => {
@@ -124,6 +145,21 @@ describe('mergeAttribution', () => {
       timezone: 'Pacific/Auckland',
       locale: 'en-NZ',
     });
+  });
+
+  it('keeps the first landing page across a navigation', () => {
+    // The whole point: someone lands on an article and submits from /contact.
+    const out = mergeAttribution(
+      { landingPath: '/blog/sql-server-dba-support-cost-australia', utmSource: 'google' },
+      { landingPath: '/contact' },
+    );
+    expect(out.landingPath).toBe('/blog/sql-server-dba-support-cost-australia');
+  });
+
+  it('adopts a landing page when the session has none stored', () => {
+    expect(mergeAttribution({}, { landingPath: '/pricing-and-plans' }).landingPath).toBe(
+      '/pricing-and-plans',
+    );
   });
 
   it('does not lose a stored timezone when the new read has none', () => {

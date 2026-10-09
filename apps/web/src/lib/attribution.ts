@@ -27,6 +27,15 @@ export interface Attribution {
   utmCampaign?: string;
   referrer?: string;
   /**
+   * The path the visit landed on — "/blog/sql-server-dba-support-cost-australia",
+   * not the page the form happens to sit on.
+   *
+   * This is the question the traffic analysis could not answer. The referrer
+   * cannot answer it either: by submit time it is our own previous page. Path
+   * only, never the query string, which can carry a token or an email address.
+   */
+  landingPath?: string;
+  /**
    * IANA zone, e.g. 'Australia/Melbourne'. The API derives a country from it:
    * with no geo-IP at the edge, this is the best available signal for whether a
    * lead is Australian, and the business question behind all of this is how many
@@ -88,7 +97,17 @@ export function readAttribution(
   const medium = clip(params.get('utm_medium'), MAX_TAG);
   const paidClick = params.has('gclid') ? 'google' : params.has('msclkid') ? 'bing' : undefined;
 
+  let landingPath: string | undefined;
+  try {
+    // Path only. The query string on a landing URL can carry a collector token
+    // or an email address, and neither belongs in a lead record.
+    landingPath = new URL(url).pathname || undefined;
+  } catch {
+    landingPath = undefined;
+  }
+
   const out: Attribution = {
+    landingPath,
     utmSource: source ?? paidClick,
     utmMedium: medium ?? (paidClick ? 'cpc' : undefined),
     utmCampaign: clip(params.get('utm_campaign'), MAX_TAG),
@@ -128,6 +147,11 @@ export function mergeAttribution(stored: Attribution, incoming: Attribution): At
   const campaign = hasSource(stored) ? stored : { ...stored, ...incoming };
   return {
     ...campaign,
+    // The landing page is first-touch for the same reason the campaign is: the
+    // page that earned the visit is the one worth crediting, not the form.
+    // Kept separately from the campaign block so a session that began without
+    // a campaign still records where it started.
+    landingPath: stored.landingPath ?? incoming.landingPath,
     timezone: incoming.timezone ?? stored.timezone,
     locale: incoming.locale ?? stored.locale,
   };
