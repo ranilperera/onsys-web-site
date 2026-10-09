@@ -444,7 +444,8 @@ export async function notifyHealthCheckToTeams(r: {
   name: string;
   company: string;
   email: string;
-  phone: string;
+  /// Optional on the form; the card says so rather than showing a blank fact.
+  phone?: string;
   sqlVersion: string;
   instanceCount?: string;
   notes?: string;
@@ -475,7 +476,7 @@ export async function notifyHealthCheckToTeams(r: {
                   facts: [
                     { title: 'Company', value: r.company },
                     { title: 'Contact', value: r.name },
-                    { title: 'Phone', value: r.phone },
+                    { title: 'Phone', value: r.phone || 'Not given' },
                     { title: 'Email', value: r.email },
                     { title: 'SQL Server', value: r.sqlVersion },
                     { title: 'Instances', value: r.instanceCount || '—' },

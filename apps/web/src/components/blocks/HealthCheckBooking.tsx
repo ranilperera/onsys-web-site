@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { siteConfig } from '@/lib/config';
+import { Turnstile } from '../Turnstile';
 import { getAttribution } from '@/lib/attribution';
 import { GOALS, trackGoal } from '@/lib/analytics';
 
@@ -39,6 +40,10 @@ const SQL_VERSIONS = [
 export function HealthCheckBooking({ eyebrow, heading, body, note }: HealthCheckBookingProps) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [captchaToken, setCaptchaToken] = useState('');
+  // Bumping this asks the widget for a fresh token: they are single-use, so a
+  // resubmit after an error would otherwise be rejected.
+  const [captchaNonce, setCaptchaNonce] = useState(0);
   const [done, setDone] = useState<{
     name: string;
     collectorUrl: string;
@@ -68,6 +73,8 @@ export function HealthCheckBooking({ eyebrow, heading, body, note }: HealthCheck
           sqlVersion: form.get('sqlVersion'),
           instanceCount: form.get('instanceCount') || undefined,
           notes: form.get('notes') || undefined,
+          website: form.get('website') || undefined, // honeypot
+          captchaToken,
           // This request creates a Lead, and it is the page a paid campaign
           // would land on, so it carries the same attribution as the contact
           // form rather than arriving with no source at all.
@@ -77,6 +84,7 @@ export function HealthCheckBooking({ eyebrow, heading, body, note }: HealthCheck
       const data = await res.json();
 
       if (!res.ok) {
+        setCaptchaNonce((n) => n + 1);
         setError(data.error ?? `Something went wrong. Please call ${siteConfig.phone}.`);
         return;
       }
@@ -203,12 +211,13 @@ export function HealthCheckBooking({ eyebrow, heading, body, note }: HealthCheck
                 />
               </div>
               <div className="form-field">
-                <label htmlFor="hc-phone">Phone *</label>
+                <label htmlFor="hc-phone">
+                  Phone <span className="field-optional">(optional)</span>
+                </label>
                 <input
                   id="hc-phone"
                   name="phone"
                   type="tel"
-                  required
                   maxLength={40}
                   autoComplete="tel"
                   placeholder="03 xxxx xxxx"
@@ -253,6 +262,20 @@ export function HealthCheckBooking({ eyebrow, heading, body, note }: HealthCheck
                 />
               </div>
             </div>
+
+            {/* Anti-spam. Off-screen rather than display:none, which some bots
+                skip. A real visitor never sees it; a submission with it filled
+                in is discarded server-side without telling the sender. */}
+            <input
+              type="text"
+              name="website"
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden="true"
+              className="hp-field"
+            />
+
+            <Turnstile onToken={setCaptchaToken} resetKey={captchaNonce} />
 
             {error && (
               <div className="form-status error" role="alert">

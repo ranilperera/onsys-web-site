@@ -232,7 +232,9 @@ interface HealthCheckInput {
   name: string;
   company: string;
   email: string;
-  phone: string;
+  /// Optional on the form, so the alert has to cope with its absence rather
+  /// than render an empty tel: link nobody can dial.
+  phone?: string;
   sqlVersion: string;
   instanceCount?: string;
   notes?: string;
@@ -298,7 +300,11 @@ export function renderHealthCheckAlert(
      <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;font-size:14px;border-collapse:collapse;margin:0 0 16px;">
        <tr><td style="padding:6px 0;color:#605E5C;">Contact</td><td style="padding:6px 0;text-align:right;">${escapeHtml(r.name)}</td></tr>
        <tr><td style="padding:6px 0;color:#605E5C;">Email</td><td style="padding:6px 0;text-align:right;"><a href="mailto:${escapeHtml(r.email)}">${escapeHtml(r.email)}</a></td></tr>
-       <tr><td style="padding:6px 0;color:#605E5C;">Phone</td><td style="padding:6px 0;text-align:right;"><a href="tel:${escapeHtml(r.phone)}">${escapeHtml(r.phone)}</a></td></tr>
+       <tr><td style="padding:6px 0;color:#605E5C;">Phone</td><td style="padding:6px 0;text-align:right;">${
+         r.phone
+           ? `<a href="tel:${escapeHtml(r.phone)}">${escapeHtml(r.phone)}</a>`
+           : 'Not given — reply by email'
+       }</td></tr>
        <tr><td style="padding:6px 0;color:#605E5C;">SQL Server version</td><td style="padding:6px 0;text-align:right;"><strong>${escapeHtml(r.sqlVersion)}</strong></td></tr>
        <tr><td style="padding:6px 0;color:#605E5C;">Instances</td><td style="padding:6px 0;text-align:right;">${escapeHtml(r.instanceCount || '—')}</td></tr>
      </table>

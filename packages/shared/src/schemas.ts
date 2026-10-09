@@ -22,6 +22,14 @@ export const leadInputSchema = z.object({
    */
   timezone: z.string().max(120).optional(),
   locale: z.string().max(120).optional(),
+  landingPath: z.string().max(500).optional(),
+  /**
+   * Set by the plan-card enquiry. The plan name is what the contact form could
+   * never capture, and it is the difference between "someone enquired" and
+   * "someone was looking at Plan B for fourteen instances".
+   */
+  plan: z.string().max(120).optional(),
+  instanceCount: z.string().max(40).optional(),
 });
 export type LeadInput = z.infer<typeof leadInputSchema>;
 
@@ -125,6 +133,14 @@ export const emergencyRequestSchema = z.object({
   /// What is broken. Optional — someone mid-outage should not be made to write
   /// an essay before they can pay and reach a consultant.
   summary: z.string().trim().max(2000).optional(),
+  /**
+   * Anti-spam, matching leadInputSchema. `website` must be empty — it is a
+   * field only a bot fills in — and the captcha token is verified server-side.
+   * Both were missing here until 6 October 2026, which is how 25 bot
+   * submissions reached the leads console.
+   */
+  website: z.string().max(0).optional(),
+  captchaToken: z.string().optional(),
 });
 
 /**
@@ -140,15 +156,31 @@ export const healthCheckRequestSchema = z.object({
   name: z.string().trim().min(1, 'Please tell us your name').max(120),
   company: z.string().trim().min(1, 'Company name').max(160),
   email: z.string().trim().email('Enter a valid work email address').max(200),
+  /**
+   * Optional. The collector link and the written report both go by email, so a
+   * phone number is not needed to deliver the thing being asked for — and a
+   * required field on a free, no-obligation offer costs more submissions than
+   * the number is worth. Still validated when one is supplied, and still
+   * accepts '' so an untouched input does not fail the form.
+   */
   phone: z
     .string()
     .trim()
-    .min(6, 'A phone number we can reach you on')
     .max(40)
-    .regex(/^[\d+()\s-]+$/, 'Use digits, spaces, + or ( )'),
+    .regex(/^[\d+()\s-]+$/, 'Use digits, spaces, + or ( )')
+    .optional()
+    .or(z.literal('')),
   sqlVersion: z.string().trim().min(1, 'Which SQL Server version?').max(80),
   instanceCount: z.string().trim().max(40).optional(),
   notes: z.string().trim().max(2000).optional(),
+  /**
+   * Anti-spam, matching leadInputSchema. `website` must be empty — it is a
+   * field only a bot fills in — and the captcha token is verified server-side.
+   * Both were missing here until 6 October 2026, which is how 25 bot
+   * submissions reached the leads console.
+   */
+  website: z.string().max(0).optional(),
+  captchaToken: z.string().optional(),
   /**
    * This request creates a Lead, so it carries the same attribution as the
    * contact form. It had none, which made the one conversion worth advertising
@@ -160,6 +192,7 @@ export const healthCheckRequestSchema = z.object({
   referrer: z.string().max(500).optional(),
   timezone: z.string().max(120).optional(),
   locale: z.string().max(120).optional(),
+  landingPath: z.string().max(500).optional(),
 });
 
 export const purgeChatSchema = z.object({
@@ -214,6 +247,7 @@ export const bookingInputSchema = z.object({
    */
   timezone: z.string().max(120).optional(),
   locale: z.string().max(120).optional(),
+  landingPath: z.string().max(500).optional(),
 });
 export type BookingInput = z.infer<typeof bookingInputSchema>;
 
