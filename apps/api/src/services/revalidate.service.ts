@@ -28,6 +28,8 @@ export const tags = {
   sitemap: 'sitemap',
   job: (slug: string) => `job:${slug}`,
   jobList: 'jobs',
+  caseStudy: (slug: string) => `case-study:${slug}`,
+  caseStudyList: 'case-studies',
   redirects: 'redirects',
 } as const;
 

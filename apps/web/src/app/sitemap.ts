@@ -27,7 +27,7 @@ const MONEY_PAGES = new Set([
 ]);
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const { pages, posts, authors, jobs } = await getSitemapData();
+  const { pages, posts, authors, jobs, caseStudies } = await getSitemapData();
 
   /**
    * lastmod should say when the content changed, not when a row was written.
@@ -65,7 +65,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Also a code route. Listed even with nothing open: it is a page buyers
     // and candidates both check, and the footer links it from every page.
     { url: `${siteConfig.url}/careers`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.5 },
+    // Proof. The one thing five consecutive audits said was missing, so it is
+    // listed at the same priority as a service page rather than as an extra.
+    { url: `${siteConfig.url}/case-studies`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
   ];
+
+  const caseStudyEntries: MetadataRoute.Sitemap = caseStudies.map((cs) => ({
+    url: `${siteConfig.url}/case-studies/${cs.slug}`,
+    lastModified: new Date(cs.contentUpdatedAt ?? cs.updatedAt),
+    changeFrequency: 'yearly' as const,
+    priority: 0.7,
+  }));
 
   /**
    * Open vacancies. The API returns only published roles that have not passed
@@ -121,5 +131,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // view of /blog that canonicalises back to it, so listing one asks a crawler
   // to index a URL we have simultaneously told it not to. Several categories
   // are empty as well, which would put "no posts published yet" in the index.
-  return [...staticEntries, ...portalEntry, ...pageEntries, ...postEntries, ...authorEntries, ...jobEntries];
+  return [...staticEntries, ...portalEntry, ...pageEntries, ...postEntries, ...authorEntries, ...jobEntries, ...caseStudyEntries];
 }

@@ -4,3 +4,4 @@ export * from './html';
 export * from './nav';
 export * from './healthcheck';
 export * from './jobs';
+export * from './caseStudies';

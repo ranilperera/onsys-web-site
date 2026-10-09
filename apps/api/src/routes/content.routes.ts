@@ -230,6 +230,37 @@ contentRouter.get(
   }),
 );
 
+/** Published case studies for /case-studies, newest delivery first. */
+contentRouter.get(
+  '/case-studies',
+  asyncHandler(async (_req, res) => {
+    const caseStudies = await prisma.caseStudy.findMany({
+      where: { status: 'PUBLISHED' },
+      orderBy: [{ deliveredYear: 'desc' }, { title: 'asc' }],
+      select: {
+        id: true, slug: true, title: true, summary: true, sector: true,
+        region: true, deliveredYear: true, platforms: true, publishedAt: true,
+        updatedAt: true, contentUpdatedAt: true,
+      },
+    });
+    res.json({ caseStudies });
+  }),
+);
+
+contentRouter.get(
+  '/case-studies/:slug',
+  asyncHandler(async (req, res) => {
+    const caseStudy = await prisma.caseStudy.findFirst({
+      where: { slug: req.params.slug, status: 'PUBLISHED' },
+    });
+    if (!caseStudy) {
+      res.status(404).json({ error: 'Case study not found' });
+      return;
+    }
+    res.json({ caseStudy });
+  }),
+);
+
 /** Feeds the dynamic sitemap in the web app. */
 contentRouter.get(
   '/sitemap',
@@ -237,7 +268,7 @@ contentRouter.get(
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
 
-    const [pages, posts, categories, authors, jobs] = await Promise.all([
+    const [pages, posts, categories, authors, jobs, caseStudies] = await Promise.all([
       prisma.page.findMany({
         where: { ...publishedPage, noindex: false },
         select: { slug: true, updatedAt: true, contentUpdatedAt: true },
@@ -265,8 +296,12 @@ contentRouter.get(
         where: { status: 'PUBLISHED', closesAt: { gte: startOfToday } },
         select: { slug: true, updatedAt: true },
       }),
+      prisma.caseStudy.findMany({
+        where: { status: 'PUBLISHED' },
+        select: { slug: true, updatedAt: true, contentUpdatedAt: true },
+      }),
     ]);
-    res.json({ pages, posts, categories, authors, jobs });
+    res.json({ pages, posts, categories, authors, jobs, caseStudies });
   }),
 );
 

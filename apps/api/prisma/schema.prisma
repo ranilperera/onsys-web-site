@@ -90,6 +90,55 @@ model Job {
   @@map("jobs")
 }
 
+/// An anonymised account of delivered work, listed on /case-studies.
+///
+/// No client is named and none ever should be: the source documents are
+/// commercial-in-confidence, and permission to name has not been given for any
+/// of them. `sector` and `region` carry as much identity as is allowed, and
+/// region is deliberately coarse for the Pacific — sector plus country
+/// identifies the client outright in a market with one operator.
+///
+/// There is no `quote` field. Quotes need the client's approval, and attaching
+/// an unapproved one to an anonymised study would be inventing a testimonial.
+model CaseStudy {
+  id      String @id @default(cuid())
+  slug    String @unique
+  title   String
+  /// One or two lines for the listing.
+  summary String
+
+  /// "Healthcare", "Manufacturing", "Telecommunications", "Payments".
+  sector String
+  /// "Australia", "Sri Lanka", "Pacific Islands". Never a city.
+  region String
+  /// Calendar year the work was delivered. A year, not a date: a precise date
+  /// plus a sector plus a region starts to identify the engagement.
+  deliveredYear Int
+
+  /// What was wrong, what was built, and what that means — rendered as blocks
+  /// so a case study is edited with the same tools as any other page.
+  blocks Json
+
+  /// Platforms the work covered, for filtering and for the listing chips.
+  /// e.g. ["SQL Server", "Windows Server"].
+  platforms String[] @default([])
+
+  seoTitle       String?
+  seoDescription String?
+
+  status      ContentStatus @default(DRAFT)
+  publishedAt DateTime?
+  /// Moves only when the content differs — same rule as pages and posts, so
+  /// the sitemap's lastmod means something.
+  contentUpdatedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, deliveredYear])
+  @@map("case_studies")
+}
+
 enum ContentStatus {
   DRAFT
   PUBLISHED
@@ -436,6 +485,18 @@ model Lead {
   /// than a guessed one. Only 10% of site clicks are Australian, so counting
   /// leads by market is the measurement the growth plan turns on.
   country     String?   @db.VarChar(2)
+
+  /// The page the visit landed on, captured on arrival rather than at submit.
+  /// "Which page produced this lead" is the question the traffic analysis could
+  /// not answer, and the referrer cannot answer it either: after an internal
+  /// navigation the referrer is our own previous page.
+  landingPath String?
+
+  /// Set when the enquiry came from a plan card rather than the contact form,
+  /// so plan interest is a field to report on rather than a sentence to read
+  /// out of the message body.
+  plan          String?
+  instanceCount String?
 
   emailSentAt DateTime?
   createdAt   DateTime   @default(now())

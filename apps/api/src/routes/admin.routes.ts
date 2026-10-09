@@ -8,6 +8,8 @@ import {
   normalisePastedHtml,
   isAllowedNavHref,
   jobInputSchema,
+  caseStudyInputSchema,
+  findForbiddenIdentifiers,
 } from '@onsys/shared';
 import { prisma } from '../lib/prisma';
 import { asyncHandler } from '../middleware/error';
@@ -750,6 +752,50 @@ adminRouter.patch(
   }),
 );
 
+/**
+ * Delete leads.
+ *
+ * Added for spam cleanup: 25 bot submissions reached the console on
+ * 6 October 2026 through two endpoints that had no honeypot or captcha, and
+ * there was no way to remove them.
+ *
+ * requireAdmin, like every other delete on this router — a lead can be closed
+ * by any editor, and destroyed by an administrator. There is no soft delete:
+ * the rows this exists for are rows that should never have been created, and
+ * keeping them in a bin means keeping other people's email addresses.
+ *
+ * Bulk by design. Spam arrives in batches and deleting 25 rows one confirmation
+ * at a time is how people give up and leave them there.
+ */
+adminRouter.post(
+  '/leads/delete',
+  requireAdmin,
+  asyncHandler(async (req, res) => {
+    const { ids } = z
+      .object({ ids: z.array(z.string().min(1)).min(1).max(200) })
+      .parse(req.body);
+
+    const result = await prisma.lead.deleteMany({ where: { id: { in: ids } } });
+    logger.warn({ requested: ids.length, deleted: result.count }, 'Leads deleted');
+    res.json({ ok: true, deleted: result.count });
+  }),
+);
+
+adminRouter.delete(
+  '/leads/:id',
+  requireAdmin,
+  asyncHandler(async (req, res) => {
+    const lead = await prisma.lead.findUnique({ where: { id: req.params.id } });
+    if (!lead) {
+      res.status(404).json({ error: 'Lead not found' });
+      return;
+    }
+    await prisma.lead.delete({ where: { id: lead.id } });
+    logger.warn({ leadId: lead.id, email: lead.email }, 'Lead deleted');
+    res.json({ ok: true });
+  }),
+);
+
 // ---------------------------------------------------------------
 // Chat transcripts + agent replies from the console
 // ---------------------------------------------------------------
@@ -1095,6 +1141,191 @@ adminRouter.delete(
       paths: [`/careers/${job.slug}`, '/careers'],
     });
     logger.warn({ jobId: job.id, slug: job.slug }, 'Job deleted');
+    res.json({ ok: true });
+  }),
+);
+
+/**
+ * Case studies.
+ *
+ * The anonymisation check runs on save and refuses the write. It is a backstop
+ * against the realistic mistake — a line pasted out of a commercial-in-
+ * confidence design document, bringing a hostname or a build number with it —
+ * not a substitute for reading the copy. Refusing rather than stripping is
+ * deliberate: a hostname silently removed from a sentence leaves a sentence
+ * that no longer says what its author meant.
+ */
+adminRouter.get(
+  '/case-studies',
+  asyncHandler(async (_req, res) => {
+    const caseStudies = await prisma.caseStudy.findMany({
+      orderBy: [{ status: 'asc' }, { deliveredYear: 'desc' }],
+      select: {
+        id: true, slug: true, title: true, sector: true, region: true,
+        deliveredYear: true, status: true, updatedAt: true, platforms: true,
+      },
+    });
+    res.json({ caseStudies });
+  }),
+);
+
+adminRouter.get(
+  '/case-studies/:id',
+  asyncHandler(async (req, res) => {
+    const caseStudy = await prisma.caseStudy.findUnique({ where: { id: req.params.id } });
+    if (!caseStudy) {
+      res.status(404).json({ error: 'Case study not found' });
+      return;
+    }
+    res.json({ caseStudy });
+  }),
+);
+
+/** Every string a visitor could read, for the anonymisation check. */
+function caseStudyText(input: ReturnType<typeof caseStudyInputSchema.parse>): string {
+  return [
+    input.title,
+    input.summary,
+    input.sector,
+    input.seoTitle ?? '',
+    input.seoDescription ?? '',
+    input.platforms.join(' '),
+    JSON.stringify(input.blocks),
+  ].join('\n');
+}
+
+adminRouter.post(
+  '/case-studies',
+  asyncHandler(async (req, res) => {
+    const input = caseStudyInputSchema.parse(req.body);
+
+    const problems = findForbiddenIdentifiers(caseStudyText(input));
+    if (problems.length > 0) {
+      res.status(422).json({
+        error: `This case study still contains details that must not be published — ${problems.join('; ')}.`,
+      });
+      return;
+    }
+
+    const clash = await prisma.caseStudy.findUnique({ where: { slug: input.slug } });
+    if (clash) {
+      res.status(409).json({ error: 'A case study with that URL slug already exists.' });
+      return;
+    }
+
+    const caseStudy = await prisma.caseStudy.create({
+      data: {
+        ...input,
+        seoTitle: input.seoTitle || null,
+        seoDescription: input.seoDescription || null,
+        blocks: input.blocks as unknown as object,
+        publishedAt: input.status === 'PUBLISHED' ? new Date() : null,
+        contentUpdatedAt: new Date(),
+      },
+    });
+
+    revalidateInBackground({
+      tags: [tags.caseStudy(caseStudy.slug), tags.caseStudyList, tags.sitemap],
+      paths: [`/case-studies/${caseStudy.slug}`, '/case-studies'],
+    });
+    logger.info({ caseStudyId: caseStudy.id, slug: caseStudy.slug }, 'Case study created');
+    res.status(201).json({ caseStudy });
+  }),
+);
+
+adminRouter.put(
+  '/case-studies/:id',
+  asyncHandler(async (req, res) => {
+    const input = caseStudyInputSchema.parse(req.body);
+
+    const problems = findForbiddenIdentifiers(caseStudyText(input));
+    if (problems.length > 0) {
+      res.status(422).json({
+        error: `This case study still contains details that must not be published — ${problems.join('; ')}.`,
+      });
+      return;
+    }
+
+    const existing = await prisma.caseStudy.findUnique({ where: { id: req.params.id } });
+    if (!existing) {
+      res.status(404).json({ error: 'Case study not found' });
+      return;
+    }
+
+    const clash = await prisma.caseStudy.findUnique({ where: { slug: input.slug } });
+    if (clash && clash.id !== existing.id) {
+      res.status(409).json({ error: 'A case study with that URL slug already exists.' });
+      return;
+    }
+
+    const caseStudy = await prisma.caseStudy.update({
+      where: { id: existing.id },
+      data: {
+        ...input,
+        seoTitle: input.seoTitle || null,
+        seoDescription: input.seoDescription || null,
+        blocks: input.blocks as unknown as object,
+        publishedAt:
+          input.status === 'PUBLISHED' ? existing.publishedAt ?? new Date() : existing.publishedAt,
+        contentUpdatedAt: new Date(),
+      },
+    });
+
+    revalidateInBackground({
+      tags: [
+        tags.caseStudy(caseStudy.slug),
+        tags.caseStudy(existing.slug),
+        tags.caseStudyList,
+        tags.sitemap,
+      ],
+      paths: [`/case-studies/${caseStudy.slug}`, `/case-studies/${existing.slug}`, '/case-studies'],
+    });
+    res.json({ caseStudy });
+  }),
+);
+
+adminRouter.patch(
+  '/case-studies/:id/status',
+  asyncHandler(async (req, res) => {
+    const { status } = z.object({ status: z.enum(['DRAFT', 'PUBLISHED']) }).parse(req.body);
+
+    const existing = await prisma.caseStudy.findUnique({ where: { id: req.params.id } });
+    if (!existing) {
+      res.status(404).json({ error: 'Case study not found' });
+      return;
+    }
+
+    const caseStudy = await prisma.caseStudy.update({
+      where: { id: existing.id },
+      data: {
+        status,
+        publishedAt: status === 'PUBLISHED' ? existing.publishedAt ?? new Date() : existing.publishedAt,
+      },
+    });
+
+    revalidateInBackground({
+      tags: [tags.caseStudy(caseStudy.slug), tags.caseStudyList, tags.sitemap],
+      paths: [`/case-studies/${caseStudy.slug}`, '/case-studies'],
+    });
+    res.json({ caseStudy });
+  }),
+);
+
+adminRouter.delete(
+  '/case-studies/:id',
+  requireAdmin,
+  asyncHandler(async (req, res) => {
+    const existing = await prisma.caseStudy.findUnique({ where: { id: req.params.id } });
+    if (!existing) {
+      res.status(404).json({ error: 'Case study not found' });
+      return;
+    }
+    await prisma.caseStudy.delete({ where: { id: existing.id } });
+    revalidateInBackground({
+      tags: [tags.caseStudy(existing.slug), tags.caseStudyList, tags.sitemap],
+      paths: [`/case-studies/${existing.slug}`, '/case-studies'],
+    });
+    logger.warn({ caseStudyId: existing.id, slug: existing.slug }, 'Case study deleted');
     res.json({ ok: true });
   }),
 );

@@ -1,4 +1,4 @@
-import type { JobRecord, JobSummary } from '@onsys/shared';
+import type { JobRecord, JobSummary, CaseStudyRecord, CaseStudySummary } from '@onsys/shared';
 import { siteConfig, navigation } from './config';
 import { blockSchema, type Block } from '@onsys/shared';
 
@@ -156,6 +156,8 @@ export const cacheTags = {
   sitemap: 'sitemap',
   job: (slug: string) => `job:${slug}`,
   jobList: 'jobs',
+  caseStudy: (slug: string) => `case-study:${slug}`,
+  caseStudyList: 'case-studies',
   redirects: 'redirects',
 } as const;
 
@@ -297,6 +299,27 @@ export const getJob = async (slug: string): Promise<JobRecord | null> =>
     cacheTags.jobList,
   ]))?.job ?? null;
 
+/** Published case studies for the /case-studies listing. */
+export const getCaseStudies = async (): Promise<CaseStudySummary[]> =>
+  (await apiGet<{ caseStudies: CaseStudySummary[] }>('/case-studies', REVALIDATE_SECONDS, [
+    cacheTags.caseStudyList,
+  ]))?.caseStudies ?? [];
+
+export const getCaseStudy = async (slug: string): Promise<CaseStudyRecord | null> => {
+  const data = await apiGet<{ caseStudy: CaseStudyRecord }>(
+    `/case-studies/${slug}`,
+    REVALIDATE_SECONDS,
+    [cacheTags.caseStudy(slug), cacheTags.caseStudyList],
+  );
+  if (!data?.caseStudy) return null;
+  // Same normalisation pages get: the blocks come out of JSONB and are
+  // validated against the schema before anything tries to render them.
+  return {
+    ...data.caseStudy,
+    blocks: normaliseBlocks(data.caseStudy.blocks, `/case-studies/${slug}`),
+  };
+};
+
 export const getSitemapData = async () =>
   (await apiGet<{
     /**
@@ -314,6 +337,7 @@ export const getSitemapData = async () =>
     categories: Array<{ slug: string }>;
     authors: Array<{ slug: string; updatedAt: string }>;
     jobs: Array<{ slug: string; updatedAt: string }>;
+    caseStudies: Array<{ slug: string; updatedAt: string; contentUpdatedAt: string | null }>;
     // 300, not 3600. The sitemap is the artefact used to verify a deploy,
     // and an hour-long cache on it produced two rounds of audit findings that
     // described content already replaced in the database.
@@ -322,6 +346,7 @@ export const getSitemapData = async () =>
     posts: [],
     categories: [],
     jobs: [],
+    caseStudies: [],
     authors: [],
   };
 

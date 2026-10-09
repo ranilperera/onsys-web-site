@@ -11,6 +11,8 @@ import { pages, SQL_ARTICLE_HTML } from './seed-content';
 import { revalidate, tags } from '../services/revalidate.service';
 import { pageFingerprint, postFingerprint, nextContentUpdatedAt } from '../lib/content-changed';
 import { articles } from './seed-articles';
+import { caseStudies } from './seed-case-studies';
+import { findForbiddenIdentifiers } from '@onsys/shared';
 
 async function main(): Promise<void> {
   console.log('\nSeeding Onsys platform…\n');
@@ -205,6 +207,57 @@ async function main(): Promise<void> {
    * which tags alone do not reach. Failure is logged and swallowed inside
    * revalidate(), so a web app that is down cannot fail a database seed.
    */
+
+  /**
+   * Case studies.
+   *
+   * Seeded rather than entered by hand because the anonymisation is the part
+   * that must not drift: these are written from commercial-in-confidence client
+   * documentation, and the repository is where the reviewed wording lives.
+   *
+   * Every record is run through findForbiddenIdentifiers before it is written.
+   * The admin API does the same on save, so the check cannot be bypassed from
+   * either direction — and this refuses rather than sanitising, because a
+   * hostname quietly stripped from a sentence leaves a sentence that no longer
+   * says what it meant.
+   */
+  for (const cs of caseStudies) {
+    const text = [
+      cs.title,
+      cs.summary,
+      cs.sector,
+      cs.seoTitle,
+      cs.seoDescription,
+      cs.platforms.join(' '),
+      JSON.stringify(cs.blocks),
+    ].join('\n');
+
+    const problems = findForbiddenIdentifiers(text);
+    if (problems.length > 0) {
+      throw new Error(
+        `Case study "${cs.slug}" contains details that must not be published: ${problems.join('; ')}`,
+      );
+    }
+
+    await prisma.caseStudy.upsert({
+      where: { slug: cs.slug },
+      create: {
+        ...cs,
+        blocks: cs.blocks as unknown as object,
+        status: cs.status ?? 'PUBLISHED',
+        publishedAt: new Date(),
+        contentUpdatedAt: new Date(),
+      },
+      update: {
+        ...cs,
+        blocks: cs.blocks as unknown as object,
+        status: cs.status ?? 'PUBLISHED',
+        contentUpdatedAt: new Date(),
+      },
+    });
+  }
+  console.log(`  ${caseStudies.length} case studies seeded`);
+
   console.log(
     `\n  ${contentChanged} of ${pages.length} pages had content changes; the rest kept their existing sitemap date.`,
   );
@@ -219,6 +272,8 @@ async function main(): Promise<void> {
       tags.categories,
       tags.redirects,
       tags.footerNav,
+      tags.caseStudyList,
+      ...caseStudies.map((cs) => tags.caseStudy(cs.slug)),
     ],
     paths: [
       '/',
@@ -227,6 +282,8 @@ async function main(): Promise<void> {
       '/blog',
       ...slugs.filter((slug) => slug !== 'home').map((slug) => `/${slug}`),
       ...articles.map((a) => `/blog/${a.slug}`),
+      '/case-studies',
+      ...caseStudies.map((cs) => `/case-studies/${cs.slug}`),
     ],
   });
 
