@@ -44,3 +44,51 @@ apps/web/public/images/hero[0-9][0-9].jpg
 # visibility can change. Keep it in the drive, not in git history.
 Onsys-SEO-AEO-Report.pdf
 *-Report.pdf
+
+# Client project documents used as source material for case studies.
+#
+# These are confidential design documents — client names are in the filenames,
+# and the contents carry hostnames, IP addresses, versions and commercials. The
+# anonymised case studies derived from them belong in the repository; the
+# documents themselves never do. Only the e2e tests are tracked under tests/.
+tests/*.docx
+tests/*.pdf
+tests/*.xlsx
+tests/*.pptx
+tests/*.msg
+tests/*.eml
+
+# Staging folder at the repository root for artwork dropped in before it is
+# installed. The files that ship live in apps/web/public/; committing both
+# means two copies that drift, and the one the site serves is not the one
+# anybody edits. Anchored with a leading slash so it cannot affect
+# apps/web/public/images/.
+/images/
+
+# Client source documents and working notes dropped into the repo.
+#
+# Same reasoning as the tests/ rule above, and the same risk: the case-study
+# briefs carry the client's own availability-group and document names, which is
+# exactly the material the published studies had stripped out of them. Putting
+# them in git history would undo that permanently. The anonymised case studies
+# in seed-case-studies.ts are the versions that belong here.
+#
+# docs/instructions.txt and docs/seo-implementation-brief.md are tracked and
+# stay tracked; these patterns only catch the dropped-in source files.
+docs/*.docx
+docs/*.pdf
+docs/*.xlsx
+docs/*.pptx
+docs/*.html
+docs/*.txt
+!docs/instructions.txt
+!docs/*-brief.md
+~$*
+/Claude outputs/
+/*.docx
+
+# Stray copy of the Search Console verification file at the repository root.
+# The one the site serves is apps/web/public/google25db060a9d4d5036.html and it
+# is tracked; a second copy here is served by nothing and only invites edits to
+# the wrong file.
+/google25db060a9d4d5036.html
