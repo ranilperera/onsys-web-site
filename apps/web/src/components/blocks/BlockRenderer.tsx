@@ -1,10 +1,12 @@
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 import Image from 'next/image';
 import type { Block } from '@onsys/shared';
 import { siteConfig } from '@/lib/config';
 import { FaqAccordion } from './FaqAccordion';
 import { EmergencyCheckout } from './EmergencyCheckout';
 import { HealthCheckBooking } from './HealthCheckBooking';
+import { PlanEnquiry } from './PlanEnquiry';
 import { ContactForm } from '../ContactForm';
 import { HeroRotator } from '../HeroRotator';
 
@@ -12,6 +14,49 @@ import { HeroRotator } from '../HeroRotator';
  * Maps CMS block JSON onto the markup/classes from the approved mockups.
  * Everything here is a server component except the two interactive blocks.
  */
+
+/**
+ * Renders the two bits of markup these plain-text CMS fields understand:
+ * **bold** and [label](href). Everything else is left exactly as typed.
+ *
+ * The fields are plain text, so markdown otherwise reaches the page as
+ * literal asterisks and brackets. This covers the two cases the copy actually
+ * uses instead of pulling in a markdown renderer, and it emits React nodes, so
+ * nothing here is ever parsed as HTML. An unclosed ** or [ is left as typed.
+ */
+function emphasise(text: string) {
+  const token = /\*\*(.+?)\*\*|\[([^\]]+)\]\(([^)\s]+)\)/g;
+  const out: ReactNode[] = [];
+  let last = 0;
+  let m: RegExpExecArray | null;
+
+  while ((m = token.exec(text)) !== null) {
+    if (m.index > last) out.push(text.slice(last, m.index));
+    if (m[1] !== undefined) {
+      out.push(<strong key={m.index}>{m[1]}</strong>);
+    } else {
+      // Same-page jumps keep the plain anchor: next/link would prefetch a
+      // route that does not exist and swallow the hash scroll.
+      const href = m[3];
+      out.push(
+        href.startsWith('#') ? (
+          <a key={m.index} href={href}>
+            {m[2]}
+          </a>
+        ) : (
+          <Link key={m.index} href={href}>
+            {m[2]}
+          </Link>
+        ),
+      );
+    }
+    last = m.index + m[0].length;
+  }
+
+  if (!out.length) return text;
+  if (last < text.length) out.push(text.slice(last));
+  return out;
+}
 
 function SectionHead({
   eyebrow,
@@ -25,11 +70,36 @@ function SectionHead({
   centered?: boolean;
 }) {
   if (!eyebrow && !heading && !body) return null;
+
+  // A blank line in the CMS field starts a new paragraph.
+  const paragraphs =
+    body
+      ?.split(/\n\s*\n/)
+      .map((para) => para.trim())
+      .filter(Boolean) ?? [];
+
+  /*
+   * Section heads are capped at a 640px measure, which is the right line
+   * length for the one-sentence intro almost every section carries. A head
+   * that runs to several paragraphs is a different thing: at 640px it became
+   * a tall column down the left with the rest of the row empty. So a
+   * multi-paragraph head takes the full container width and sets its
+   * paragraphs side by side, which fills the row and keeps each column near
+   * the same measure it had before. Single-paragraph heads are untouched.
+   */
+  const wide = paragraphs.length > 1;
+
   return (
-    <div className={`section-head${centered ? ' center' : ''}`}>
+    <div className={`section-head${wide ? ' wide' : ''}${centered ? ' center' : ''}`}>
       {eyebrow && <div className="eyebrow">{eyebrow}</div>}
       {heading && <h2>{heading}</h2>}
-      {body && <p>{body}</p>}
+      {paragraphs.length > 0 && (
+        <div className="section-head-body">
+          {paragraphs.map((para) => (
+            <p key={para.slice(0, 40)}>{emphasise(para)}</p>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -356,9 +426,15 @@ function BlockSwitch({ block, index }: { block: Block; index: number }) {
                       );
                     })}
                   </ul>
+                  {/* The enquiry is the primary action where a plan asks for
+                      one; the link stays underneath, because some people want
+                      the detail before they want a conversation. */}
+                  {plan.enquiry && <PlanEnquiry plan={plan.name} />}
                   <Cta
                     {...plan.cta}
-                    variant={`${plan.featured ? 'btn-primary' : 'btn-outline'} btn-block`}
+                    variant={`${
+                      plan.featured && !plan.enquiry ? 'btn-primary' : 'btn-outline'
+                    } btn-block`}
                   />
                 </div>
               ))}
@@ -467,6 +543,32 @@ function BlockSwitch({ block, index }: { block: Block; index: number }) {
                   <b>{s.value}</b>
                   <span>{s.label}</span>
                 </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      );
+
+    case 'testimonial':
+      return (
+        <section className={`section${block.altBackground ? ' alt-bg' : ''}`} id={block.anchor}>
+          <div className="wrap">
+            <SectionHead eyebrow={block.eyebrow} heading={block.heading} body={block.body} centered />
+            <div className="quote-grid">
+              {block.quotes.map((q) => (
+                /* A <blockquote> with a <cite>, not a styled div: the quote and
+                   who said it are a semantic pair, and a screen reader should
+                   announce them as one. */
+                <blockquote className="quote-card" key={q.attribution + q.quote.slice(0, 24)}>
+                  <p>{q.quote}</p>
+                  <footer>
+                    {q.logo && (
+                      <Image src={q.logo} alt="" width={96} height={32} className="quote-logo" />
+                    )}
+                    <cite>{q.attribution}</cite>
+                    {q.context && <span className="quote-context">{q.context}</span>}
+                  </footer>
+                </blockquote>
               ))}
             </div>
           </div>

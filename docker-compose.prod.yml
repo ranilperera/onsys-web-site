@@ -88,7 +88,7 @@ services:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:?NEXT_PUBLIC_API_URL is required}
         INTERNAL_API_URL: http://api:4000
         NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY:-}
-        NEXT_PUBLIC_HERO_ROTATE_SECONDS: ${NEXT_PUBLIC_HERO_ROTATE_SECONDS:-8}
+        NEXT_PUBLIC_HERO_ROTATE_SECONDS: ${NEXT_PUBLIC_HERO_ROTATE_SECONDS:-10}
         NEXT_PUBLIC_PORTAL_URL: ${NEXT_PUBLIC_PORTAL_URL:-https://dbpulse.onsys.com.au}
         NEXT_PUBLIC_PORTAL_ENABLED: ${NEXT_PUBLIC_PORTAL_ENABLED:-false}
         # Empty by default so a deploy without it simply has no analytics,
@@ -117,6 +117,8 @@ services:
         ORG_FACEBOOK: ${ORG_FACEBOOK:-}
         ORG_TWITTER: ${ORG_TWITTER:-}
         ORG_YOUTUBE: ${ORG_YOUTUBE:-}
+        ORG_INSTAGRAM: ${ORG_INSTAGRAM:-}
+        ORG_TIKTOK: ${ORG_TIKTOK:-}
     image: onsys-web:latest
     restart: unless-stopped
     depends_on:

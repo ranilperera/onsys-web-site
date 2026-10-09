@@ -23,6 +23,15 @@ function Cta({ label, href, variant }: { label: string; href: string; variant: s
       </a>
     );
   }
+  // A same-page hash is a scroll, not a navigation: next/link would prefetch a
+  // route that does not exist and swallow the jump.
+  if (href.startsWith('#')) {
+    return (
+      <a className={className} href={href}>
+        {label}
+      </a>
+    );
+  }
   return href.startsWith('http') ? (
     <a className={className} href={href} target="_blank" rel="noopener noreferrer">
       {label}
@@ -44,8 +53,8 @@ function Cta({ label, href, variant }: { label: string; href: string; variant: s
  *
  * Rotation stops when the visitor is plausibly reading or interacting: on
  * hover, on keyboard focus inside the hero, while the tab is hidden, and
- * permanently once someone uses the dots. `prefers-reduced-motion` disables it
- * outright, as does an interval of 0.
+ * permanently once someone uses the dots or the arrows. `prefers-reduced-motion`
+ * disables it outright, as does an interval of 0.
  */
 export function HeroRotator({
   slides,
@@ -58,14 +67,30 @@ export function HeroRotator({
   const [paused, setPaused] = useState(false);
   // Set once a visitor picks a slide; auto-rotation never resumes after that.
   const [manual, setManual] = useState(false);
+  /*
+   * Starts false on the server and on first paint, and is set once after mount.
+   * The progress bar under the active dot is a promise that the slide is about
+   * to change, so it must not be drawn before we know rotation is actually
+   * running — without JavaScript, or under prefers-reduced-motion, it would be
+   * a countdown to nothing.
+   */
+  const [rotating, setRotating] = useState(false);
   const rootRef = useRef<HTMLElement>(null);
 
   const count = slides.length;
   const go = useCallback((index: number) => setActive(((index % count) + count) % count), [count]);
 
+  const stopRotating = useCallback(() => {
+    setManual(true);
+    setRotating(false);
+  }, []);
+
   useEffect(() => {
-    if (count < 2 || intervalSeconds <= 0 || paused || manual) return;
+    if (count < 2 || intervalSeconds <= 0 || manual) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    setRotating(!paused);
+    if (paused) return;
 
     const id = window.setInterval(() => setActive((i) => (i + 1) % count), intervalSeconds * 1000);
     return () => window.clearInterval(id);
@@ -81,11 +106,11 @@ export function HeroRotator({
 
   const onKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'ArrowRight') {
-      setManual(true);
+      stopRotating();
       go(active + 1);
     }
     if (event.key === 'ArrowLeft') {
-      setManual(true);
+      stopRotating();
       go(active - 1);
     }
   };
@@ -93,7 +118,10 @@ export function HeroRotator({
   return (
     <section
       ref={rootRef}
-      className="hero hero-dark hero-single hero-rotator"
+      className={`hero hero-dark hero-single hero-rotator${paused ? ' is-paused' : ''}`}
+      // Drives the fill animation under the active dot, so the bar and the
+      // timer cannot drift apart when the interval is changed by env var.
+      style={{ '--hero-interval': `${intervalSeconds}s` } as React.CSSProperties}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocusCapture={() => setPaused(true)}
@@ -142,7 +170,7 @@ export function HeroRotator({
               </span>
             )}
             {/* Exactly one h1 per document. Every slide is in the markup, so
-                making them all h1 would give the homepage three competing
+                making them all h1 would give the homepage five competing
                 headings; the rotation is presentational, and the first slide is
                 the page's actual heading. Later slides use the same visual
                 treatment through .hero-heading. */}
@@ -168,21 +196,69 @@ export function HeroRotator({
         ))}
 
         {count > 1 && (
-          <div className="hero-dots" role="tablist" aria-label="Choose a message">
-            {slides.map((slide, i) => (
+          <div className="hero-controls">
+            <div className="hero-dots" role="tablist" aria-label="Choose a message">
+              {slides.map((slide, i) => (
+                <button
+                  key={slide.heading}
+                  type="button"
+                  role="tab"
+                  aria-selected={i === active}
+                  aria-label={slide.heading}
+                  className={`hero-dot${i === active ? ' is-active' : ''}`}
+                  onClick={() => {
+                    stopRotating();
+                    go(i);
+                  }}
+                >
+                  {/*
+                   * Always present on the active dot, so the selected slide is
+                   * still obvious once rotation has stopped — without this the
+                   * active dot differed only in width, which is not an indicator.
+                   * It fills instantly when nothing is rotating and counts down
+                   * when something is. Remounted on every change by the key,
+                   * which is what restarts the animation: a CSS animation on a
+                   * surviving element runs once and never again.
+                   */}
+                  {i === active && (
+                    <span
+                      key={active}
+                      className={`hero-dot-fill${rotating ? ' is-counting' : ''}`}
+                      aria-hidden="true"
+                    />
+                  )}
+                </button>
+              ))}
+            </div>
+
+            <div className="hero-arrows">
               <button
-                key={slide.heading}
                 type="button"
-                role="tab"
-                aria-selected={i === active}
-                aria-label={slide.heading}
-                className={`hero-dot${i === active ? ' is-active' : ''}`}
+                className="hero-arrow"
+                aria-label="Previous message"
                 onClick={() => {
-                  setManual(true);
-                  go(i);
+                  stopRotating();
+                  go(active - 1);
                 }}
-              />
-            ))}
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M15 5l-7 7 7 7" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                className="hero-arrow"
+                aria-label="Next message"
+                onClick={() => {
+                  stopRotating();
+                  go(active + 1);
+                }}
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
           </div>
         )}
       </div>

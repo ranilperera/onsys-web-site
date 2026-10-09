@@ -20,7 +20,8 @@ const rootEnv = fs.existsSync(rootEnvPath) ? parseEnv(fs.readFileSync(rootEnvPat
 const ORG_KEYS = [
   'NAME', 'SHORT_NAME', 'LEGAL_NAME', 'ABN', 'ACN', 'EMAIL', 'CAREERS_EMAIL', 'PHONE', 'PHONE_E164',
   'STREET', 'LOCALITY', 'REGION', 'POSTCODE', 'COUNTRY', 'BOOKING_URL',
-  'DESCRIPTION', 'TAGLINE', 'LOGO', 'LOGO_HEADER', 'LINKEDIN', 'FACEBOOK', 'TWITTER', 'YOUTUBE',
+  'DESCRIPTION', 'TAGLINE', 'LOGO', 'LOGO_HEADER',
+  'LINKEDIN', 'FACEBOOK', 'TWITTER', 'YOUTUBE', 'INSTAGRAM', 'TIKTOK',
 ];
 const orgEnv = Object.fromEntries(
   ORG_KEYS

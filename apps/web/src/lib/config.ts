@@ -79,6 +79,9 @@ export const siteConfig = {
     facebook: process.env.NEXT_PUBLIC_ORG_FACEBOOK || '#',
     twitter: process.env.NEXT_PUBLIC_ORG_TWITTER || '#',
     youtube: process.env.NEXT_PUBLIC_ORG_YOUTUBE || '#',
+    instagram:
+      process.env.NEXT_PUBLIC_ORG_INSTAGRAM || 'https://www.instagram.com/onsystechnologies',
+    tiktok: process.env.NEXT_PUBLIC_ORG_TIKTOK || 'https://www.tiktok.com/@onsystechnologies',
   },
   /// Cloudflare Turnstile site key. Empty means no widget renders and the API
   /// does not enforce a captcha — the two halves are gated together on
@@ -102,7 +105,7 @@ export const siteConfig = {
   })(),
   /// Seconds between homepage hero variants. 0 disables rotation entirely,
   /// as does prefers-reduced-motion at runtime.
-  heroRotateSeconds: Number(process.env.NEXT_PUBLIC_HERO_ROTATE_SECONDS ?? '8') || 0,
+  heroRotateSeconds: Number(process.env.NEXT_PUBLIC_HERO_ROTATE_SECONDS ?? '10') || 0,
   /// Whether to advertise the client portal at all. Off until DBPulse is
   /// live — the /client-portal page still resolves for anyone holding the
   /// link, but nothing on the site points at it and it stays out of the
@@ -115,7 +118,7 @@ export const siteConfig = {
 } as const;
 
 /** Keys of the mega menus below. A nav item carrying one opens that panel. */
-export type MegaMenuKey = 'database' | 'infra' | 'data' | 'security';
+export type MegaMenuKey = 'database' | 'technology';
 
 export interface MainNavItem {
   label: string;
@@ -127,31 +130,53 @@ export interface MainNavItem {
 export const navigation = {
   main: [
     { label: 'Home', href: '/' },
-    // Products and Expertise live in the footer's Company column instead. The
-    // top bar is for the four service lines someone is choosing between; the
-    // footer is where you look for a company you have already decided to read
-    // about, and duplicating both was crowding the choice that matters.
+    /*
+     * One database menu, one menu for everything else.
+     *
+     * The bar used to carry four service lines of equal weight — Database,
+     * Infra & Cloud, App Data & AI, Cyber Security — which told a visitor this
+     * is a general IT firm with a database department. It is the other way
+     * round, and the navigation is the first place that has to say so.
+     *
+     * Case Studies and Our Expertise are promoted out of the footer. They are
+     * what a buyer comparing providers opens before they open a service page,
+     * and five consecutive SEO reports recorded the absence of visible proof
+     * as this site's biggest gap.
+     */
     { label: 'Database', href: '/sql-server-dba-services', menu: 'database' },
-    { label: 'Infra & Cloud', href: '/managed-it-services', menu: 'infra' },
-    { label: 'App, Data & AI', href: '/artificial-intelligence-solutions', menu: 'data' },
-    { label: 'Cyber Security', href: '/managed-security-services', menu: 'security' },
+    { label: 'Cloud, IT & AI', href: '/other-services', menu: 'technology' },
+    { label: 'Case Studies', href: '/case-studies' },
+    { label: 'Our Expertise', href: '/expertise' },
+    /*
+     * Next to the other two proof links rather than out by Contact: a buyer
+     * who opens case studies and expertise is doing the same thing a buyer who
+     * opens the blog is doing — deciding whether we know what we are talking
+     * about before they look at a price.
+     *
+     * Labelled "Blog", and the footer entry was renamed from "Insights" to
+     * match. One URL under two names in two navigations is the inconsistency
+     * the footer rework was meant to remove.
+     */
+    { label: 'Blog', href: '/blog' },
     { label: 'Pricing', href: '/pricing-and-plans' },
     { label: 'Contact', href: '/contact' },
   ] satisfies MainNavItem[],
 
   /**
-   * One menu per service line, rather than everything behind "Services".
+   * Two menus: databases, and the technology around them.
    *
-   * "Services" told a visitor nothing — it is the word every competitor uses
-   * for the same undifferentiated list, and it buried the four things Onsys
-   * actually sells one level deeper than they needed to be. Naming the lines
-   * in the bar means someone scanning for cyber security finds the word
-   * "Cyber Security" rather than guessing which menu hides it.
+   * Database keeps three columns because it carries twelve links and they
+   * divide cleanly — SQL Server, the platform-neutral services, and open
+   * source, which is the only part of the menu that says this is not a SQL
+   * Server-only shop.
    *
-   * Database keeps two columns because it carries eleven links. The other
-   * three are single-column dropdowns of four to six, where a column heading
-   * would only repeat the trigger label directly above it — so their `title`
-   * is omitted and the header is not rendered.
+   * The technology menu is the six services database clients most often ask
+   * for next. It is not the full list: system administration, networks,
+   * virtualisation, mobile and the four security pages are no longer in the
+   * bar at all. They keep their pages, their footer links and their place on
+   * /other-services, which this menu links to — nothing is unpublished and no
+   * indexed URL moves. What changes is that the top bar now argues for one
+   * thing instead of four.
    */
   menus: {
     database: [
@@ -163,6 +188,7 @@ export const navigation = {
           { label: 'SQL Server Projects', href: '/sql-server-migration-and-upgrade-services', sub: 'Migrations, upgrades, Always On, Azure' },
           { label: 'Free SQL Server Health Check', href: '/free-20-point-sql-server-health-check', sub: '20 points, one instance, no charge' },
           { label: 'SQL Server 2016 End of Support', href: '/sql-server-2016-end-of-support', sub: 'Support ended 15 July 2026' },
+          { label: 'SQL Server 2017 End of Support', href: '/sql-server-2017-end-of-support', sub: 'Support ends 12 October 2027' },
         ],
       },
       {
@@ -189,73 +215,113 @@ export const navigation = {
           { label: 'MySQL Consulting', href: '/mysql-consulting-services', sub: 'Clustering, 5.7 upgrades & cloud moves' },
         ],
       },
-    ],
-    infra: [
       {
+        /**
+         * Market pages, in the navigation rather than only in the sitemap.
+         *
+         * A link from the header appears on every page of the site, which is
+         * the strongest internal signal available — and these pages start with
+         * no external authority at all. Every SEO review since August has made
+         * the same point: the site says "Australia" everywhere, so a New
+         * Zealand or Pacific searcher is given no reason to click and Google is
+         * given no reason to rank it.
+         */
+        title: 'New Zealand & Pacific',
+        links: [
+          { label: 'Database Support New Zealand', href: '/database-support-new-zealand', sub: 'Your business day, from Australia' },
+          { label: 'Pacific Islands', href: '/database-support-pacific-islands', sub: 'Fiji, PNG, Vanuatu, Solomons & more' },
+          { label: 'Fiji', href: '/database-support-fiji', sub: 'Telco, banking & government' },
+          { label: 'Papua New Guinea', href: '/database-support-papua-new-guinea', sub: 'Same time zone as Brisbane' },
+          { label: 'Vanuatu', href: '/database-support-vanuatu', sub: 'DR you have actually tested' },
+          { label: 'Solomon Islands', href: '/database-support-solomon-islands', sub: 'Escalation that answers' },
+        ],
+      },
+    ],
+    technology: [
+      {
+        title: 'Cloud & managed IT',
         links: [
           { label: 'Managed IT Services', href: '/managed-it-services', sub: 'Outsourced IT from $4,500/month' },
           { label: 'Cloud Consultancy & Support', href: '/cloud-consultancy', sub: 'Strategy, architecture & FinOps' },
           { label: 'Cloud Migrations', href: '/cloud-migrations', sub: 'Azure, AWS & Oracle Cloud (OCI)' },
-          { label: 'System Administration', href: '/system-administration', sub: 'Windows, Linux, M365 & identity' },
-          { label: 'Network & Firewalls', href: '/network-and-firewalls', sub: 'Cisco, Fortinet, Palo Alto' },
-          { label: 'Virtualization & Storage', href: '/virtualization-and-storage', sub: 'VMware, NetApp, Dell EMC' },
         ],
       },
-    ],
-    data: [
       {
+        title: 'Software, data & AI',
         links: [
-          { label: 'AI Development & Solutions', href: '/artificial-intelligence-solutions', sub: 'Applied AI & automation' },
-          { label: 'Integration Services', href: '/integration-services', sub: 'ETL & automated data pipelines' },
           { label: 'Software Development', href: '/custom-software-development', sub: 'Projects, fixed price' },
-          { label: 'Mobile App Development', href: '/mobile-app-development', sub: 'iOS, Android, Flutter' },
-        ],
-      },
-    ],
-    security: [
-      {
-        links: [
-          { label: 'Managed Security Services', href: '/managed-security-services', sub: '24/7 SOC, SIEM & threat hunting' },
-          { label: 'Managed EDR', href: '/managed-endpoint-detection-and-response', sub: 'SentinelOne, with ransomware rollback' },
-          { label: 'Data & Application Security', href: '/data-and-application-security', sub: 'Classification, DLP & secure code' },
-          { label: 'GRC & Compliance', href: '/grc-and-compliance', sub: 'ISO 27001, Essential Eight, SOC 2' },
+          { label: 'Integration Services', href: '/integration-services', sub: 'ETL & automated data pipelines' },
+          { label: 'AI Development & Solutions', href: '/artificial-intelligence-solutions', sub: 'Applied AI & automation' },
         ],
       },
     ],
   },
 
+  /**
+   * The footer mirrors the top navigation: the same two service groupings under
+   * the same names, then Company and Support.
+   *
+   * Two columns rather than one "Services" list, because the header now argues
+   * that this is a database firm with technology services around it, and a
+   * footer that mixes "Remote Database Support" and "Cloud Migrations" into one
+   * undifferentiated list quietly argues the opposite.
+   *
+   * Legal is rendered beside the copyright instead of as a fifth column — the
+   * grid carries four, and privacy and terms belong on the bottom line anyway.
+   *
+   * This is the fallback used when the API is unreachable. The live footer is
+   * admin-managed in nav_links and seeded by seed-nav.ts; all three must agree.
+   */
   footer: {
-    Services: [
+    Database: [
+      { label: 'SQL Server DBA Services', href: '/sql-server-dba-services' },
       { label: 'Managed SQL Server Support', href: '/managed-sql-server-support' },
-      // Moved down from the Database menu: a city page is a search landing
-      // page, not something a visitor navigates to from the header.
-      { label: 'SQL Server DBA Melbourne', href: '/sql-server-dba-melbourne' },
       { label: 'Remote Database Support', href: '/remote-database-support' },
+      { label: 'Remote On-Call DBA', href: '/on-call-dba-services' },
+      { label: 'SQL Server Projects', href: '/sql-server-migration-and-upgrade-services' },
+      { label: 'Emergency Database Support', href: '/emergency-database-support' },
+      { label: 'PostgreSQL Consulting', href: '/postgresql-consulting-services' },
+      { label: 'MySQL Consulting', href: '/mysql-consulting-services' },
+      // A city page is a search landing page rather than something a visitor
+      // navigates to from the header, so it sits here and not in the menu.
+      { label: 'SQL Server DBA Melbourne', href: '/sql-server-dba-melbourne' },
+      // The market hubs. The individual country pages are linked from the
+      // header and from the Pacific hub; putting all six here as well would
+      // make this column twice the length of any other.
+      { label: 'Database Support New Zealand', href: '/database-support-new-zealand' },
+      { label: 'Pacific Islands Database Support', href: '/database-support-pacific-islands' },
+    ],
+    'Cloud, IT & AI': [
       { label: 'Managed IT Services', href: '/managed-it-services' },
+      { label: 'Cloud Consultancy & Support', href: '/cloud-consultancy' },
       { label: 'Cloud Migrations', href: '/cloud-migrations' },
-      // Was listed as "Software Development" — same page, renamed to match the
-      // header rather than added twice under two labels.
       { label: 'Software Development', href: '/custom-software-development' },
+      { label: 'Integration Services', href: '/integration-services' },
       { label: 'AI Development & Solutions', href: '/artificial-intelligence-solutions' },
+      // The index for everything not in the menu — security, networks,
+      // virtualisation and mobile. Without it those pages have no route here.
+      { label: 'All Other Services', href: '/other-services' },
     ],
     Company: [
       { label: 'About Us', href: '/about' },
       { label: 'Our Expertise', href: '/expertise' },
-      { label: 'Certifications', href: '/expertise#certifications' },
+      { label: 'Case Studies', href: '/case-studies' },
+      { label: 'Clients', href: '/clients' },
+      { label: 'Certifications', href: '/certifications' },
       { label: 'Products', href: '/products' },
-      { label: 'Insights', href: '/blog' },
+      { label: 'Blog', href: '/blog' },
       { label: 'Careers', href: '/careers' },
     ],
     Support: [
       { label: 'Free SQL Server Health Check', href: '/free-20-point-sql-server-health-check' },
-      { label: 'Book a Consultation', href: '/book' },
-      { label: 'Emergency Database Support', href: '/emergency-database-support' },
       { label: 'Pricing & Plans', href: '/pricing-and-plans' },
+      { label: 'Book a Consultation', href: '/book' },
       { label: 'Contact Us', href: '/contact' },
-      { label: 'Blog', href: '/blog' },
+      // Not a legal page — it is the answer to the objection every
+      // offshore-capable provider gets, so it sits where buyers will see it.
+      { label: 'Who Can Access Your Database', href: '/who-can-access-your-database' },
     ],
     Legal: [
-      { label: 'Who Can Access Your Database', href: '/who-can-access-your-database' },
       { label: 'Privacy Policy', href: '/privacy' },
       { label: 'Terms of Use', href: '/terms' },
       { label: 'Disclaimer', href: '/disclaimer' },
