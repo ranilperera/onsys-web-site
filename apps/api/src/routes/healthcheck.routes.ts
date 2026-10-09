@@ -6,7 +6,7 @@ import { deriveCountry } from '../lib/country';
 import { env, org } from '../lib/env';
 import { logger } from '../lib/logger';
 import { asyncHandler } from '../middleware/error';
-import { leadLimiter } from '../middleware/security';
+import { leadLimiter, honeypot, verifyCaptcha } from '../middleware/security';
 import { sendEmail, renderHealthCheckAck, renderHealthCheckAlert } from '../services/email.service';
 import { notifyHealthCheckToTeams } from '../services/teams.service';
 
@@ -127,7 +127,19 @@ healthCheckRouter.get(
 
 healthCheckRouter.post(
   '/request',
+  /*
+   * Honeypot and captcha, added after 25 bot submissions reached production on
+   * 6 October 2026. Every one of them came through this endpoint or the
+   * emergency one — the two that had the rate limiter and nothing else. Not a
+   * single spam row came from /api/leads, which has carried all three since it
+   * was written.
+   *
+   * The rate limiter alone does not stop this: it is per IP, and the traffic
+   * was distributed across several.
+   */
   leadLimiter,
+  honeypot,
+  verifyCaptcha,
   asyncHandler(async (req, res) => {
     const input = healthCheckRequestSchema.parse(req.body);
 
@@ -183,6 +195,7 @@ healthCheckRouter.post(
         utmMedium: input.utmMedium || null,
         utmCampaign: input.utmCampaign || null,
         referrer: input.referrer || null,
+        landingPath: input.landingPath || null,
         country: deriveCountry({
           timezone: input.timezone,
           locale: input.locale,

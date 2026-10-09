@@ -19,6 +19,11 @@ interface Lead {
   utmMedium: string | null;
   utmCampaign: string | null;
   referrer: string | null;
+  /// The page the visit landed on, not the page the form sat on.
+  landingPath: string | null;
+  /// Set only by the plan-card enquiry.
+  plan: string | null;
+  instanceCount: string | null;
 }
 
 /**
@@ -69,6 +74,10 @@ export default function LeadsPage() {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<string>('ALL');
   const [error, setError] = useState<string | null>(null);
+  /** Rows ticked for deletion. Spam arrives in batches, so selection is the
+      primary flow and the per-row delete is the exception. */
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(() => {
     fetch(`${siteConfig.apiUrl}/api/admin/leads`, { credentials: 'include' })
@@ -85,6 +94,64 @@ export default function LeadsPage() {
   }, []);
 
   useEffect(load, [load]);
+
+  function toggleSelected(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  /**
+   * Delete the ticked rows.
+   *
+   * The confirm names the count and says it cannot be undone, because it
+   * cannot — there is no soft delete, deliberately: the rows this exists for
+   * are bot submissions carrying other people's email addresses, and a bin
+   * full of those is still a store of other people's email addresses.
+   */
+  async function deleteSelected() {
+    const ids = [...selected];
+    if (ids.length === 0) return;
+    if (
+      !window.confirm(
+        `Delete ${ids.length} lead${ids.length === 1 ? '' : 's'}? This cannot be undone.`,
+      )
+    ) {
+      return;
+    }
+
+    setDeleting(true);
+    setError(null);
+    try {
+      const res = await fetch(`${siteConfig.apiUrl}/api/admin/leads/delete`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', 'x-csrf-token': csrfToken() },
+        body: JSON.stringify({ ids }),
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setError(
+          body.error ??
+            (res.status === 403
+              ? 'Only an administrator can delete leads.'
+              : 'Could not delete those leads.'),
+        );
+        return;
+      }
+
+      setLeads((rows) => rows.filter((r) => !selected.has(r.id)));
+      setSelected(new Set());
+    } catch {
+      setError('Could not reach the server.');
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   async function advance(lead: Lead) {
     const next = NEXT_STATUS[lead.status];
@@ -140,6 +207,22 @@ export default function LeadsPage() {
         </div>
       )}
 
+      {/* Appears only when something is ticked, so the destructive control is
+          not sitting on screen during ordinary work. */}
+      {selected.size > 0 && (
+        <div className="lead-bulk" role="region" aria-label="Bulk actions">
+          <span>
+            <strong>{selected.size}</strong> selected
+          </span>
+          <button className="btn btn-sm btn-danger" onClick={() => void deleteSelected()} disabled={deleting}>
+            {deleting ? 'Deleting…' : `Delete ${selected.size}`}
+          </button>
+          <button className="btn btn-sm btn-outline" onClick={() => setSelected(new Set())}>
+            Clear selection
+          </button>
+        </div>
+      )}
+
       <div className="lead-filters">
         <button
           className={filter === 'ALL' ? 'active' : undefined}
@@ -167,6 +250,19 @@ export default function LeadsPage() {
           <table className="admin-table">
             <thead>
               <tr>
+                <th style={{ padding: 10, width: 28 }}>
+                  <label className="sr-only" htmlFor="select-all-leads">
+                    Select all shown leads
+                  </label>
+                  <input
+                    id="select-all-leads"
+                    type="checkbox"
+                    checked={shown.length > 0 && shown.every((l) => selected.has(l.id))}
+                    onChange={(e) =>
+                      setSelected(e.target.checked ? new Set(shown.map((l) => l.id)) : new Set())
+                    }
+                  />
+                </th>
                 <th>Name</th>
                 <th>Email</th>
                 <th>Company</th>
@@ -176,6 +272,8 @@ export default function LeadsPage() {
                     come from" is the first question asked of a new lead. */}
                 <th>Market</th>
                 <th>Source</th>
+                {/* Which page did the convincing, and what were they sizing. */}
+                <th>Landed on</th>
                 <th>Received</th>
                 <th>Status</th>
                 <th>Action</th>
@@ -190,6 +288,17 @@ export default function LeadsPage() {
 
                 return (
                   <tr key={l.id}>
+                    <td style={{ padding: 10 }}>
+                      <label className="sr-only" htmlFor={`select-${l.id}`}>
+                        Select lead from {l.name}
+                      </label>
+                      <input
+                        id={`select-${l.id}`}
+                        type="checkbox"
+                        checked={selected.has(l.id)}
+                        onChange={() => toggleSelected(l.id)}
+                      />
+                    </td>
                     <td>{l.name}</td>
                     <td>
                       <a href={`mailto:${l.email}`}>{l.email}</a>
@@ -214,6 +323,21 @@ export default function LeadsPage() {
                     <td>{l.country ?? '—'}</td>
                     <td className="lead-source" title={l.referrer ?? undefined}>
                       {sourceLabel(l)}
+                    </td>
+                    <td className="lead-source">
+                      {l.landingPath ? (
+                        <a href={l.landingPath} target="_blank" rel="noreferrer">
+                          {l.landingPath}
+                        </a>
+                      ) : (
+                        '—'
+                      )}
+                      {l.plan && (
+                        <span className="lead-service">
+                          {l.plan}
+                          {l.instanceCount ? ` · ${l.instanceCount}` : ''}
+                        </span>
+                      )}
                     </td>
                     <td style={{ whiteSpace: 'nowrap' }}>
                       {new Date(l.createdAt).toLocaleDateString('en-AU')}

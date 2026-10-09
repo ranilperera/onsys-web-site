@@ -33,6 +33,9 @@ leadRouter.post(
         utmMedium: input.utmMedium || null,
         utmCampaign: input.utmCampaign || null,
         referrer: input.referrer || null,
+        landingPath: input.landingPath || null,
+        plan: input.plan || null,
+        instanceCount: input.instanceCount || null,
         country: deriveCountry({
           timezone: input.timezone,
           locale: input.locale,

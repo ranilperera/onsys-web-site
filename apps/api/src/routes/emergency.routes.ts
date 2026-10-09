@@ -6,7 +6,7 @@ import { prisma } from '../lib/prisma';
 import { env, org, stripeConfigured } from '../lib/env';
 import { logger } from '../lib/logger';
 import { asyncHandler } from '../middleware/error';
-import { leadLimiter } from '../middleware/security';
+import { leadLimiter, honeypot, verifyCaptcha } from '../middleware/security';
 import { hashIp } from '../middleware/auth';
 import { createEmergencyCheckout, parseWebhook, emergencyPrice } from '../services/stripe.service';
 import { sendEmail, renderEmergencyReceipt, renderEmergencyAlert } from '../services/email.service';
@@ -33,7 +33,15 @@ emergencyRouter.get(
  */
 emergencyRouter.post(
   '/request',
+  /*
+   * Same gap as the health check endpoint, and the worse of the two: this one
+   * creates an emergency request that /api/emergency/checkout then turns into
+   * a payment session, so an unprotected form here is a bot touching a flow
+   * attached to money.
+   */
   leadLimiter,
+  honeypot,
+  verifyCaptcha,
   asyncHandler(async (req, res) => {
     const input = emergencyRequestSchema.parse(req.body);
 
