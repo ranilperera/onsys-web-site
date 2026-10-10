@@ -14,6 +14,14 @@ const cardSchema = z.object({
   coverColor: z.string().optional(),
   link: linkSchema.optional(),
   tag: z.string().optional(),
+  /// A line of attribution under the title, e.g. "Manufacturing · Sri Lanka
+  /// · 2024". Separate from `tag`, which is the coloured label above the
+  /// title: a card uses one or the other, not both.
+  meta: z.string().optional(),
+  /// Short labels rendered as one separated line below the body, e.g. the
+  /// platforms an engagement used. An array rather than a joined string so the
+  /// separator is the renderer's decision and stays consistent site-wide.
+  chips: z.array(z.string()).optional(),
 });
 
 export const blockSchema = z.discriminatedUnion('type', [

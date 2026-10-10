@@ -326,7 +326,15 @@ function BlockSwitch({ block, index }: { block: Block; index: number }) {
                   {card.tag && <div className="tag">{card.tag}</div>}
                   <div className={`body${card.tag ? '' : ' notag'}`}>
                     <h3>{card.title}</h3>
+                    {/* Same element and class the /case-studies index uses for
+                        its attribution and platform lines, so a grid that
+                        mirrors those cards is styled by one rule rather than
+                        two that drift. */}
+                    {card.meta && <p className="lead-source">{card.meta}</p>}
                     <p>{card.body}</p>
+                    {card.chips && card.chips.length > 0 && (
+                      <p className="lead-source">{card.chips.join(' · ')}</p>
+                    )}
                     {card.link && (
                       <Link className="lnk" href={card.link.href}>
                         {card.link.label} ›
