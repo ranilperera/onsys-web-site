@@ -163,25 +163,25 @@ export const caseStudies: SeedCaseStudy[] = [
      * plus payments plus Pacific narrows to essentially one operator, and two
      * other studies already sit under Telecommunications in this region.
      *
-     * The client\\u2019s brand name is in the source\\u2019s document reference in roughly
+     * The client’s brand name is in the source’s document reference in roughly
      * twenty places and is stripped throughout.
      */
     slug: 'azure-payment-platform-migration-pacific-telco',
     title: 'A payment platform going to cloud, with customers, banks and partners attached',
     summary:
-      'Moving the application was only part of the challenge. Public traffic, an existing data centre, banks and remittance partners all needed to reach the new Azure platform \\u2014 without being able to reach each other. A segmented, multi-region design with private hybrid connectivity, isolated partner access and database disaster recovery.',
+      'Moving the application was only part of the challenge. Public traffic, an existing data centre, banks and remittance partners all needed to reach the new Azure platform — without being able to reach each other. A segmented, multi-region design with private hybrid connectivity, isolated partner access and database disaster recovery.',
     sector: 'Payments',
     region: 'Pacific',
     deliveredYear: 2021,
     platforms: ['Azure', 'Azure Front Door', 'Application Gateway', 'ExpressRoute', 'Azure Site Recovery'],
-    seoTitle: 'Azure Payment Platform Migration \\u2014 Pacific Case Study',
+    seoTitle: 'Azure Payment Platform Migration — Pacific Case Study',
     seoDescription:
-      'How Onsys designed and delivered a secure multi-region Azure migration for a Pacific payment platform \\u2014 segmented networks, private interconnect, isolated partner VPNs and cross-region recovery.',
+      'How Onsys designed and delivered a secure multi-region Azure migration for a Pacific payment platform — segmented networks, private interconnect, isolated partner VPNs and cross-region recovery.',
     blocks: [
       {
         type: 'richText',
         heading: 'The problem',
-        html: `<p>Moving a payment platform to the cloud is not a server migration. Public web and mobile traffic still has to reach the service. Internal systems have to stay connected. Banks and remittance partners need tightly controlled access. The database has to be protected. And if a region goes away, the business still needs somewhere to go.</p><p>Payment platforms have an awkward set of neighbours: public users on one side, an existing data centre on another, partner banks and remittance networks on a third. All three need to reach the platform. None of them should be able to reach each other. A lift-and-shift puts them all on one flat network and quietly removes that distinction \\u2014 which is the one thing a payment environment cannot afford to lose.</p>`,
+        html: `<p>Moving a payment platform to the cloud is not a server migration. Public web and mobile traffic still has to reach the service. Internal systems have to stay connected. Banks and remittance partners need tightly controlled access. The database has to be protected. And if a region goes away, the business still needs somewhere to go.</p><p>Payment platforms have an awkward set of neighbours: public users on one side, an existing data centre on another, partner banks and remittance networks on a third. All three need to reach the platform. None of them should be able to reach each other. A lift-and-shift puts them all on one flat network and quietly removes that distinction — which is the one thing a payment environment cannot afford to lose.</p>`,
       },
       {
         type: 'checkList',
@@ -202,7 +202,7 @@ export const caseStudies: SeedCaseStudy[] = [
       {
         type: 'richText',
         heading: 'What we built',
-        html: `<p>Separate virtual networks, not one estate. Public traffic enters through a global front-door service and a web application firewall, then an application gateway and firewall decide which backend it reaches \\u2014 production or staging, and never an application server exposed directly to the internet. That boundary, between the public internet and the systems processing the transaction, is the highest-risk surface on a payment platform, so it is the one that got the layers.</p><p>The existing data centre connects over a private circuit rather than the public internet. That is what made a staged migration possible: the payment platform could move to Azure without every system it integrates with having to move at the same time.</p><p>Banks and remittance partners come in through VPN gateways into a network of their own, kept separate from the on-premises path. Each partner reaches the payment services its integration needs and has no route to anything else. The principle is simple and the consequence is not: collapsing that boundary is easy at build time and very hard to unpick once a dozen partners are connected through it.</p>`,
+        html: `<p>Separate virtual networks, not one estate. Public traffic enters through a global front-door service and a web application firewall, then an application gateway and firewall decide which backend it reaches — production or staging, and never an application server exposed directly to the internet. That boundary, between the public internet and the systems processing the transaction, is the highest-risk surface on a payment platform, so it is the one that got the layers.</p><p>The existing data centre connects over a private circuit rather than the public internet. That is what made a staged migration possible: the payment platform could move to Azure without every system it integrates with having to move at the same time.</p><p>Banks and remittance partners come in through VPN gateways into a network of their own, kept separate from the on-premises path. Each partner reaches the payment services its integration needs and has no route to anything else. The principle is simple and the consequence is not: collapsing that boundary is easy at build time and very hard to unpick once a dozen partners are connected through it.</p>`,
       },
       {
         type: 'richText',
@@ -213,11 +213,11 @@ export const caseStudies: SeedCaseStudy[] = [
         type: 'steps',
         eyebrow: 'The part worth copying',
         heading: 'A cutover with a rollback written before it started',
-        body: 'A successful VM migration means very little if customers, internal systems or financial partners cannot complete a transaction afterwards. So the sequence proved the whole path before production depended on it \\u2014 and the way back was documented before anyone needed it.',
+        body: 'A successful VM migration means very little if customers, internal systems or financial partners cannot complete a transaction afterwards. So the sequence proved the whole path before production depended on it — and the way back was documented before anyone needed it.',
         steps: [
           {
             title: 'Build, then prove the connections',
-            body: 'Azure resources stood up, the database migration prepared, the application deployed \\u2014 then connectivity testing to verify that every system and network that has to talk, can.',
+            body: 'Azure resources stood up, the database migration prepared, the application deployed — then connectivity testing to verify that every system and network that has to talk, can.',
           },
           {
             title: 'Test it as a service, not as infrastructure',
@@ -248,7 +248,7 @@ export const caseStudies: SeedCaseStudy[] = [
         body: 'Subscription layout, resource grouping, naming and policy are the least interesting part of a cloud migration and the most expensive to retrofit. Deciding them first is what keeps a cloud estate auditable; deciding them afterwards means re-homing live resources.',
         items: [
           'Management groups and subscriptions separating production from staging, rather than letting one undifferentiated estate grow',
-          'Resource groups organised by function \\u2014 networking, security, database, application, management, storage \\u2014 so operational ownership is obvious',
+          'Resource groups organised by function — networking, security, database, application, management, storage — so operational ownership is obvious',
           'A standard naming model and a tagging strategy covering business criticality, owner, application, cost centre, budget, DR classification and environment',
           'Identity services, network security groups, a managed secrets store and resource locks applied as part of the build',
           'Monitoring, logging, alerting, service health, application insights and network traffic analysis included in the migration scope, not booked as later work',
@@ -258,7 +258,7 @@ export const caseStudies: SeedCaseStudy[] = [
       {
         type: 'richText',
         heading: 'The outcome',
-        html: `<p>The valuable part of this engagement was not moving workloads from a data centre into Azure. It was deciding how a payment platform should be shaped once it got there.</p><p>Customers needed access. Banks and remittance partners needed access. The existing data centre needed access. None of those networks needed unrestricted access to each other \\u2014 and keeping that true, while adding regional protection for the database, monitoring the operations team can read and a governed estate that can be audited, is the difference between a migration and a platform.</p>`,
+        html: `<p>The valuable part of this engagement was not moving workloads from a data centre into Azure. It was deciding how a payment platform should be shaped once it got there.</p><p>Customers needed access. Banks and remittance partners needed access. The existing data centre needed access. None of those networks needed unrestricted access to each other — and keeping that true, while adding regional protection for the database, monitoring the operations team can read and a governed estate that can be audited, is the difference between a migration and a platform.</p>`,
       },
     ],
   },

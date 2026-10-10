@@ -338,7 +338,7 @@ const homeBlocks: Block[] = [
       {
         title: 'A payment platform going to cloud, with customers, banks and partners attached',
         meta: 'Payments · Pacific · 2021',
-        body: 'Moving the application was only part of the challenge. Public traffic, an existing data centre, banks and remittance partners all needed to reach the new Azure platform \\u2014 without being able to reach each other. A segmented, multi-region design with private hybrid connectivity, isolated partner access and database disaster recovery.',
+        body: 'Moving the application was only part of the challenge. Public traffic, an existing data centre, banks and remittance partners all needed to reach the new Azure platform — without being able to reach each other. A segmented, multi-region design with private hybrid connectivity, isolated partner access and database disaster recovery.',
         chips: ['Azure', 'Azure Front Door', 'Application Gateway', 'ExpressRoute', 'Azure Site Recovery'],
         link: { label: 'Read the engagement', href: '/case-studies/azure-payment-platform-migration-pacific-telco' },
       },
