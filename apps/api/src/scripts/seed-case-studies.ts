@@ -46,13 +46,13 @@ export const caseStudies: SeedCaseStudy[] = [
      * Written October 2026 from the client-supplied write-up, in the sales
      * tone used across the site.
      *
-     * This is now the single account of that Azure programme. It began as the
-     * database half of it, alongside
-     * payments-platform-migration-to-azure-multi-region, which covered the
-     * network and governance side; that page was retired on 9 October 2026 and
-     * 301s here, with its network-segmentation argument folded in below. Its
-     * governance material was deliberately not carried over — this page's
-     * title is about the migration and the content should not outgrow it.
+     * Paired with azure-payment-platform-migration-pacific-telco. Both describe
+     * one Azure programme for one client, split by subject: that page owns the
+     * network boundaries, the partner connectivity and the governance, this one
+     * owns the database migration, its dependencies and the cutover. The
+     * network section that briefly lived here went back to that page on
+     * 10 October 2026 when it was reinstated. Do not let either grow into the
+     * other's material, or the site publishes one engagement twice.
      *
      * The client’s brand name appears in the source’s document reference in
      * roughly fifteen places and is stripped throughout.
@@ -103,20 +103,6 @@ export const caseStudies: SeedCaseStudy[] = [
         html: `<p>Azure SQL Managed Instance as the target: a managed Azure SQL service that keeps the broad SQL Server compatibility an established enterprise application estate depends on. Choosing it was the quick decision. Getting production onto it safely was the project.</p><p>That started with an assessment of what actually had to move — at the database level and at the instance level. Jobs, logins, permissions, encryption objects and operational configuration were catalogued as migration items in their own right, not as things to tidy up afterwards. It is the step that separates a database that is online from a database service that works, and the one most often skipped because it produces no visible progress.</p><p>The target was then placed inside the wider Azure design, with the application tier in front of it and a second Azure region behind it for recovery.</p>`,
       },
       {
-        /*
-         * Carried over from payments-platform-migration-to-azure-multi-region
-         * when that page was retired on 9 October 2026. It was the one argument
-         * on it that nothing else on the site makes, and a database migration
-         * page that said nothing about what the database landed in would have
-         * lost it. Kept to one section deliberately — the governance detail
-         * from that page was not carried over, because this page's subject is
-         * the migration.
-         */
-        type: 'richText',
-        heading: 'What the database landed in',
-        html: `<p>The managed instance did not arrive on a flat network. A payment workload has an awkward set of neighbours: public web and mobile traffic on one side, an existing data centre on another, and partner banks and remittance networks on a third. All three have to reach the platform. None of them should be able to reach each other.</p><p>So the Azure environment was built as separate virtual networks rather than one estate. Public traffic enters through a global front-door service and a web application firewall, then an application gateway and firewall decide which backend it reaches — no application server is directly exposed. The existing data centre connects over a private circuit instead of the public internet, which is what allowed the database to move without every related system moving with it. Partner banks and remittance providers come in through VPN gateways into a network of their own, each able to reach the services its integration needs and nothing else.</p><p>Collapsing that boundary is easy at build time and very hard to unpick once a dozen partners are connected through it. Subscriptions, resource grouping, naming, tagging and policy were settled before the first workload moved for the same reason: they are the least interesting part of a cloud migration and the most expensive to change afterwards.</p>`,
-      },
-      {
         type: 'steps',
         eyebrow: 'The part worth copying',
         heading: 'Rehearse it, then cut over with the writes stopped',
@@ -157,6 +143,122 @@ export const caseStudies: SeedCaseStudy[] = [
         type: 'richText',
         heading: 'The outcome',
         html: `<p>The measure of this project was never whether a SQL database existed in Azure at the end of the change window. It was whether the business could keep operating from Azure with its transactions, its security, its scheduled processing, its integrations and its recovery capability all intact.</p><p>The databases moved with the service around them. The cutover protected every committed transaction because the writes were stopped before the final synchronisation, not after. The route back existed before the route forward was taken. And the recovery region does real work between the incidents it was bought for.</p>`,
+      },
+    ],
+  },
+
+  {
+    /*
+     * Written October 2026 from the client-supplied write-up, in the sales
+     * tone used across the site.
+     *
+     * Paired with sql-server-azure-sql-mi-migration-pacific-telco. Both come
+     * from one source document describing one Azure programme, and they are
+     * split by subject rather than duplicated: this page owns the network
+     * boundaries, the partner connectivity and the governance; that page owns
+     * the database migration, its dependencies and the cutover. Keep that line
+     * or the site publishes one engagement twice.
+     *
+     * Sector is Payments, not the Telecommunications the source names. Telco
+     * plus payments plus Pacific narrows to essentially one operator, and two
+     * other studies already sit under Telecommunications in this region.
+     *
+     * The client\\u2019s brand name is in the source\\u2019s document reference in roughly
+     * twenty places and is stripped throughout.
+     */
+    slug: 'azure-payment-platform-migration-pacific-telco',
+    title: 'A payment platform going to cloud, with customers, banks and partners attached',
+    summary:
+      'Moving the application was only part of the challenge. Public traffic, an existing data centre, banks and remittance partners all needed to reach the new Azure platform \\u2014 without being able to reach each other. A segmented, multi-region design with private hybrid connectivity, isolated partner access and database disaster recovery.',
+    sector: 'Payments',
+    region: 'Pacific',
+    deliveredYear: 2021,
+    platforms: ['Azure', 'Azure Front Door', 'Application Gateway', 'ExpressRoute', 'Azure Site Recovery'],
+    seoTitle: 'Azure Payment Platform Migration \\u2014 Pacific Case Study',
+    seoDescription:
+      'How Onsys designed and delivered a secure multi-region Azure migration for a Pacific payment platform \\u2014 segmented networks, private interconnect, isolated partner VPNs and cross-region recovery.',
+    blocks: [
+      {
+        type: 'richText',
+        heading: 'The problem',
+        html: `<p>Moving a payment platform to the cloud is not a server migration. Public web and mobile traffic still has to reach the service. Internal systems have to stay connected. Banks and remittance partners need tightly controlled access. The database has to be protected. And if a region goes away, the business still needs somewhere to go.</p><p>Payment platforms have an awkward set of neighbours: public users on one side, an existing data centre on another, partner banks and remittance networks on a third. All three need to reach the platform. None of them should be able to reach each other. A lift-and-shift puts them all on one flat network and quietly removes that distinction \\u2014 which is the one thing a payment environment cannot afford to lose.</p>`,
+      },
+      {
+        type: 'checkList',
+        eyebrow: 'What it had to solve',
+        heading: 'Everything the platform was already connected to',
+        body: 'The application was the smallest part of the problem. Each of the following was an existing dependency that had to keep working the day after the migration, and several of them belong to someone else.',
+        items: [
+          'Public web and mobile users, reaching the service over the internet',
+          'An existing data centre that was not moving, and systems on it the platform still depends on',
+          'Banking institutions, each with its own integration',
+          'Remittance partners, likewise',
+          'The application and API tier, and the SQL Server databases behind it',
+          'Production and staging, which needed to stay distinguishable rather than merging in the move',
+          'Security, governance and operational monitoring, from day one rather than retrofitted',
+          'A recovery position that survives losing the whole primary region',
+        ],
+      },
+      {
+        type: 'richText',
+        heading: 'What we built',
+        html: `<p>Separate virtual networks, not one estate. Public traffic enters through a global front-door service and a web application firewall, then an application gateway and firewall decide which backend it reaches \\u2014 production or staging, and never an application server exposed directly to the internet. That boundary, between the public internet and the systems processing the transaction, is the highest-risk surface on a payment platform, so it is the one that got the layers.</p><p>The existing data centre connects over a private circuit rather than the public internet. That is what made a staged migration possible: the payment platform could move to Azure without every system it integrates with having to move at the same time.</p><p>Banks and remittance partners come in through VPN gateways into a network of their own, kept separate from the on-premises path. Each partner reaches the payment services its integration needs and has no route to anything else. The principle is simple and the consequence is not: collapsing that boundary is easy at build time and very hard to unpick once a dozen partners are connected through it.</p>`,
+      },
+      {
+        type: 'richText',
+        heading: 'And somewhere to go if the region fails',
+        html: `<p>Migrating to cloud does not remove the need for disaster recovery; it changes what the recovery unit is. The environment spans a primary and a secondary Azure region. The managed database replicates across them, region-to-region recovery is provisioned for the rest of the infrastructure rather than the database alone, and the front-door service can redirect traffic to the recovery region when it is needed. Private connectivity reaches both, so a recovery does not stall waiting for a network path to be built under pressure.</p><p>The outcome is not "the application is now in Azure". It is that the application has somewhere to go when its primary region is not.</p>`,
+      },
+      {
+        type: 'steps',
+        eyebrow: 'The part worth copying',
+        heading: 'A cutover with a rollback written before it started',
+        body: 'A successful VM migration means very little if customers, internal systems or financial partners cannot complete a transaction afterwards. So the sequence proved the whole path before production depended on it \\u2014 and the way back was documented before anyone needed it.',
+        steps: [
+          {
+            title: 'Build, then prove the connections',
+            body: 'Azure resources stood up, the database migration prepared, the application deployed \\u2014 then connectivity testing to verify that every system and network that has to talk, can.',
+          },
+          {
+            title: 'Test it as a service, not as infrastructure',
+            body: 'Functional and integration testing across the application and its connected services, load testing against expected demand, and compliance validation. All of it resolved before the production move rather than discovered during it.',
+          },
+          {
+            title: 'A controlled outage for the data',
+            body: 'Application writes stopped, a final backup captured, and the production database moved to the managed service. This is the only part the business feels, and it is short because everything else has already been proven.',
+          },
+          {
+            title: 'Cut over the traffic, then the partners',
+            body: 'DNS redirected to the new environment, banking and remittance connectivity repointed to the Azure endpoints, and the remaining on-premises systems and APIs sent to their new destinations.',
+          },
+          {
+            title: 'Validate the whole transaction path',
+            body: 'End-to-end verification that a transaction completes, then watch the environment. A green resource list is not the same as a healthy service, and on a payment platform the difference is the whole job.',
+          },
+          {
+            title: 'Or roll back, on a written procedure',
+            body: 'Documented before the migration, not during it: stop the Azure application layer, return the database on-premises, restore application connectivity, redirect partners and DNS, validate again. A defined decision path instead of one invented at three in the morning.',
+          },
+        ],
+      },
+      {
+        type: 'checkList',
+        eyebrow: 'Decided before the first workload moved',
+        heading: 'Governance, because it is the expensive thing to change later',
+        body: 'Subscription layout, resource grouping, naming and policy are the least interesting part of a cloud migration and the most expensive to retrofit. Deciding them first is what keeps a cloud estate auditable; deciding them afterwards means re-homing live resources.',
+        items: [
+          'Management groups and subscriptions separating production from staging, rather than letting one undifferentiated estate grow',
+          'Resource groups organised by function \\u2014 networking, security, database, application, management, storage \\u2014 so operational ownership is obvious',
+          'A standard naming model and a tagging strategy covering business criticality, owner, application, cost centre, budget, DR classification and environment',
+          'Identity services, network security groups, a managed secrets store and resource locks applied as part of the build',
+          'Monitoring, logging, alerting, service health, application insights and network traffic analysis included in the migration scope, not booked as later work',
+          'A governance framework oriented to ISO 27001 and PCI DSS expectations, because a payment workload will be asked about both',
+        ],
+      },
+      {
+        type: 'richText',
+        heading: 'The outcome',
+        html: `<p>The valuable part of this engagement was not moving workloads from a data centre into Azure. It was deciding how a payment platform should be shaped once it got there.</p><p>Customers needed access. Banks and remittance partners needed access. The existing data centre needed access. None of those networks needed unrestricted access to each other \\u2014 and keeping that true, while adding regional protection for the database, monitoring the operations team can read and a governed estate that can be audited, is the difference between a migration and a platform.</p>`,
       },
     ],
   },
@@ -299,7 +401,7 @@ export const caseStudies: SeedCaseStudy[] = [
      * engineering supports.
      */
     slug: 'manufacturing-distributed-availability-groups-two-data-centres',
-    title: 'From legacy replication to tested ERP disaster recovery, for a Sri Lankan manufacturing organisation',
+    title: 'From legacy replication to tested ERP disaster recovery, for a manufacturing organisation',
     summary:
       'A business-critical ERP database needed a new disaster-recovery strategy as its replication platform reached end of life. Now: a multi-site SQL Server distributed availability group, a runbook for a real site loss, and a DR test that runs while production stays open to applications.',
     sector: 'Manufacturing',
@@ -620,62 +722,6 @@ export const caseStudies: SeedCaseStudy[] = [
         html: `<p>At a glance this was a move from NFS to SAN. In practice the storage changed, the RAC platform changed, the cluster connection point changed, the production databases moved, the Data Guard relationships changed, disaster recovery had to be rebuilt and monitoring had to follow — and none of it was allowed to become an unacceptable outage.</p><p>What made that possible was sequence. The replacement was built and proven alongside production, the final data was synchronised rather than copied, the rollback path was designed before the change began, and recovery was rebuilt as part of the project instead of after it. The client did not migrate and then find problems; they found the problems while production was still running somewhere else.</p>`,
       },
     ],
-  },
-
-  {
-    slug: 'mobile-money-platform-new-market-launch-design',
-    title: 'Database platform design for a mobile money launch in a new market',
-    summary:
-      'Clustered SQL Server with availability groups, backups, monitoring and tested failover — specified and built so a mobile money service could launch in a new country on a platform that had been proven before it carried traffic.',
-    sector: 'Financial services',
-    region: 'Pacific',
-    deliveredYear: 2021,
-    platforms: ['SQL Server', 'Windows Server'],
-    seoTitle: 'Mobile Money Platform Database Design — Case Study',
-    seoDescription:
-      'How Onsys designed and built the database platform for a mobile money launch in a new Pacific market: clustered SQL Server, availability groups, tested failover and monitoring.',
-    blocks: [
-      {
-        type: 'richText',
-        heading: 'The problem',
-        html: `<p>A mobile money platform was being taken into a new country. A launch has a property that a migration does not: there is no existing system to fall back to, and no production history to tell you how the platform behaves. Whatever is stood up has to be right, and has to be shown to be right, before the first customer transacts.</p>`,
-      },
-      {
-        type: 'steps',
-        eyebrow: 'What we built',
-        heading: 'Specified, built, then proven',
-        steps: [
-          {
-            title: 'Operating system and network',
-            body: 'Servers built and network configuration applied to a documented specification, so the platform in the new market matches the one it was designed as.',
-          },
-          {
-            title: 'Clustered database servers',
-            body: 'SQL Server Enterprise installed on clustered nodes in the primary data centre, on a Windows Server failover cluster, with Microsoft best practice applied to every instance rather than defaults left in place.',
-          },
-          {
-            title: 'High availability',
-            body: 'Availability groups configured across the nodes so the loss of a server is survivable without the service stopping.',
-          },
-          {
-            title: 'Backups',
-            body: 'Full and transaction log backups configured from the start, which is what makes point-in-time recovery possible rather than theoretical.',
-          },
-          {
-            title: 'Failover testing',
-            body: 'Failover exercised and the behaviour confirmed, with support for the client’s own application testing — because the question is whether the service survives, not whether the database does.',
-          },
-          {
-            title: 'Alerting and monitoring',
-            body: 'Alerts and monitoring in place before launch, so the first week of production is observed rather than guessed at.',
-          },
-        ],
-      },
-      {
-        type: 'richText',
-        heading: 'Why testing before launch is the whole point',
-        html: `<p>On a migration you can compare behaviour against the system you are replacing. On a launch there is nothing to compare against, so the only evidence that the platform works is the testing done before it goes live. Backups, monitoring and a rehearsed failover are not finishing touches on that kind of project — they are the deliverable.</p>`,
-      },
-    ],
   }
+
 ];

@@ -309,67 +309,59 @@ const homeBlocks: Block[] = [
     altBackground: true,
     columns: 3,
     /*
-     * One card per published case study, in the same order the index lists
-     * them, and each card states the problem the page it opens actually
-     * describes. Re-synced 9 October 2026 after the case studies were
-     * rewritten: three cards had drifted off their pages.
+     * The same six cards the /case-studies index shows, in the same order:
+     * each study's own title, its sector/region/year line, its summary and
+     * its platforms, verbatim. Generated from seed-case-studies.ts, so there
+     * is no second copy of the wording to drift.
      *
-     * `tag` mirrors the study's own sector, because a visitor who clicks a
-     * card tagged Payments and lands on a page whose eyebrow says
-     * Telecommunications has caught the site contradicting itself.
-     *
-     * The three telecommunications engagements are deliberately not adjacent.
-     * Consecutively they read as a telco-only practice; interleaved with
-     * healthcare, manufacturing and financial services they read as range.
+     * No icon cover and no tag here, unlike every other card grid on the
+     * site. These cards carry four lines of their own and a cover would push
+     * the summary below the fold of the card; the index renders them plain
+     * for the same reason, and the point of this section is that the two
+     * match.
      */
     cards: [
       {
-        title: 'A critical database that depends on one server',
-        body: 'Business-critical databases on standalone servers, with backups but no database-level high availability — so a failure meant someone restoring while the applications waited. Now: a two-node availability group with automatic failover, a listener the applications keep using when the primary moves, and encryption at rest on both replicas.',
-        icon: '#s-managed',
-        coverColor: '#EAF1FB',
-        tag: 'Healthcare',
-        link: { label: 'Read more', href: '/case-studies/sql-server-always-on-healthcare-australia' },
+        title: 'From standalone MySQL to an always-on, multi-site platform, for a Pacific telecommunications operator',
+        meta: 'Telecommunications · Pacific · 2025',
+        body: 'Single points of failure removed from the database, the routing layer and the recovery position at once: group replication with automatic primary election, redundant routers behind a floating connection point, a replica at a second site, and a migration whose validation gate sat before the cutover.',
+        chips: ['MySQL Enterprise', 'Group Replication', 'MySQL Router', 'Keepalived'],
+        link: { label: 'Read the engagement', href: '/case-studies/telecommunications-mysql-group-replication-cluster-migration' },
       },
       {
-        title: 'Single points of failure, at three different levels',
-        body: 'A standalone database under a critical application, where fixing the server still left the routing layer and the site itself as ways to take the service down. Now: a cluster that elects its own primary, redundant routers behind a floating address, and a replica at a second site.',
-        icon: '#s-etl',
-        coverColor: '#E7F5EC',
-        tag: 'Telecommunications',
-        link: { label: 'Read more', href: '/case-studies/telecommunications-mysql-group-replication-cluster-migration' },
+        title: 'From legacy replication to tested ERP disaster recovery, for a manufacturing organisation',
+        meta: 'Manufacturing · Sri Lanka · 2024',
+        body: 'A business-critical ERP database needed a new disaster-recovery strategy as its replication platform reached end of life. Now: a multi-site SQL Server distributed availability group, a runbook for a real site loss, and a DR test that runs while production stays open to applications.',
+        chips: ['SQL Server', 'Always On availability groups', 'Windows Server'],
+        link: { label: 'Read the engagement', href: '/case-studies/manufacturing-distributed-availability-groups-two-data-centres' },
       },
       {
-        title: 'A DR plan nobody has ever tested',
-        body: 'Disaster recovery that existed on paper, because testing it meant an outage and the test kept being postponed. Now: two data centres joined as one distributed group, and a written procedure that runs the DR test while production stays open to applications.',
-        icon: '#s-ha',
-        coverColor: '#FFF1E0',
-        tag: 'Manufacturing',
-        link: { label: 'Read more', href: '/case-studies/manufacturing-distributed-availability-groups-two-data-centres' },
+        title: 'A payment platform going to cloud, with customers, banks and partners attached',
+        meta: 'Payments · Pacific · 2021',
+        body: 'Moving the application was only part of the challenge. Public traffic, an existing data centre, banks and remittance partners all needed to reach the new Azure platform \\u2014 without being able to reach each other. A segmented, multi-region design with private hybrid connectivity, isolated partner access and database disaster recovery.',
+        chips: ['Azure', 'Azure Front Door', 'Application Gateway', 'ExpressRoute', 'Azure Site Recovery'],
+        link: { label: 'Read the engagement', href: '/case-studies/azure-payment-platform-migration-pacific-telco' },
       },
       {
-        title: 'New storage under a database that cannot stop',
-        body: 'Replacing the storage beneath a production Oracle cluster puts the databases, the applications, failover and disaster recovery at risk at once. Now: a replacement cluster built alongside production and tested against real applications before anything moved, with the old one kept as the way back.',
-        icon: '#s-emergency',
-        coverColor: '#FDECEC',
-        tag: 'Telecommunications',
-        link: { label: 'Read more', href: '/case-studies/oracle-rac-migration-australian-telco' },
+        title: 'Migrating a Mission-Critical SQL Server Platform to Azure SQL Managed Instance',
+        meta: 'Telecommunications · Pacific · 2021',
+        body: 'A cloud database migration where losing a transaction was not an option. The databases moved, and so did the jobs, the logins and the encryption objects the applications depend on — rehearsed first, cut over with writes stopped and the final state validated, then geo-replicated to a second region that also takes read traffic.',
+        chips: ['Azure SQL Managed Instance', 'SQL Server', 'Geo-replication', 'Azure Front Door', 'ExpressRoute'],
+        link: { label: 'Read the engagement', href: '/case-studies/sql-server-azure-sql-mi-migration-pacific-telco' },
       },
       {
-        title: 'A launch with nothing to fall back to',
-        body: 'A new-market launch has nothing to compare against, so the only evidence the platform works is the testing done before it carries traffic. Now: clustered databases, availability groups, backups and monitoring proven in advance, because there was no previous system to fall back to.',
-        icon: '#s-consult',
-        coverColor: '#F3F2F1',
-        tag: 'Financial services',
-        link: { label: 'Read more', href: '/case-studies/mobile-money-platform-new-market-launch-design' },
+        title: 'Migrating a Business-Critical Oracle RAC Estate with Minimal Cutover Risk',
+        meta: 'Telecommunications · Australia · 2018',
+        body: 'Replacing the storage under a business-critical Oracle RAC estate put databases, applications, failover and disaster recovery at risk at once. The replacement cluster was built alongside production and tested against real applications first, with Data Guard closing the gap at cutover and the old cluster kept as the way back.',
+        chips: ['Oracle Database', 'Oracle RAC', 'Oracle ASM', 'Oracle Data Guard', 'Oracle Enterprise Manager'],
+        link: { label: 'Read the engagement', href: '/case-studies/oracle-rac-migration-australian-telco' },
       },
       {
-        title: 'A move to cloud with nothing allowed to be lost',
-        body: 'A business-critical database had to reach the cloud without losing a transaction, or leaving behind a scheduled job, a login or an encryption key the applications depend on. Now: a managed Azure database, a cutover rehearsed before it was run, and a second region that holds the recovery copy and takes read traffic.',
-        icon: '#s-cloud',
-        coverColor: '#EAF1FB',
-        tag: 'Telecommunications',
-        link: { label: 'Read more', href: '/case-studies/sql-server-azure-sql-mi-migration-pacific-telco' },
+        title: 'Building an Always-On SQL Server Platform for an Australian Healthcare Provider',
+        meta: 'Healthcare · Australia · 2016',
+        body: 'A business-critical healthcare database was running without database-level high availability. Now: a two-node Always On architecture with synchronous replication and automatic failover, a stable listener for the applications, and encryption at rest across the databases — so losing the primary server is not the same as losing the service.',
+        chips: ['SQL Server', 'Always On availability groups', 'Windows Server Failover Clustering', 'Transparent Data Encryption'],
+        link: { label: 'Read the engagement', href: '/case-studies/sql-server-always-on-healthcare-australia' },
       },
     ],
   },
@@ -5026,7 +5018,7 @@ const clientsBlocks: Block[] = [
       { title: 'Manufacturing', body: 'Distributed availability groups across two data centres, with disaster recovery testable without an outage.', icon: '#s-managed', coverColor: '#EAF1FB', link: { label: 'Read more', href: '/case-studies/manufacturing-distributed-availability-groups-two-data-centres' } },
       { title: 'Telecommunications', body: 'A group replication cluster with automatic promotion and a phased migration onto it, and an Oracle RAC estate moved onto new storage and proven against real applications before production followed it.', icon: '#s-etl', coverColor: '#FFF1E0', link: { label: 'Read more', href: '/case-studies/telecommunications-mysql-group-replication-cluster-migration' } },
       { title: 'Payments', body: 'A business-critical database moved onto a managed Azure platform with no transaction lost at cutover, geo-replicated to a second region that also carries read traffic.', icon: '#s-cloud', coverColor: '#EAF1FB', link: { label: 'Read more', href: '/case-studies/sql-server-azure-sql-mi-migration-pacific-telco' } },
-      { title: 'Financial services', body: 'The database platform behind a mobile money launch in a new market, proven before it carried traffic.', icon: '#s-consult', coverColor: '#F3F2F1', link: { label: 'Read more', href: '/case-studies/mobile-money-platform-new-market-launch-design' } },
+      { title: 'Payments', body: 'A payment platform moved to the cloud across two regions, with customers, an existing data centre, banks and remittance partners all reaching it without reaching each other.', icon: '#s-cloud', coverColor: '#F3F2F1', link: { label: 'Read more', href: '/case-studies/azure-payment-platform-migration-pacific-telco' } },
     ],
   },
   {
