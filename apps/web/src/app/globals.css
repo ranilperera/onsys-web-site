@@ -339,7 +339,19 @@ section[id]{scroll-margin-top:calc(var(--header-h) + 24px);}
 /* The wrapper scrolls rather than the page, so a wide table never forces
    horizontal overflow on a phone. */
 .article-body .table-scroll{overflow-x:auto; margin:22px 0; border:1px solid var(--gray-light); border-radius:10px;}
+/* Article tables are allowed to be wider than the 740px column — a comparison
+   with five columns cannot usefully be squeezed into a phone. They scroll
+   inside this wrapper instead of pushing the whole page sideways, which is
+   what an unwrapped min-width:560px table was doing at 390px. */
+.article-body .table-scroll{overflow-x:auto; margin:18px 0; -webkit-overflow-scrolling:touch;}
+.article-body .table-scroll > table{margin:0;}
 .article-body table{width:100%; border-collapse:collapse; min-width:560px;}
+@media(max-width:700px){
+  /* A table authored without the wrapper is a direct child of .article-body.
+     Let it squeeze rather than break the page — cramped beats horizontal
+     scroll on the whole document. */
+  .article-body > table{min-width:0;}
+}
 .article-body thead th{background:var(--navy); color:#fff; text-align:left; padding:13px 16px; font-size:13px; font-weight:700; letter-spacing:.02em;}
 .article-body thead th:first-child{background:var(--green);}
 .article-body td{padding:13px 16px; border-top:1px solid var(--gray-light); font-size:14px; color:#3B3A39; line-height:1.55; vertical-align:top;}

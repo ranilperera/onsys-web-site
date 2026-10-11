@@ -92,3 +92,13 @@ docs/*.txt
 # is tracked; a second copy here is served by nothing and only invites edits to
 # the wrong file.
 /google25db060a9d4d5036.html
+
+# Source documents for blog articles, same reasoning as docs/ and tests/ above.
+# These are drafts and lab write-ups handed over as PDFs and Word files, often
+# in someone else's name; the published article in seed-articles.ts is the
+# version that belongs here. Markdown briefs are kept.
+blog/*.pdf
+blog/*.docx
+blog/*.doc
+blog/*.pptx
+blog/*.xlsx

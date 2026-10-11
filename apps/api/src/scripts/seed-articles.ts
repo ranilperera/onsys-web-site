@@ -171,6 +171,7 @@ export const articles: ArticleSeed[] = [
 
 <h2>The short answer</h2>
 
+<div class="table-scroll">
 <table>
   <thead>
     <tr><th>Model</th><th>Price</th><th>Suits</th></tr>
@@ -182,6 +183,7 @@ export const articles: ArticleSeed[] = [
     <tr><td>Fixed-price project</td><td>Quoted per project</td><td>Migrations, upgrades, HA builds</td></tr>
   </tbody>
 </table>
+</div>
 
 <h2>Monthly plans, and the number that matters</h2>
 
@@ -408,6 +410,267 @@ export const articles: ArticleSeed[] = [
         question: 'Why should we not raise compatibility level during the upgrade?',
         answer:
           'Because it bundles two changes into one window. Raising compatibility level changes query optimiser behaviour and therefore execution plans, so if performance moves after a cutover that did both, you cannot tell which change caused it. Upgrade the engine, confirm stability, then raise compatibility level deliberately with Query Store capturing regressions so a previous plan can be forced if needed.',
+      },
+    ],
+  },
+  // -------------------------------------------------------------------------
+  // 4. PostgreSQL point-in-time recovery.
+  //
+  // Written up from a lab exercise: a disposable VM, a deliberate DROP TABLE,
+  // and a restore back to the second before it. Two things shaped how it is
+  // written here.
+  //
+  // The source was a first-person account of someone learning the mechanism
+  // during an internship. It is bylined to the site author like every other
+  // article, so the narrative is gone — attributing one person's lab work to
+  // another as personal experience would be a false claim, and the technical
+  // substance stands on its own without it.
+  //
+  // The two failures are kept and given their own section, because they are
+  // the most useful part. "must specify restore_command" and "recovery ended
+  // before configured recovery target was reached" are both searched by people
+  // mid-incident, and nothing else on this site answers them.
+  //
+  // Version numbers stay. This is a technical article where the version
+  // changes the commands, unlike the case studies where a version plus a
+  // sector plus a region identifies a client.
+  // -------------------------------------------------------------------------
+  {
+    slug: 'postgresql-point-in-time-recovery-wal-pgbackrest-pg-dump',
+    title: 'PostgreSQL Point-in-Time Recovery: Manual WAL Archiving vs pgBackRest vs pg_dump',
+    excerpt:
+      'A backup tells you where your data was at one moment. Point-in-time recovery lets you choose the moment. Here is how PITR actually works in PostgreSQL, built by hand and then with pgBackRest, including the two errors that stop a restore dead.',
+    seoTitle: 'PostgreSQL Point-in-Time Recovery: WAL vs pgBackRest',
+    seoDescription:
+      'How PostgreSQL point-in-time recovery works: WAL archiving, pgBackRest and pg_dump compared, plus the restore errors that stop a recovery and how to fix them.',
+    readMinutes: 12,
+    category: 'database',
+    bodyHtml: `
+<p>A backup tells you where your data was at one moment. <strong>Point-in-time recovery lets you choose the moment.</strong> That distinction stops being academic at 10:33 on a Tuesday, when someone runs a DELETE without a WHERE clause and your last full backup is from midnight.</p>
+
+<p>PostgreSQL supports point-in-time recovery, usually shortened to PITR, by combining a physical base backup with a continuous archive of write-ahead log files. This article walks through three approaches — a manual base backup plus WAL archiving, pgBackRest, and how both compare with pg_dump — and ends each one with a restore, because <strong>a backup you have never restored is not a backup</strong>.</p>
+
+<p>Everything below was run on a disposable lab VM. Do not practise archiving or recovery settings on a production server.</p>
+
+<h2>How point-in-time recovery works</h2>
+
+<p>PITR replays a recorded history of changes on top of a starting copy, and stops at the moment you choose. Four pieces make that possible.</p>
+
+<ul>
+<li><strong>Base backup.</strong> A physical copy of the whole data directory, taken while the server is running — <code>pg_basebackup</code> does this.</li>
+<li><strong>WAL archive.</strong> Every write-ahead log segment, 16 MB by default, copied somewhere safe as it fills, using <code>archive_command</code>.</li>
+<li><strong>Recovery target.</strong> Where replay stops: a timestamp, a transaction ID, an LSN, a named restore point, or simply the end of the archive.</li>
+<li><strong>recovery.signal.</strong> An empty file in the data directory telling PostgreSQL to start in archive recovery, fetch WAL through <code>restore_command</code>, and replay up to the target.</li>
+</ul>
+
+<p>After a successful recovery PostgreSQL starts a new <em>timeline</em>, so WAL from the old history is never overwritten and a second attempt at a different target is still possible.</p>
+
+<p>One rule decides whether any of this works: <strong>the recovery target must fall after the end of the base backup and inside the WAL you archived.</strong> Both edges of that window produce errors, and both are covered below.</p>
+
+<p>Your recovery point objective — how much data you can lose — is whatever has not yet been archived. It is bounded by how quickly WAL segments reach the archive, which is why <code>archive_timeout</code> exists: it forces a segment switch after a set period even when the server is quiet.</p>
+
+<h2>The scenario that proves it</h2>
+
+<p>Every method below is tested the same way, against a database holding 1,000 customers and 50,000 orders:</p>
+
+<ul>
+<li>Take a backup.</li>
+<li>Insert a marker row, then record the time with <code>SELECT now();</code>.</li>
+<li>Cause the accident: <code>DROP TABLE orders;</code>.</li>
+<li>Run <code>SELECT pg_switch_wal();</code> so the segment containing the accident is archived.</li>
+<li>Restore to the recorded time, and confirm the table and the marker row are back.</li>
+</ul>
+
+<p>The marker row matters. Without it you can prove the table returned, but not that it returned with the last transaction before the accident still in it.</p>
+
+<h2>Method A: base backup plus WAL archiving, by hand</h2>
+
+<p>This uses only what ships with PostgreSQL. It is slower and more error-prone than a dedicated tool, and it is the best way to understand what the tool is doing for you.</p>
+
+<h3>Turn on archiving</h3>
+
+<pre><code>SHOW wal_level;   -- must be replica or higher
+
+ALTER SYSTEM SET archive_mode = 'on';
+ALTER SYSTEM SET archive_command =
+  'test ! -f /var/lib/postgresql/wal_archive/%f && cp %p /var/lib/postgresql/wal_archive/%f';</code></pre>
+
+<p>In <code>archive_command</code>, <code>%p</code> is the path of the WAL file and <code>%f</code> is its name. The <code>test ! -f</code> refuses to overwrite a segment already in the archive. Changing <code>archive_mode</code> needs a restart; changing <code>archive_command</code> only needs a reload.</p>
+
+<p>Then confirm archiving is actually running, because a silently failing archive is the most common way this whole mechanism turns out to be useless:</p>
+
+<pre><code>SELECT pg_switch_wal();
+SELECT archived_count, last_archived_wal, failed_count FROM pg_stat_archiver;</code></pre>
+
+<p>You want files appearing in the archive directory and <code>failed_count</code> at zero. When archiving fails, WAL accumulates in <code>pg_wal</code> and will eventually fill the disk and stop the database. Fix it before going further.</p>
+
+<p>A plain <code>cp</code> is fine in a lab. It does not flush to disk or verify what it wrote, which is one of several reasons production estates use a purpose-built tool.</p>
+
+<h3>Take the base backup</h3>
+
+<pre><code>pg_basebackup -D /var/lib/postgresql/backups/base1 -Fp -X stream -c fast -P -v</code></pre>
+
+<p><code>-Fp</code> writes plain files, <code>-X stream</code> includes the WAL needed to make the backup internally consistent, and <code>-c fast</code> starts the checkpoint immediately rather than waiting. The target directory must not already exist.</p>
+
+<h3>Restore to just before the accident</h3>
+
+<p>Stop the server, move the damaged data directory aside rather than deleting it, and put the base backup in its place with the right ownership and a mode of 700. Then tell PostgreSQL where to fetch WAL and where to stop:</p>
+
+<pre><code>restore_command = 'cp /var/lib/postgresql/wal_archive/%f %p'
+recovery_target_time = '2026-10-09 10:33:44+05:30'
+recovery_target_action = 'promote'</code></pre>
+
+<p>Use the <code>now()</code> value recorded before the accident, including the time zone offset. <code>promote</code> makes the server read-write once the target is reached; the default, <code>pause</code>, leaves it read-only so you can inspect the result before committing to it — which is the safer choice when you are not certain the target is right.</p>
+
+<p>Create the trigger file, start the server, and read the log:</p>
+
+<pre><code>touch /var/lib/postgresql/16/main/recovery.signal
+pg_ctlcluster 16 main start
+tail -n 30 /var/log/postgresql/postgresql-16-main.log</code></pre>
+
+<p>A successful recovery logs <code>starting point-in-time recovery</code>, then <code>restored log file ... from archive</code>, then <code>recovery stopping before commit of transaction ...</code>, then <code>selected new timeline ID: 2</code>. Verify with a row count and a query for the marker row, then remove the temporary recovery settings so a later restart does not try to recover again.</p>
+
+<h2>The two errors that stop a restore</h2>
+
+<p>These are worth more than the successful run, because they are what you will actually meet. Both come from the same place: the recovery target falling outside the window the archive can serve.</p>
+
+<h3>must specify restore_command when standby mode is not enabled</h3>
+
+<p>PostgreSQL started in recovery because <code>recovery.signal</code> existed, but nothing told it how to fetch archived WAL. On Debian and Ubuntu the usual cause is a recovery settings file that is not where it is expected, or not named with a <code>.conf</code> extension so <code>include_dir</code> never picks it up.</p>
+
+<p>Confirm PostgreSQL can actually read the setting before starting the server:</p>
+
+<pre><code>postgres -C restore_command -c config_file=/etc/postgresql/16/main/postgresql.conf</code></pre>
+
+<h3>recovery ended before configured recovery target was reached</h3>
+
+<p>The target is later than the last transaction in the archive. PostgreSQL replayed everything available, ran out, and refused to promote because it never reached the point you asked for. The log line <code>last completed transaction was at log time</code> tells you exactly where the archive ends.</p>
+
+<p>Pick a target inside the archived range. If you did not record <code>now()</code> before the change, <code>pg_waldump</code> will show you the commit times.</p>
+
+<h3>Reading the real error</h3>
+
+<p><code>pg_ctlcluster</code> and <code>systemctl</code> will only tell you the service failed. The cause is always in the PostgreSQL log.</p>
+
+<div class="table-scroll">
+<table>
+<thead>
+<tr><th>Log message</th><th>Cause</th><th>Fix</th></tr>
+</thead>
+<tbody>
+<tr><td>must specify restore_command</td><td>Recovery settings file missing or not read</td><td>Create the .conf file; check include_dir</td></tr>
+<tr><td>recovery ended before configured recovery target was reached</td><td>Target is later than the archived WAL</td><td>Pick an earlier target</td></tr>
+<tr><td>requested recovery stop point is before consistent recovery point</td><td>Target is earlier than the end of the base backup</td><td>Pick a time after the backup finished</td></tr>
+<tr><td>data directory has invalid permissions</td><td>Mode is not 700</td><td>chmod 700 the data directory</td></tr>
+<tr><td>Permission denied</td><td>Wrong owner</td><td>chown -R postgres:postgres</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>Two log lines look alarming and are not: <code>cp: cannot stat ... .history</code> and a failed fetch of the next WAL segment. PostgreSQL asks for the file after the last one, does not find it, and ends recovery. That is how it knows it has finished.</p>
+
+<p>One thing that is not obvious: <strong>a failed recovery can leave the data directory half-recovered.</strong> Restore the base backup again before retrying rather than reusing what is there.</p>
+
+<h2>Method B: pgBackRest</h2>
+
+<p>pgBackRest is a dedicated backup and restore tool for PostgreSQL. It uses the same underlying mechanism, so the difference is entirely operational: full, differential and incremental backups, parallel and compressed transfers, retention policies, checksum verification, asynchronous archiving, and repositories on S3, Azure Blob Storage or Google Cloud Storage.</p>
+
+<p>A <em>stanza</em> is the name pgBackRest gives a PostgreSQL cluster. After installing and writing a short configuration file, point PostgreSQL at it:</p>
+
+<pre><code>ALTER SYSTEM SET archive_command = 'pgbackrest --stanza=main archive-push %p';</code></pre>
+
+<p>Note what that replaces. Method A set <code>archive_command</code> with <code>ALTER SYSTEM</code>, which writes to <code>postgresql.auto.conf</code> — and that file overrides anything in <code>conf.d</code>. Replacing it the same way is what stops the old command quietly winning.</p>
+
+<pre><code>pgbackrest --stanza=main stanza-create
+pgbackrest --stanza=main check
+pgbackrest --stanza=main --type=full backup
+pgbackrest info</code></pre>
+
+<p><code>check</code> forces a WAL switch and confirms archiving and the repository work end to end — a verification step Method A simply does not have. The restore is one command:</p>
+
+<pre><code>pgbackrest --stanza=main --delta --type=time \\
+  "--target=2026-10-09 10:33:44+05:30" --target-action=promote restore</code></pre>
+
+<p>pgBackRest writes the recovery settings and creates <code>recovery.signal</code> itself, which replaces every manual step in section A. <code>--delta</code> rewrites only the files that differ, which on a large database is the difference between minutes and hours.</p>
+
+<h2>pg_dump and Barman</h2>
+
+<p><strong>pg_dump is not point-in-time recovery.</strong> It exports the logical contents of one database, so the only moment you can return to is the moment the dump started. That is a real limitation and it is also sometimes exactly what you want: pg_dump restores across major versions and platforms, can restore a single table, and needs no WAL archive at all. For migrations, small databases and object-level restores it is the right tool.</p>
+
+<p><strong>Barman</strong> manages physical backups and WAL for many PostgreSQL servers from one central host, with a catalogue and retention policies. It suits teams that want a dedicated backup server. pgBackRest is more often installed alongside each database, though it can also use a separate repository host.</p>
+
+<h2>Comparing the four</h2>
+
+<div class="table-scroll">
+<table>
+<thead>
+<tr><th>Aspect</th><th>pg_dump</th><th>Manual base backup + WAL</th><th>pgBackRest</th><th>Barman</th></tr>
+</thead>
+<tbody>
+<tr><td>Backup type</td><td>Logical</td><td>Physical</td><td>Physical</td><td>Physical</td></tr>
+<tr><td>Point-in-time recovery</td><td>No</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+<tr><td>Data you can lose</td><td>Since the last dump</td><td>Since the last archived WAL</td><td>Since the last archived WAL</td><td>Since the last archived WAL</td></tr>
+<tr><td>Incremental backups</td><td>No</td><td>No</td><td>Yes</td><td>Yes</td></tr>
+<tr><td>Compression and parallelism</td><td>Yes</td><td>Not built in</td><td>Built in</td><td>Built in</td></tr>
+<tr><td>Retention management</td><td>Manual</td><td>Manual</td><td>Policy based</td><td>Policy based</td></tr>
+<tr><td>Integrity checks</td><td>Restore errors only</td><td>Manual</td><td>Checksums and verify</td><td>Built in</td></tr>
+<tr><td>Restore effort</td><td>Low</td><td>High, many manual steps</td><td>One command</td><td>One command</td></tr>
+<tr><td>Restore to a different major version</td><td>Yes</td><td>No</td><td>No</td><td>No</td></tr>
+<tr><td>Single table restore</td><td>Yes</td><td>Restore all, then extract</td><td>Restore all, then extract</td><td>Restore all, then extract</td></tr>
+<tr><td>Setup effort</td><td>Very low</td><td>Medium</td><td>Medium</td><td>Higher</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>What the table means in practice: pg_dump answers <em>what did this database look like at one moment</em>. The physical methods answer <em>what did it look like at this second</em>. Manual archiving, pgBackRest and Barman all use the same PostgreSQL mechanism, so the choice between them is operational rather than technical — and under pressure, the tool that automates retention and verification is the one that is far less error-prone.</p>
+
+<h2>What to carry into production</h2>
+
+<ul>
+<li><strong>Test the restore, and time it.</strong> A backup counts once you have restored it and checked the data. The timing is what turns a recovery time objective from an aspiration into a number.</li>
+<li><strong>Record the time before risky changes.</strong> <code>SELECT now();</code>, or better, <code>SELECT pg_create_restore_point('before_change');</code> and recover to the named point.</li>
+<li><strong>Keep the target inside the window.</strong> After the end of the base backup, before the end of the archive.</li>
+<li><strong>Monitor archiving.</strong> Watch <code>failed_count</code> in <code>pg_stat_archiver</code>. A failing archive fills <code>pg_wal</code> and eventually stops the database.</li>
+<li><strong>Know which setting wins.</strong> <code>ALTER SYSTEM</code> writes to <code>postgresql.auto.conf</code>, which overrides <code>conf.d</code>.</li>
+<li><strong>Keep the archive off the database disk.</strong> Separate storage or a remote repository, with restricted permissions and encryption.</li>
+<li><strong>Keep enough history.</strong> Retention has to hold WAL back to the oldest backup you might need, or the backup is unrecoverable.</li>
+<li><strong>Write the runbook.</strong> Under pressure, a tested checklist beats memory every time.</li>
+</ul>
+
+<p>PITR is not a feature you switch on. It is a chain: base backup, continuous archive, a target inside the window, and a restore somebody has actually performed. Every link has to hold, and the only way to know they do is to break something on purpose and put it back.</p>
+
+<p>If you are running PostgreSQL in production and have never tested a restore, that is the gap worth closing first. We do that work as part of <a href="/postgresql-consulting-services">PostgreSQL consulting</a>, and as ongoing cover under <a href="/remote-database-support">remote database support</a> — including building the archive, setting the retention, and rehearsing the recovery so the first real one is not the first one.</p>
+`,
+    faqs: [
+      {
+        question: 'What is point-in-time recovery in PostgreSQL?',
+        answer:
+          'Point-in-time recovery, or PITR, is restoring a PostgreSQL database to a specific moment rather than to whenever the last backup was taken. It works by restoring a physical base backup and then replaying archived write-ahead log files on top of it, stopping at a target you choose — a timestamp, a transaction ID, an LSN or a named restore point. It is how you recover from a bad DELETE or a dropped table without losing everything committed since the previous nightly backup.',
+      },
+      {
+        question: 'Can pg_dump do point-in-time recovery?',
+        answer:
+          'No. pg_dump takes a logical export of a database at one moment, so the only point you can return to is the moment the dump started. Anything committed afterwards is gone. pg_dump is still the right tool for migrations between major versions or platforms, and for restoring a single table, because a physical backup can do neither. For point-in-time recovery you need a physical base backup plus continuous WAL archiving.',
+      },
+      {
+        question: 'Why does PostgreSQL say "must specify restore_command when standby mode is not enabled"?',
+        answer:
+          'PostgreSQL found a recovery.signal file and started in archive recovery, but nothing told it how to fetch archived WAL. The usual cause on Debian and Ubuntu is that the recovery settings file is missing from conf.d, or is named without a .conf extension so include_dir never reads it. Confirm the server can read the setting before starting it, with: postgres -C restore_command -c config_file=/etc/postgresql/16/main/postgresql.conf',
+      },
+      {
+        question: 'Why does recovery end before the configured recovery target is reached?',
+        answer:
+          'The target is later than the last transaction in your WAL archive. PostgreSQL replays everything it has, runs out, and refuses to promote because it never reached the point you asked for. The log line "last completed transaction was at log time" shows where the archive actually ends. Choose a target inside that range. The mirror-image error, "requested recovery stop point is before consistent recovery point", means the opposite: the target is earlier than the end of the base backup.',
+      },
+      {
+        question: 'How much data can you lose with PostgreSQL point-in-time recovery?',
+        answer:
+          'Whatever has not yet reached the WAL archive. A 16 MB segment is archived when it fills, so on a quiet server the last transactions can sit unarchived for a long time. Setting archive_timeout forces a segment switch after a fixed period and bounds that exposure, at the cost of more, smaller archived files. Monitor failed_count in pg_stat_archiver: a failing archive command means your recovery point silently stops advancing while WAL accumulates on the database disk.',
+      },
+      {
+        question: 'Should we use pgBackRest or Barman?',
+        answer:
+          'Both use the same PostgreSQL mechanism, so the choice is operational rather than technical. pgBackRest is usually installed alongside each database and suits estates wanting incremental backups, parallel compressed transfers and cloud repositories. Barman is a dedicated backup server managing many PostgreSQL clusters from one host with a central catalogue. What matters more than the choice is that either one gives you retention policies and verification, which hand-written archive commands do not.',
       },
     ],
   },
