@@ -369,8 +369,13 @@ function BlockSwitch({ block, index }: { block: Block; index: number }) {
               <aside className="side-card">
                 <h4>{block.sidebar.title}</h4>
                 <ul>
-                  {block.sidebar.rows.map((row) => (
-                    <li key={row.label}>
+                  {/* Keyed by position, not by label. A fact table may
+                      legitimately repeat a label across rows — two rows for the
+                      two halves of the year, for instance — and keying on the
+                      content made that a duplicate-key error. The list is
+                      static and never reordered, so the index is stable. */}
+                  {block.sidebar.rows.map((row, rowIndex) => (
+                    <li key={`${row.label}-${rowIndex}`}>
                       <span>{row.label}</span>
                       <b>{row.value}</b>
                     </li>

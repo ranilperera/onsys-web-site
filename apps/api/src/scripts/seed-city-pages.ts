@@ -395,8 +395,8 @@ export const cityPages: SeedPage[] = [
           title: 'The offsets that matter',
           rows: [
             { label: 'Perth', value: 'AWST, UTC+8, all year' },
-            { label: 'vs Sydney/Melbourne', value: '2 hrs behind (Apr–Oct)' },
-            { label: 'vs Sydney/Melbourne', value: '3 hrs behind (Oct–Apr)' },
+            { label: 'vs east, Apr–Oct', value: '2 hours behind' },
+            { label: 'vs east, Oct–Apr', value: '3 hours behind' },
             { label: 'vs Brisbane', value: '2 hrs behind, all year' },
             { label: 'Nearest cloud region', value: 'Sydney or Melbourne' },
             { label: 'SLA basis', value: 'Elapsed time, 24/7' },
