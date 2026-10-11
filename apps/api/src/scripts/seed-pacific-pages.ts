@@ -1,3 +1,4 @@
+import { org } from '../lib/env';
 import type { SeedPage } from './seed-content';
 
 /**
@@ -49,23 +50,38 @@ export const pacificPages: SeedPage[] = [
     seoTitle: 'Pacific Islands Database Support | Remote DBA for Island Operators',
     seoDescription:
       'Remote DBA support across Fiji, Papua New Guinea, Vanuatu, the Solomon Islands, Samoa and Tonga. SQL Server, Oracle, PostgreSQL and MySQL cover from Australian consultants, in your working day.',
+    heroImage: '/images/hero-pacific-islands.jpg',
+    heroCtas: [
+      { label: 'Free 20-point health check', href: '/free-20-point-sql-server-health-check' },
+      { label: `Call ${org.phone}`, href: `tel:${org.phoneE164}` },
+    ],
     blocks: [
       {
+        /*
+         * Rewritten in a plainer register. The previous version leaned on the
+         * same two devices twice over — "the hard part is not X, it is Y",
+         * "what is scarce is not X, it is Y" — plus a three-item list and a
+         * two-word closer. Individually each is fine; stacked in three
+         * paragraphs they read as a pattern rather than as someone talking.
+         * Contractions, uneven sentence lengths and one joke do more work here
+         * than another balanced clause.
+         */
         type: 'richText',
-        heading: 'The problem is not the technology — it is who is awake',
-        html: `<p>Pacific organisations run the same database platforms as anyone else. Billing, core banking, ERP and government systems sit on SQL Server, Oracle, PostgreSQL and MySQL, and they are every bit as critical as their Australian equivalents — often more so, because in a small economy one platform frequently serves an entire sector.</p><p>What is scarce is not software. It is the depth of local database administration. A capable systems team can run an estate well until the day something happens that needs a specialist — a corrupt page, a failed cluster failover, a restore that will not mount — and at that point the question is who you can reach, how quickly, and whether they have seen it before.</p><p>The usual alternatives are a vendor support contract that answers in a European or American business day, or a consultant you have to find during the incident. Neither is a plan.</p>`,
+        heading: 'When something breaks at 2am, who actually picks up?',
+        html: `<p>You are running the same databases as any bank or telco in Sydney. Billing, core banking, ERP, revenue collection, the government systems people queue for — SQL Server, Oracle, PostgreSQL, MySQL. Same software, same versions, same problems.</p><p>What is different is what happens when one of them stops. In a small economy your platform is often the only one serving that sector. There is no competitor for customers to switch to while you fix it. Everybody just waits, and they all know who to blame.</p><p>Most of the teams we talk to here are good. They keep the environment running year after year and they do not need us for the day-to-day. What they do not have is the second person: the one who has seen a corrupt page before, who knows why a cluster will not fail over, who can tell inside ten minutes whether a restore is going to mount. That person is hard to hire anywhere. On an island it is close to impossible — and the day you find one, you have hired a single point of failure with a passport.</p><p>So the fallback ends up being a vendor contract that answers in a European business day, or ringing round for a consultant while the system is down and the phone is going. We would rather be the number you already have.</p>`,
       },
       {
         type: 'checkList',
-        eyebrow: 'Why Australia is the right place to call from',
+        anchor: 'why-australia',
+        eyebrow: 'Why call Australia',
         heading: 'Your working day is our working day',
-        body: 'This is the practical argument for an Australian provider over a northern-hemisphere one, and it is not a small thing when a system is down.',
+        body: 'This is the practical case for an Australian provider over a northern-hemisphere one, and it stops being abstract the moment something is down.',
         items: [
-          'Every Pacific time zone sits within a few hours of Australian Eastern time — a Pacific business day and an Australian one are effectively the same working day, so an incident at 9am in Suva or Port Moresby reaches a DBA who is already at work',
-          'Cover is 24/7 regardless, under the same response SLAs as our Australian clients: one hour on Plan B and Plan C, two hours on Plan A',
-          'Remote delivery over secure access, so there is no dependency on anyone being able to fly in — which in this region can mean waiting for a scheduled service',
-          'The same consultants on your instances as on an Australian estate. There is no separate offshore tier for island clients',
-          'Published pricing in AUD, so a procurement process can be started without a discovery call first',
+          'Every Pacific time zone sits within a few hours of Australian Eastern time — a problem at 9am in Suva or Port Moresby reaches a DBA already at their desk, not an overnight queue',
+          'Cover is 24/7 regardless, on the same response SLAs as our Australian clients: one hour on Plans B and C, two hours on Plan A',
+          'Delivered over secure remote access, so nothing waits on a scheduled flight — which in this region can mean days',
+          'The same senior consultants who work on Australian environments. There is no separate tier for island clients',
+          'Published pricing in AUD, so procurement can start without a discovery call to find out what it costs',
         ],
         sidebar: {
           title: 'Markets we cover',
@@ -74,6 +90,7 @@ export const pacificPages: SeedPage[] = [
             { label: 'Papua New Guinea', value: 'Resources, telco, banking' },
             { label: 'Vanuatu', value: 'Finance, telco, government' },
             { label: 'Solomon Islands', value: 'Telco, government, banking' },
+            { label: 'New Caledonia', value: 'PostgreSQL, mining, telco' },
             { label: 'Samoa & Tonga', value: 'Government, utilities, telco' },
             { label: 'Others', value: 'Ask — the list is not closed' },
           ],
@@ -81,36 +98,99 @@ export const pacificPages: SeedPage[] = [
       },
       {
         type: 'cardGrid',
-        eyebrow: 'What we are usually asked for',
-        heading: 'Four conversations that start most Pacific engagements',
-        centered: false,
+        anchor: 'whats-included',
+        eyebrow: 'What you actually get',
+        heading: 'A DBA team for your environment, without the headcount',
+        body: 'Remote database support covers the work an in-house DBA would do, delivered by a team over a secure connection — without the salary, the recruitment, the leave cover or the single point of failure that one person always is.',
+        centered: true,
         altBackground: true,
+        columns: 3,
+        cards: [
+          { title: 'Monitoring that reaches a person', body: 'Continuous checks on availability, space, jobs, replication health and error logs — with alerts routed to an on-call engineer rather than an inbox nobody opens until Monday.', icon: '#s-managed', coverColor: '#EAF1FB' },
+          { title: 'Incident response, at any hour', body: 'A senior DBA on the problem inside the response time your plan guarantees, 24 hours a day. Including the ones at 2am, and the ones on a public holiday you have and we do not.', icon: '#s-emergency', coverColor: '#FDECEC' },
+          { title: 'Backups you have seen restored', body: 'Backups verified, restores actually performed, and recovery objectives documented against what the configuration can really deliver — not what the policy says it should.', icon: '#s-ha', coverColor: '#E7F5EC' },
+          { title: 'Patching without surprises', body: 'Cumulative updates and security patches applied inside your change window, with a tested rollback. Patch currency is the control most environments quietly fail.', icon: '#s-cloud', coverColor: '#FFF1E0' },
+          { title: 'Performance work, every month', body: 'Query, index and configuration tuning using the professional service hours included in every plan. Not an upsell — hours you have already paid for and should be spending.', icon: '#s-consult', coverColor: '#F3F2F1' },
+          { title: 'A named consultant who knows you', body: 'A monthly health report and the same person on your environment month after month, rather than whoever happens to pick up the ticket. In a small market that continuity is worth more than the SLA.', icon: '#s-code', coverColor: '#EAF1FB' },
+        ],
+      },
+      {
+        type: 'platformChips',
+        anchor: 'platforms',
+        eyebrow: 'Platforms',
+        heading: 'Whatever your environment grew into, we cover it',
+        body: 'Pacific environments are rarely one vendor. A telco with Oracle billing, MySQL behind a mobile money platform and SQL Server under finance is the normal shape, not the exception — and it is the shape that makes hiring one DBA impossible.',
+        groups: [
+          { title: 'Microsoft', chips: [
+            { label: 'SQL Server 2008–2022', color: '#CC2927' },
+            { label: 'Azure SQL Database', color: '#0078D4' },
+            { label: 'Azure SQL Managed Instance', color: '#0063B1' },
+            { label: 'Always On availability groups', color: '#CC2927' },
+            { label: 'SSIS · SSRS · SSAS', color: '#0E336A' },
+          ] },
+          { title: 'Oracle', chips: [
+            { label: 'Oracle 10g – 23ai', color: '#C74634' },
+            { label: 'Oracle RAC', color: '#C74634' },
+            { label: 'Oracle Data Guard', color: '#C74634' },
+            { label: 'RMAN & recovery', color: '#8A5A44' },
+            { label: 'Oracle Cloud (OCI)', color: '#C74634' },
+          ] },
+          { title: 'Open source', chips: [
+            { label: 'PostgreSQL', color: '#336791' },
+            { label: 'EDB Postgres', color: '#336791' },
+            { label: 'MySQL & MariaDB', color: '#00758F' },
+            { label: 'Group replication', color: '#00758F' },
+            { label: 'MongoDB', color: '#13AA52' },
+          ] },
+        ],
+      },
+      {
+        type: 'steps',
+        anchor: 'onboarding',
+        eyebrow: 'Getting started',
+        heading: 'Two weeks from signature to cover',
+        body: 'Nothing is billed until cover actually starts, and nobody needs to get on a plane.',
+        steps: [
+          { title: 'Week 1 — discovery', body: 'We inventory the environment, run the free 20-point check on the instance that worries you most, and agree the escalation path and change process with your team.' },
+          { title: 'Week 1 — secure access', body: 'Connectivity established by your preferred method, with individually named accounts and logged sessions. No shared credentials, and the access list is yours to ask for at any time.' },
+          { title: 'Week 2 — monitoring tuned', body: 'Alerting configured against your thresholds, so you are paged for problems and not for noise. This is the step that decides whether anyone trusts the alerts in six months.' },
+          { title: 'Week 2 — cover starts', body: 'The SLA clock begins, the first monthly report is scheduled, and you get the direct number for the consultant who knows your environment.' },
+        ],
+      },
+      {
+        type: 'cardGrid',
+        anchor: 'conversations',
+        eyebrow: 'Where most engagements start',
+        heading: 'Four conversations we have again and again',
+        body: 'If one of these is familiar, the work is already proven — and it is the fastest route to a scoped, fixed price.',
+        centered: false,
+        altBackground: false,
         columns: 2,
         cards: [
           {
             title: 'Nobody here has done a restore in years',
-            body: 'Backups that run and have never been proven. We test the restore path end to end and tell you what the real recovery position is, which is often not the one in the policy.',
+            body: 'Backups that run nightly and have never been proven. We test the restore path end to end and tell you what your real recovery position is, which is rarely the one written in the policy.',
             icon: '#s-shield',
             coverColor: '#EAF1FB',
             link: { label: 'Free health check', href: '/free-20-point-sql-server-health-check' },
           },
           {
             title: 'High availability that has never failed over',
-            body: 'A cluster built once and never exercised is a hope. We rehearse the failover, document the procedure, and where possible arrange it so the test does not require an outage.',
+            body: 'A cluster built once and never exercised is a hope, not a capability. We rehearse the failover, write the procedure down, and where the design allows it, arrange the test so it costs no outage.',
             icon: '#s-ha',
             coverColor: '#E7F5EC',
             link: { label: 'Upgrades, migrations & DR', href: '/database-upgrades-migrations-dr' },
           },
           {
             title: 'A platform move with no margin for error',
-            body: 'Migrations and cloud moves where the system serves an entire market and there is no second provider to fall back on. Fixed price, written acceptance criteria, and a dry run against a copy of production before any cutover.',
+            body: 'Migrations and cloud moves where the system serves an entire market and there is no competitor to fall back on. Fixed price, written acceptance criteria, and a dry run against a copy of production before anything cuts over.',
             icon: '#s-cloud',
             coverColor: '#FFF1E0',
             link: { label: 'SQL Server projects', href: '/sql-server-migration-and-upgrade-services' },
           },
           {
-            title: 'Cover between the people you already have',
-            body: 'Your team runs the estate day to day and we stand behind them — escalation for the problems that need a specialist, and leave and after-hours cover so one person is not the single point of failure.',
+            title: 'One person is the whole database team',
+            body: 'Your team runs the environment day to day and we stand behind them: escalation for what needs a specialist, plus leave and after-hours cover so a resignation is not an operational risk.',
             icon: '#s-managed',
             coverColor: '#F3F2F1',
             link: { label: 'Remote database support', href: '/remote-database-support' },
@@ -120,15 +200,15 @@ export const pacificPages: SeedPage[] = [
       {
         type: 'relatedService',
         eyebrow: 'Proof',
-        heading: 'We have delivered in this region',
-        body: 'Telecommunications and payments engagements across the Pacific Islands — a group replication cluster and migration, a payments platform moved to the cloud across two regions, and the database platform behind a mobile money launch in a new market. Clients are not named: in markets this size, naming the sector and the country names the client.',
+        heading: 'We have already delivered here',
+        body: 'Telecommunications and payments work across the Pacific: a MySQL group replication cluster with automatic failover and the migration onto it, a payment platform moved to Azure across two regions with banks and remittance partners kept in separate networks, and a SQL Server environment migrated to a managed cloud database without losing a transaction. Clients are not named — in markets this size, the sector and the country name them.',
         cta: { label: 'Read the case studies', href: '/case-studies' },
       },
       sovereigntyBlock,
       {
         type: 'ctaBand',
-        heading: 'Start with one instance, at no cost.',
-        body: 'The free 20-point check is read-only, takes about twenty minutes of your time, and tells you where your estate actually stands. It is the same check our Australian clients start with.',
+        heading: 'Start with one instance, at no cost',
+        body: 'The free 20-point check is read-only, needs no access to your environment, and takes about twenty minutes of your time. You get the written findings whether or not you engage us — and if the environment is in good shape, we will tell you that.',
         cta: { label: 'Get the free health check', href: '/free-20-point-sql-server-health-check' },
       },
     ],
@@ -165,6 +245,11 @@ export const pacificPages: SeedPage[] = [
     seoTitle: 'Database Support New Zealand | Remote DBA & SQL Server Cover',
     seoDescription:
       'Remote DBA and SQL Server support for New Zealand organisations. 24/7 cover with a one-hour response SLA, published pricing, and consultants in Australia who are the only people with access to your instances.',
+    heroImage: '/images/hero-pacific-new-zealand.jpg',
+    heroCtas: [
+      { label: 'Free 20-point health check', href: '/free-20-point-sql-server-health-check' },
+      { label: `Call ${org.phone}`, href: `tel:${org.phoneE164}` },
+    ],
     blocks: [
       {
         type: 'richText',
@@ -254,6 +339,11 @@ export const pacificPages: SeedPage[] = [
     seoTitle: 'Database Support Fiji | Remote DBA for Fijian Organisations',
     seoDescription:
       'Remote DBA and SQL Server support for organisations in Fiji. 24/7 cover across SQL Server, Oracle, PostgreSQL and MySQL, delivered from Australia inside the Fijian business day.',
+    heroImage: '/images/hero-pacific-fiji.jpg',
+    heroCtas: [
+      { label: 'Free 20-point health check', href: '/free-20-point-sql-server-health-check' },
+      { label: `Call ${org.phone}`, href: `tel:${org.phoneE164}` },
+    ],
     blocks: [
       {
         type: 'richText',
@@ -315,6 +405,11 @@ export const pacificPages: SeedPage[] = [
     seoTitle: 'Database Support Papua New Guinea | Remote DBA for PNG',
     seoDescription:
       'Remote DBA and SQL Server support for organisations in Papua New Guinea. 24/7 cover across SQL Server, Oracle, PostgreSQL and MySQL from Australian consultants, on the same time zone as Port Moresby.',
+    heroImage: '/images/hero-pacific-png.jpg',
+    heroCtas: [
+      { label: 'Free 20-point health check', href: '/free-20-point-sql-server-health-check' },
+      { label: `Call ${org.phone}`, href: `tel:${org.phoneE164}` },
+    ],
     blocks: [
       {
         type: 'richText',
@@ -376,6 +471,11 @@ export const pacificPages: SeedPage[] = [
     seoTitle: 'Database Support Vanuatu | Remote DBA for Ni-Vanuatu Organisations',
     seoDescription:
       'Remote DBA and database support for organisations in Vanuatu. 24/7 cover across SQL Server, Oracle, PostgreSQL and MySQL from Australian consultants, within hours of the Vanuatu business day.',
+    heroImage: '/images/hero-pacific-vanuatu.jpg',
+    heroCtas: [
+      { label: 'Free 20-point health check', href: '/free-20-point-sql-server-health-check' },
+      { label: `Call ${org.phone}`, href: `tel:${org.phoneE164}` },
+    ],
     blocks: [
       {
         type: 'richText',
@@ -430,6 +530,11 @@ export const pacificPages: SeedPage[] = [
     seoTitle: 'Database Support Solomon Islands | Remote DBA from Australia',
     seoDescription:
       'Remote DBA and database support for organisations in the Solomon Islands. 24/7 cover across SQL Server, Oracle, PostgreSQL and MySQL from Australian consultants, within hours of the Honiara business day.',
+    heroImage: '/images/hero-pacific-solomon-islands.jpg',
+    heroCtas: [
+      { label: 'Free 20-point health check', href: '/free-20-point-sql-server-health-check' },
+      { label: `Call ${org.phone}`, href: `tel:${org.phoneE164}` },
+    ],
     blocks: [
       {
         type: 'richText',
@@ -471,6 +576,119 @@ export const pacificPages: SeedPage[] = [
         question: 'Who accesses our database?',
         answer:
           'Onsys DBAs based in Australia, and only them. No offshore engineer holds credentials to a client database environment, on any plan, by default rather than as an upgrade.',
+      },
+    ],
+  },
+
+  {
+    /*
+     * New Caledonia.
+     *
+     * Added on the client's instruction, with PostgreSQL as the lead rather
+     * than SQL Server. The reasoning given was that PostgreSQL is what the
+     * territory mostly runs, which is consistent with open-source database
+     * adoption across French public sector and industry generally — so the
+     * page is written around PostgreSQL and says so, without claiming a
+     * market-share figure nobody here has measured.
+     *
+     * Two things are stated plainly rather than left for a prospect to find
+     * out on the first call: Onsys works in English, and New Caledonia is a
+     * French-speaking territory. A page that quietly omits that wastes the
+     * enquiry of anyone who needs French-language support.
+     *
+     * WhatsApp is the primary contact here because it is the channel the
+     * client named for this market. The link degrades to /contact when
+     * ORG_WHATSAPP is unset, so the page never offers a dead number.
+     */
+    slug: 'postgresql-support-new-caledonia',
+    title: 'PostgreSQL Support New Caledonia',
+    heading: 'PostgreSQL consultancy and support for New Caledonia',
+    eyebrow: 'Nouvelle-Calédonie · Nouméa · PostgreSQL · UTC+11',
+    lede: 'Senior PostgreSQL consultants an hour from your working day, reachable on WhatsApp. High availability, replication, tuning, upgrades and recovery for the organisations running New Caledonia’s critical systems.',
+    seoTitle: 'PostgreSQL Support New Caledonia | Remote DBA Consultancy',
+    seoDescription:
+      'PostgreSQL consultancy and remote DBA support for organisations in New Caledonia — replication, high availability, tuning, upgrades and recovery, in your working day, on WhatsApp.',
+    heroImage: '/images/hero-pacific-new-caledonia.jpg',
+    heroCtas: [
+      { label: 'Talk to a PostgreSQL consultant', href: '/contact' },
+      org.whatsappUrl
+        ? { label: 'Message us on WhatsApp', href: org.whatsappUrl }
+        : { label: `Call ${org.phone}`, href: `tel:${org.phoneE164}` },
+    ],
+    blocks: [
+      {
+        type: 'richText',
+        heading: 'PostgreSQL expertise, an hour away',
+        html: `<p>New Caledonia runs the same shape of estate as any small, concentrated economy: a handful of platforms that a great many people depend on, in telecommunications, banking, utilities, mining and government. What is less common is the database underneath them. Where much of the Pacific defaults to Microsoft SQL Server, open-source databases — PostgreSQL above all — are far better represented across French-speaking public sector and industry.</p><p>That changes who can help. A provider whose depth is in SQL Server can keep a PostgreSQL estate running; it is a different thing from having designed replication topologies, tuned autovacuum on a large table, recovered a cluster to a point in time, or planned a major-version upgrade that cannot be rolled back the easy way.</p><p>Nouméa is on UTC+11. That is the same clock as Sydney and Melbourne through the Australian summer and one hour ahead of them for the rest of the year — the closest working-day overlap of any market Onsys serves outside Australia itself. An incident raised at nine in the morning in Nouméa reaches a consultant who is already at their desk.</p>`,
+      },
+      {
+        type: 'checkList',
+        eyebrow: 'What we do on PostgreSQL',
+        heading: 'The work, specifically',
+        body: 'Not "we support PostgreSQL". These are the engagements that actually come up, and each one is something we have built or recovered on a production estate.',
+        items: [
+          'Streaming replication and physical standbys, with the failover rehearsed rather than assumed',
+          'High availability with automatic promotion, and a connection layer that follows the primary when it moves',
+          'Point-in-time recovery: continuous WAL archiving, retention that reaches back to the oldest usable backup, and a restore somebody has actually performed',
+          'Performance work — query plans, indexing, autovacuum and bloat, connection pooling, and the configuration defaults nobody revisited after go-live',
+          'Major-version upgrades, planned and tested against a restored copy before the change window opens',
+          'Migrations onto PostgreSQL from Oracle, SQL Server or MySQL, scoped against what the application actually uses rather than against the schema alone',
+          'EDB Postgres where the estate is on the enterprise distribution',
+          'Monitoring and alerting that tells you replication has stopped before a user does',
+        ],
+        sidebar: {
+          title: 'The practical facts',
+          rows: [
+            { label: 'Nouméa', value: 'UTC+11' },
+            { label: 'vs Sydney, Oct–Apr', value: 'Same clock' },
+            { label: 'vs Sydney, Apr–Oct', value: '1 hour ahead' },
+            { label: 'Cover', value: '24/7, every plan' },
+            { label: 'Database access', value: 'Australian-based DBAs only' },
+            { label: 'Pricing', value: 'Published, in AUD' },
+          ],
+        },
+      },
+      {
+        type: 'richText',
+        heading: 'Two things worth saying before you call',
+        html: `<p><strong>We work in English.</strong> New Caledonia is a French-speaking territory and Onsys does not deliver in French. In our experience the technical conversation — replication lag, WAL, query plans, recovery targets — carries across in English with engineers who work with these tools daily, because the vocabulary is already English. The commercial conversation is a fair question to raise early, and we would rather you raised it than discovered it mid-engagement.</p><p><strong>We are not in Nouméa.</strong> Onsys is an Australian practice and the work is remote, which is how specialist database work is delivered everywhere — the alternative is an in-house DBA, not a local one. What you get instead of proximity is a guaranteed response time, a named consultant who knows your estate, and published prices.</p>`,
+      },
+      {
+        type: 'ctaBand',
+        heading: 'Message us on WhatsApp',
+        body: 'The quickest way to reach a database consultant from New Caledonia. Tell us what you are running and what is worrying you; if it is not something we should take on, we will say so.',
+        cta: {
+          label: org.whatsappUrl ? 'Start a WhatsApp conversation' : 'Talk to a consultant',
+          href: org.whatsappUrl ?? '/contact',
+        },
+      },
+      sovereigntyBlock,
+    ],
+    faqs: [
+      {
+        question: 'Does Onsys support PostgreSQL in New Caledonia?',
+        answer:
+          'Yes. PostgreSQL is the lead platform for this market: replication and standbys, high availability with automatic promotion, point-in-time recovery, performance and autovacuum tuning, major-version upgrades, and migrations onto PostgreSQL from Oracle, SQL Server or MySQL. EDB Postgres is covered where the estate runs the enterprise distribution. Support is delivered remotely from Australia under the published response SLAs.',
+      },
+      {
+        question: 'What time zone is Nouméa, and does that work for support?',
+        answer:
+          'New Caledonia is UTC+11, which is the same clock as Sydney and Melbourne during the Australian summer and one hour ahead for the rest of the year. It is the closest working-day overlap of any market Onsys serves outside Australia, so a question raised first thing in Nouméa reaches a consultant who is already working. Cover is 24/7 on every monthly plan regardless.',
+      },
+      {
+        question: 'Can we contact Onsys on WhatsApp?',
+        answer:
+          'Yes, and for New Caledonia it is the channel we would suggest first. WhatsApp avoids international call costs and gives both sides a written record of what was said, which matters when the conversation is about version numbers and error messages. Phone and email work too, and once an engagement starts you get a direct line to the consultant who knows your estate.',
+      },
+      {
+        question: 'Does Onsys provide support in French?',
+        answer:
+          'No. Onsys works in English, and we would rather say so here than let you find out during an engagement. The technical vocabulary of PostgreSQL is already English, so in practice the engineering conversation carries across; whether that is acceptable for the commercial and reporting side is a reasonable question to settle before you commit to anything.',
+      },
+      {
+        question: 'Who would have access to our database?',
+        answer:
+          'Onsys DBAs based in Australia, and only them. No offshore engineer holds credentials to a client database environment, on any plan. Access is through individually named accounts rather than shared credentials, every session is logged, we tell you which engineers hold access before you sign, and it is revoked the day an engagement ends.',
       },
     ],
   },
