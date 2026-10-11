@@ -27,8 +27,9 @@ const FOOTER: Array<{ group: string; links: Array<{ label: string; href: string 
       { label: 'PostgreSQL Consulting', href: '/postgresql-consulting-services' },
       { label: 'MySQL Consulting', href: '/mysql-consulting-services' },
       { label: 'SQL Server DBA Melbourne', href: '/sql-server-dba-melbourne' },
-      { label: 'Database Support New Zealand', href: '/database-support-new-zealand' },
-      { label: 'Pacific Islands Database Support', href: '/database-support-pacific-islands' },
+      { label: 'Database Consultancy for New Zealand', href: '/database-support-new-zealand' },
+      { label: 'Database Consultancy for the Pacific', href: '/database-support-pacific-islands' },
+      { label: 'PostgreSQL Consultancy for New Caledonia', href: '/postgresql-support-new-caledonia' },
     ],
   },
   {

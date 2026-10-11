@@ -125,6 +125,20 @@ const envSchema = z.object({
   ORG_EMAIL: z.string().default('sales@onsys.com.au'),
   ORG_PHONE: z.string().default('1800 431 416'),
   ORG_PHONE_E164: z.string().default('+611800431416'),
+  /*
+   * Australian mobile in E.164 for WhatsApp, e.g. +61400000000. Empty by
+   * default and deliberately so: 1800 431 416 is an inbound service number
+   * and cannot receive WhatsApp, so there is no sensible fallback. Every
+   * WhatsApp call to action checks for this and renders an ordinary
+   * contact link instead when it is unset, rather than a wa.me URL that
+   * opens on a number nobody is watching.
+   */
+  ORG_WHATSAPP: z.string().default(''),
+  /// Pre-filled first message, so an enquiry arrives with context rather
+  /// than as a bare "hi".
+  ORG_WHATSAPP_GREETING: z.string().default(
+    'Hi Onsys, I would like to talk to a database consultant.',
+  ),
   ORG_STREET: z.string().default('Level 1, 530 Little Collins Street'),
   ORG_LOCALITY: z.string().default('Melbourne'),
   ORG_REGION: z.string().default('VIC'),
@@ -226,6 +240,18 @@ export const org = {
   email: env.ORG_EMAIL,
   phone: env.ORG_PHONE,
   phoneE164: env.ORG_PHONE_E164,
+  whatsapp: env.ORG_WHATSAPP,
+  whatsappGreeting: env.ORG_WHATSAPP_GREETING,
+  /**
+   * wa.me link with the greeting pre-filled, or null when no number is
+   * configured. Callers use `org.whatsappUrl ?? '/contact'` so a
+   * deployment without a WhatsApp number still shows a working route in.
+   */
+  get whatsappUrl(): string | null {
+    const digits = env.ORG_WHATSAPP.replace(/[^0-9]/g, '');
+    if (!digits) return null;
+    return `https://wa.me/${digits}?text=${encodeURIComponent(env.ORG_WHATSAPP_GREETING)}`;
+  },
   bookingUrl: env.ORG_BOOKING_URL,
   portalUrl: env.ORG_PORTAL_URL,
   portalEnabled: env.ORG_PORTAL_ENABLED,

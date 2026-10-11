@@ -54,6 +54,24 @@ export const siteConfig = {
     'sales@onsys.com.au',
   phone: process.env.NEXT_PUBLIC_ORG_PHONE || '1800 431 416',
   phoneE164: process.env.NEXT_PUBLIC_ORG_PHONE_E164 || '+611800431416',
+  /**
+   * Australian mobile for WhatsApp, digits only once normalised. Empty
+   * unless configured: the published 1800 number cannot receive WhatsApp,
+   * so there is no fallback worth having. `whatsappUrl` is null when it is
+   * unset, and callers fall back to /contact.
+   */
+  whatsapp: process.env.NEXT_PUBLIC_ORG_WHATSAPP || '',
+  whatsappGreeting:
+    process.env.NEXT_PUBLIC_ORG_WHATSAPP_GREETING
+    || 'Hi Onsys, I would like to talk to a database consultant.',
+  get whatsappUrl(): string | null {
+    const digits = (process.env.NEXT_PUBLIC_ORG_WHATSAPP || '').replace(/[^0-9]/g, '');
+    if (!digits) return null;
+    const greeting =
+      process.env.NEXT_PUBLIC_ORG_WHATSAPP_GREETING
+      || 'Hi Onsys, I would like to talk to a database consultant.';
+    return `https://wa.me/${digits}?text=${encodeURIComponent(greeting)}`;
+  },
   bookingUrl: process.env.NEXT_PUBLIC_ORG_BOOKING_URL || '/book',
   logo: process.env.NEXT_PUBLIC_ORG_LOGO || '/logo.png',
   /**
@@ -228,12 +246,27 @@ export const navigation = {
          */
         title: 'New Zealand & Pacific',
         links: [
-          { label: 'Database Support New Zealand', href: '/database-support-new-zealand', sub: 'Your business day, from Australia' },
-          { label: 'Pacific Islands', href: '/database-support-pacific-islands', sub: 'Fiji, PNG, Vanuatu, Solomons & more' },
-          { label: 'Fiji', href: '/database-support-fiji', sub: 'Telco, banking & government' },
-          { label: 'Papua New Guinea', href: '/database-support-papua-new-guinea', sub: 'Same time zone as Brisbane' },
-          { label: 'Vanuatu', href: '/database-support-vanuatu', sub: 'DR you have actually tested' },
-          { label: 'Solomon Islands', href: '/database-support-solomon-islands', sub: 'Escalation that answers' },
+          /*
+           * The label is the anchor text, and a mega-menu link appears on every
+           * page of the site, which makes this the strongest internal signal
+           * available. "Fiji" spends it on a word nobody searches alongside a
+           * database query; "Database Consultancy for Fiji" spends it on the
+           * phrase the page is actually trying to rank for, and tells a reader
+           * scanning the menu what they would get if they clicked.
+           *
+           * The `sub` line carries the differentiator, so the repeated prefix
+           * is not the only thing distinguishing one row from the next.
+           *
+           * New Caledonia leads on PostgreSQL rather than "database", because
+           * that is what the market runs and what its page is written around.
+           */
+          { label: 'Database Consultancy for New Zealand', href: '/database-support-new-zealand', sub: 'Your business day, from Australia' },
+          { label: 'Database Consultancy for the Pacific', href: '/database-support-pacific-islands', sub: 'Fiji, PNG, Vanuatu, Solomons & more' },
+          { label: 'Database Consultancy for Fiji', href: '/database-support-fiji', sub: 'Telco, banking & government' },
+          { label: 'Database Consultancy for Papua New Guinea', href: '/database-support-papua-new-guinea', sub: 'Same time zone as Brisbane' },
+          { label: 'Database Consultancy for Vanuatu', href: '/database-support-vanuatu', sub: 'DR you have actually tested' },
+          { label: 'Database Consultancy for the Solomon Islands', href: '/database-support-solomon-islands', sub: 'Escalation that answers' },
+          { label: 'PostgreSQL Consultancy for New Caledonia', href: '/postgresql-support-new-caledonia', sub: 'Nouméa hours · reach us on WhatsApp' },
         ],
       },
     ],
@@ -288,8 +321,9 @@ export const navigation = {
       // The market hubs. The individual country pages are linked from the
       // header and from the Pacific hub; putting all six here as well would
       // make this column twice the length of any other.
-      { label: 'Database Support New Zealand', href: '/database-support-new-zealand' },
-      { label: 'Pacific Islands Database Support', href: '/database-support-pacific-islands' },
+      { label: 'Database Consultancy for New Zealand', href: '/database-support-new-zealand' },
+      { label: 'Database Consultancy for the Pacific', href: '/database-support-pacific-islands' },
+      { label: 'PostgreSQL Consultancy for New Caledonia', href: '/postgresql-support-new-caledonia' },
     ],
     'Cloud, IT & AI': [
       { label: 'Managed IT Services', href: '/managed-it-services' },
