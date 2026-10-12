@@ -7,7 +7,7 @@ import { env, org } from '../lib/env';
 import { logger } from '../lib/logger';
 import { asyncHandler } from '../middleware/error';
 import { leadLimiter, honeypot, verifyCaptcha } from '../middleware/security';
-import { sendEmail, renderHealthCheckAck, renderHealthCheckAlert } from '../services/email.service';
+import { sendEmail, renderHealthCheckAck, renderHealthCheckAlert, leadNotifyCc } from '../services/email.service';
 import { notifyHealthCheckToTeams } from '../services/teams.service';
 
 export const healthCheckRouter = Router();
@@ -176,6 +176,7 @@ healthCheckRouter.post(
         name: input.name,
         email: input.email,
         phone: input.phone,
+        ip: req.ip ?? null,
         company: input.company,
         service: HEALTH_CHECK_SERVICE,
         // The version and instance count are what a consultant needs before the
@@ -226,6 +227,7 @@ healthCheckRouter.post(
       }),
       sendEmail({
         to: env.LEAD_NOTIFY_TO,
+        cc: leadNotifyCc(),
         subject: `Health check request${priorClaim ? ' [REPEAT]' : ''} — ${input.company} (${input.sqlVersion})`,
         html: renderHealthCheckAlert({ ...input, alreadyClaimed: Boolean(priorClaim) }),
       }),

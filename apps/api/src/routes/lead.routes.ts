@@ -6,7 +6,7 @@ import { logger } from '../lib/logger';
 import { deriveCountry } from '../lib/country';
 import { asyncHandler } from '../middleware/error';
 import { leadLimiter, verifyCaptcha, honeypot } from '../middleware/security';
-import { sendEmail, renderLeadNotification, renderLeadAcknowledgement } from '../services/email.service';
+import { sendEmail, renderLeadNotification, renderLeadAcknowledgement, leadNotifyCc } from '../services/email.service';
 import { notifyLeadToTeams } from '../services/teams.service';
 
 export const leadRouter = Router();
@@ -29,6 +29,7 @@ leadRouter.post(
         service: input.service?.trim() || null,
         message: input.message?.trim() || null,
         channel: 'CONTACT_FORM',
+        ip: req.ip ?? null,
         utmSource: input.utmSource || null,
         utmMedium: input.utmMedium || null,
         utmCampaign: input.utmCampaign || null,
@@ -54,6 +55,7 @@ leadRouter.post(
     void (async () => {
       const notification = await sendEmail({
         to: env.LEAD_NOTIFY_TO,
+        cc: leadNotifyCc(),
         subject: `New enquiry — ${lead.name}${lead.company ? ` (${lead.company})` : ''}`,
         html: renderLeadNotification(lead),
         replyTo: lead.email,

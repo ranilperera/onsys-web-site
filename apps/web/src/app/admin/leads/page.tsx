@@ -13,6 +13,8 @@ interface Lead {
   status: string;
   channel: string;
   createdAt: string;
+  /// Submitting IP. Null on anything created before October 2026.
+  ip: string | null;
   /// ISO country code derived from the visit — see deriveCountry in the API.
   country: string | null;
   utmSource: string | null;
@@ -274,6 +276,7 @@ export default function LeadsPage() {
                 <th>Source</th>
                 {/* Which page did the convincing, and what were they sizing. */}
                 <th>Landed on</th>
+                <th>IP address</th>
                 <th>Received</th>
                 <th>Status</th>
                 <th>Action</th>
@@ -339,8 +342,25 @@ export default function LeadsPage() {
                         </span>
                       )}
                     </td>
+                    {/* The address is the thing that groups a spam run: forty
+                        submissions from one IP look nothing like forty from
+                        forty. Monospaced so they line up down the column and a
+                        repeat is visible without reading. */}
+                    <td style={{ whiteSpace: 'nowrap', fontFamily: 'var(--font-mono)', fontSize: 12 }}>
+                      {l.ip ?? '—'}
+                    </td>
+                    {/* Date and time, not date alone. Bot runs submit in
+                        bursts, and the burst is invisible when every row in a
+                        day shows the same date. */}
                     <td style={{ whiteSpace: 'nowrap' }}>
-                      {new Date(l.createdAt).toLocaleDateString('en-AU')}
+                      {new Date(l.createdAt).toLocaleString('en-AU', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false,
+                      })}
                     </td>
                     <td>
                       <span className={`lead-status ${l.status.toLowerCase()}`}>{l.status}</span>

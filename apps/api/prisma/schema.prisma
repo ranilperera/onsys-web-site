@@ -498,6 +498,12 @@ model Lead {
   plan          String?
   instanceCount String?
 
+  /// Submitting IP, from req.ip. Only the real client because `trust proxy`
+  /// is set to TRUST_PROXY_HOPS — 2 in production, for HAProxy then nginx.
+  /// Null on leads created before October 2026 and on any channel with no
+  /// HTTP request behind it.
+  ip          String?    @db.VarChar(45)
+
   emailSentAt DateTime?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
@@ -505,6 +511,7 @@ model Lead {
   healthCheckTokens HealthCheckToken[]
 
   @@index([channel, createdAt])
+  @@index([ip, createdAt])
   @@map("leads")
 }
 

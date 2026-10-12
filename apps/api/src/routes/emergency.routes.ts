@@ -9,7 +9,7 @@ import { asyncHandler } from '../middleware/error';
 import { leadLimiter, honeypot, verifyCaptcha } from '../middleware/security';
 import { hashIp } from '../middleware/auth';
 import { createEmergencyCheckout, parseWebhook, emergencyPrice } from '../services/stripe.service';
-import { sendEmail, renderEmergencyReceipt, renderEmergencyAlert } from '../services/email.service';
+import { sendEmail, renderEmergencyReceipt, renderEmergencyAlert, leadNotifyCc } from '../services/email.service';
 import { notifyEmergencyToTeams } from '../services/teams.service';
 
 export const emergencyRouter = Router();
@@ -69,6 +69,7 @@ emergencyRouter.post(
           service: 'Emergency database support',
           message: request.summary || 'Requested emergency support',
           channel: 'EMERGENCY',
+          ip: req.ip ?? null,
         },
       })
       .catch((err) => logger.error({ err }, 'Failed to record the emergency lead'));
@@ -85,6 +86,7 @@ emergencyRouter.post(
       }),
       sendEmail({
         to: env.LEAD_NOTIFY_TO,
+        cc: leadNotifyCc(),
         subject: `Emergency support request — ${request.company || request.name}`,
         html: renderEmergencyAlert({ ...request, amountCents: null }),
       }),
@@ -271,6 +273,7 @@ emergencyRouter.post(
       }),
       sendEmail({
         to: env.LEAD_NOTIFY_TO,
+        cc: leadNotifyCc(),
         subject: `PAID emergency support — ${request.company || request.name}`,
         html: renderEmergencyAlert(request),
       }),
