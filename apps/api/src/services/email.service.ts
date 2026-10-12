@@ -53,6 +53,19 @@ export interface SendEmailOptions {
   attachments?: Array<{ name: string; contentType: string; content: string }>;
 }
 
+/**
+ * Who is copied on every lead notification.
+ *
+ * Comma separated in LEAD_NOTIFY_CC, trimmed, empties dropped, and the primary
+ * recipient removed so a single mailbox set as both never receives two copies
+ * of the same alert.
+ */
+export function leadNotifyCc(): string[] {
+  return env.LEAD_NOTIFY_CC.split(',')
+    .map((a) => a.trim())
+    .filter((a) => a && a.toLowerCase() !== env.LEAD_NOTIFY_TO.trim().toLowerCase());
+}
+
 export async function sendEmail(opts: SendEmailOptions): Promise<{ sent: boolean; reason?: string }> {
   if (!graphConfigured) {
     // In dev we log instead of throwing so the contact form still works end-to-end.
@@ -151,6 +164,9 @@ export interface LeadEmailData {
   message?: string | null;
   referrer?: string | null;
   utmSource?: string | null;
+  /// Submitting IP, shown so a run of identical-looking enquiries can be told
+  /// apart from one script without opening the admin console.
+  ip?: string | null;
 }
 
 /** Internal notification to the sales team. */
@@ -166,6 +182,7 @@ export function renderLeadNotification(lead: LeadEmailData): string {
        ${row('Service', lead.service)}
        ${row('Source', lead.utmSource)}
        ${row('Referrer', lead.referrer)}
+       ${row('IP address', lead.ip)}
      </table>
      ${
        lead.message

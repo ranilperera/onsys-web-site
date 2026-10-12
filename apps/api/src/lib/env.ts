@@ -66,6 +66,13 @@ const envSchema = z.object({
   GRAPH_SENDER_UPN: z.string().email().optional(),
   /// Where new enquiries land.
   LEAD_NOTIFY_TO: z.string().default('sales@onsys.com.au'),
+  /*
+   * Everyone who gets a copy of every lead notification, comma separated.
+   * Separate from LEAD_NOTIFY_TO so the reply-to stays a single mailbox:
+   * a reply should reach the sales inbox, not fan out to an archive
+   * address that nobody answers from.
+   */
+  LEAD_NOTIFY_CC: z.string().default('admin@onsys.com.au'),
 
   // --- Microsoft Teams (chat escalation) ---
   /// Simplest path: an Incoming Webhook URL on the target channel.

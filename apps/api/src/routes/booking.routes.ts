@@ -18,8 +18,7 @@ import {
   renderBookingIcs,
   renderBookingNotification,
   sendEmail,
-  type BookingEmailData,
-} from '../services/email.service';
+  type BookingEmailData, leadNotifyCc } from '../services/email.service';
 
 export const bookingRouter = Router();
 
@@ -117,6 +116,7 @@ bookingRouter.post(
 
         await sendEmail({
           to: env.LEAD_NOTIFY_TO,
+          cc: leadNotifyCc(),
           subject: `New booking — ${record.name} on ${when}`,
           html: renderBookingNotification(emailData),
           replyTo: record.email,
@@ -153,6 +153,7 @@ bookingRouter.post(
 
     void sendEmail({
       to: env.LEAD_NOTIFY_TO,
+      cc: leadNotifyCc(),
       subject: `Booking cancelled — ${record.name} (${record.reference})`,
       html: `<p>${record.name} cancelled their consultation on ${describeSlot(record.startsAt)}.</p>`,
     }).catch((error) => logger.error({ err: error }, 'Cancellation notice failed'));
