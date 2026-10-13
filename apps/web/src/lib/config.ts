@@ -95,7 +95,7 @@ export const siteConfig = {
   social: {
     linkedin: process.env.NEXT_PUBLIC_ORG_LINKEDIN || 'https://au.linkedin.com/company/onsys-technologies',
     facebook: process.env.NEXT_PUBLIC_ORG_FACEBOOK || '#',
-    twitter: process.env.NEXT_PUBLIC_ORG_TWITTER || '#',
+    twitter: process.env.NEXT_PUBLIC_ORG_TWITTER || 'https://x.com/onsyscomau',
     youtube: process.env.NEXT_PUBLIC_ORG_YOUTUBE || '#',
     instagram:
       process.env.NEXT_PUBLIC_ORG_INSTAGRAM || 'https://www.instagram.com/onsystechnologies',
