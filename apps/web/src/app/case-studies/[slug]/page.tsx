@@ -5,6 +5,8 @@ import { getCaseStudy } from '@/lib/api';
 import { buildMetadata, breadcrumbSchema } from '@/lib/seo';
 import { siteConfig } from '@/lib/config';
 import { JsonLd } from '@/components/JsonLd';
+import { Breadcrumb } from '@/components/Breadcrumb';
+import { PageHeroImage } from '@/components/PageHeroImage';
 import { BlockRenderer } from '@/components/blocks/BlockRenderer';
 import type { Block } from '@onsys/shared';
 
@@ -48,15 +50,43 @@ export default async function CaseStudyPage({ params }: Props) {
       />
 
       <article>
-        <section className="section">
+        {/* Same hero contract as a CMS page: the photograph is optional, and a
+            study without one keeps the light header rather than rendering a
+            navy band over nothing. */}
+        <header className={`page-hero cs-hero${cs.heroImage ? ' page-hero-dark' : ''}`}>
+          {cs.heroImage && <PageHeroImage src={cs.heroImage} />}
           <div className="wrap">
-            <div className="section-head">
-              <div className="eyebrow">
-                {cs.sector} · {cs.region} · delivered {cs.deliveredYear}
+            <Breadcrumb
+              items={[
+                { label: 'Home', href: '/' },
+                { label: 'Case studies', href: '/case-studies' },
+                { label: cs.sector },
+              ]}
+            />
+            <span className="eyebrow-pill">
+              <span className="dot" aria-hidden="true" />
+              Delivered engagement
+            </span>
+            <h1>{cs.title}</h1>
+            <p className="lede">{cs.summary}</p>
+
+            {/* The facts a buyer scans for before reading a word of the body:
+                who it was for, where, and when. A definition list rather than
+                a sentence, because these three are compared across studies. */}
+            <dl className="cs-facts">
+              <div>
+                <dt>Sector</dt>
+                <dd>{cs.sector}</dd>
               </div>
-              <h1>{cs.title}</h1>
-              <p>{cs.summary}</p>
-            </div>
+              <div>
+                <dt>Region</dt>
+                <dd>{cs.region}</dd>
+              </div>
+              <div>
+                <dt>Delivered</dt>
+                <dd>{cs.deliveredYear}</dd>
+              </div>
+            </dl>
 
             {cs.platforms.length > 0 && (
               <p className="cs-platforms">
@@ -68,12 +98,17 @@ export default async function CaseStudyPage({ params }: Props) {
               </p>
             )}
           </div>
-        </section>
+        </header>
 
         {/* Case studies are authored as blocks, so they are edited with the
             same tools as every other page and can carry a checklist, a steps
-            sequence or a quote without new markup being written for each one. */}
-        <BlockRenderer blocks={cs.blocks as Block[]} />
+            sequence or a quote without new markup being written for each one.
+            The wrapper is what lets the body alternate its background: the
+            blocks themselves carry no alt flag, and a case study reads as one
+            argument in several movements rather than a stack of sections. */}
+        <div className="cs-body">
+          <BlockRenderer blocks={cs.blocks as Block[]} />
+        </div>
 
         <section className="section">
           <div className="wrap">

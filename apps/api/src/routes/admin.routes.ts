@@ -1218,6 +1218,7 @@ adminRouter.post(
         ...input,
         seoTitle: input.seoTitle || null,
         seoDescription: input.seoDescription || null,
+        heroImage: input.heroImage || null,
         blocks: input.blocks as unknown as object,
         publishedAt: input.status === 'PUBLISHED' ? new Date() : null,
         contentUpdatedAt: new Date(),
@@ -1264,6 +1265,7 @@ adminRouter.put(
         ...input,
         seoTitle: input.seoTitle || null,
         seoDescription: input.seoDescription || null,
+        heroImage: input.heroImage || null,
         blocks: input.blocks as unknown as object,
         publishedAt:
           input.status === 'PUBLISHED' ? existing.publishedAt ?? new Date() : existing.publishedAt,

@@ -41,6 +41,9 @@ export const caseStudyInputSchema = z.object({
     .min(2000, 'Year looks wrong')
     .max(new Date().getFullYear(), 'Year cannot be in the future'),
   blocks: blocksSchema,
+  /// Path to a hero photograph, e.g. /images/hero-cs-mysql-telco.jpg.
+  /// Optional: a study without one keeps the plain header.
+  heroImage: z.string().trim().max(300).optional().or(z.literal('')),
   platforms: z.array(z.string().trim().max(60)).max(12).default([]),
   seoTitle: z.string().trim().max(200).optional().or(z.literal('')),
   seoDescription: z.string().trim().max(320).optional().or(z.literal('')),
@@ -64,6 +67,7 @@ export interface CaseStudySummary {
 
 export interface CaseStudyRecord extends CaseStudySummary {
   blocks: unknown;
+  heroImage: string | null;
   seoTitle: string | null;
   seoDescription: string | null;
 }

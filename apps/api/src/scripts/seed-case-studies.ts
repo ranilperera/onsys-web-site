@@ -37,6 +37,8 @@ export interface SeedCaseStudy {
   seoTitle: string;
   seoDescription: string;
   blocks: Block[];
+  /// Optional hero photograph. Studies without one keep the plain header.
+  heroImage?: string;
   status?: 'DRAFT' | 'PUBLISHED';
 }
 
@@ -523,6 +525,7 @@ export const caseStudies: SeedCaseStudy[] = [
     region: 'Pacific',
     deliveredYear: 2025,
     platforms: ['MySQL Enterprise', 'Group Replication', 'MySQL Router', 'Keepalived'],
+    heroImage: '/images/hero-cs-mysql-telco.jpg',
     seoTitle: 'MySQL High Availability for a Pacific Telco — Case Study',
     seoDescription:
       'How Onsys built a MySQL high-availability platform for a Pacific telecommunications operator — group replication, automatic failover, redundant routers and a disaster-recovery replica.',

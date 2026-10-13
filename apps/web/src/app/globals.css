@@ -1252,3 +1252,79 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .hc-next{margin:18px 0 22px; padding-left:22px; display:grid; gap:10px; max-width:62ch;}
 .hc-next li{font-size:14.5px; line-height:1.6; color:var(--ink);}
 .hc-next code{font-size:13px; background:#F3F2F1; border:1px solid var(--gray-light); border-radius:4px; padding:2px 6px; word-break:break-all;}
+
+/* ===== Case study detail page =====
+   The index sells the portfolio; a study has to carry one engagement on its
+   own. These rules give it a header with the same weight as a service page
+   and then narrow the rhythm of the body, because a case study is one
+   argument in several movements rather than a stack of unrelated sections. */
+
+/* Case-study titles are full sentences — "From standalone MySQL to an
+   always-on, multi-site platform, for a Pacific telecommunications operator" —
+   so the 15ch measure the service heroes use would set them as a column. */
+.page-hero.cs-hero h1{max-width:22ch; font-size:38px; line-height:1.15;}
+.page-hero.cs-hero .lede{max-width:760px; font-size:17px; margin-bottom:26px;}
+
+/* The hero photographs chosen for case studies are already night-dark, unlike
+   the bright office shots the service heroes use. The standard scrim buries
+   them, so this one covers the type side and lets the picture read across the
+   rest of the frame. */
+.cs-hero.page-hero-dark .page-hero-scrim{
+  background:
+    linear-gradient(90deg, rgba(9,29,61,.92) 0%, rgba(9,29,61,.80) 42%, rgba(9,29,61,.40) 72%, rgba(9,29,61,.22) 100%),
+    linear-gradient(180deg, rgba(9,29,61,.55) 0%, rgba(9,29,61,.12) 42%, rgba(9,29,61,.60) 100%);
+}
+.cs-hero.page-hero-dark .page-hero-bg{object-position:center 42%;}
+
+/* Sector, region and year as a spec plate rather than a sentence: these three
+   are what a reader compares across studies, so they are labelled and aligned
+   instead of being run together in an eyebrow. */
+.cs-facts{display:flex; flex-wrap:wrap; gap:0 32px; margin:0 0 20px;}
+.cs-facts > div{padding-right:32px; border-right:1px solid rgba(255,255,255,.18);}
+.cs-facts > div:last-child{padding-right:0; border-right:none;}
+.cs-facts dt{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:#8FAACB; margin-bottom:4px;}
+.cs-facts dd{font-size:15.5px; font-weight:700; color:#fff; margin:0;}
+/* Without a photograph the header stays light, so the plate has to invert. */
+.cs-hero:not(.page-hero-dark) .cs-facts > div{border-right-color:var(--gray-light);}
+.cs-hero:not(.page-hero-dark) .cs-facts dt{color:var(--gray);}
+.cs-hero:not(.page-hero-dark) .cs-facts dd{color:var(--navy);}
+
+/* Platform chips: the shared .lead-service pill is navy on pale blue, which
+   disappears against a navy hero. */
+.cs-hero.page-hero-dark .lead-service{background:rgba(255,255,255,.14); color:#fff; border:1px solid rgba(255,255,255,.22);}
+.cs-hero .cs-platforms{gap:8px;}
+
+/* --- the body --- */
+/* 64px between every block is the right measure for a service page, where the
+   sections are separate offers. Here they are consecutive paragraphs of one
+   story, and the gaps were reading as breaks in it. */
+.cs-body > section{padding:46px 0;}
+.cs-body > section:first-child{padding-top:52px;}
+
+/* Each richText heading opens a chapter — the problem, what we built, the
+   outcome — so it gets a rule above it to mark the turn. */
+.cs-body .article-wrap h2{
+  font-size:27px; line-height:1.2; letter-spacing:-0.02em;
+  margin:0 0 18px; padding-top:18px; border-top:3px solid var(--orange);
+  display:inline-block;
+}
+.cs-body .article-body p:first-child{font-size:16.5px; color:#2E2D2B;}
+
+/* This study runs to five steps and the shared grid is four columns, which
+   left the fifth stranded on a row of its own. Fitting the columns to the
+   count keeps any sequence on one line until it genuinely cannot be. */
+.cs-body .steps{grid-template-columns:repeat(auto-fit,minmax(205px,1fr));}
+
+@media (max-width:980px){
+  .page-hero.cs-hero h1{font-size:31px; max-width:none;}
+}
+@media (max-width:700px){
+  .page-hero.cs-hero h1{font-size:26px;}
+  .page-hero.cs-hero .lede{font-size:15.5px;}
+  /* Dividers between wrapped rows read as misalignment, so the plate becomes
+     three plain stacked pairs. */
+  .cs-facts{gap:14px 24px;}
+  .cs-facts > div{padding-right:0; border-right:none;}
+  .cs-body > section{padding:34px 0;}
+  .cs-body .article-wrap h2{font-size:22px;}
+}
