@@ -1276,23 +1276,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 }
 .cs-hero.page-hero-dark .page-hero-bg{object-position:center 42%;}
 
-/* Sector, region and year as a spec plate rather than a sentence: these three
-   are what a reader compares across studies, so they are labelled and aligned
-   instead of being run together in an eyebrow. */
-.cs-facts{display:flex; flex-wrap:wrap; gap:0 32px; margin:0 0 20px;}
-.cs-facts > div{padding-right:32px; border-right:1px solid rgba(255,255,255,.18);}
-.cs-facts > div:last-child{padding-right:0; border-right:none;}
-.cs-facts dt{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:#8FAACB; margin-bottom:4px;}
-.cs-facts dd{font-size:15.5px; font-weight:700; color:#fff; margin:0;}
-/* Without a photograph the header stays light, so the plate has to invert. */
-.cs-hero:not(.page-hero-dark) .cs-facts > div{border-right-color:var(--gray-light);}
-.cs-hero:not(.page-hero-dark) .cs-facts dt{color:var(--gray);}
-.cs-hero:not(.page-hero-dark) .cs-facts dd{color:var(--navy);}
-
-/* Platform chips: the shared .lead-service pill is navy on pale blue, which
-   disappears against a navy hero. */
+/* Platform chips sit between the lede and the actions — the one row a service
+   page has no equivalent of. The shared .lead-service pill is navy on pale
+   blue, which disappears against a navy hero. */
 .cs-hero.page-hero-dark .lead-service{background:rgba(255,255,255,.14); color:#fff; border:1px solid rgba(255,255,255,.22);}
-.cs-hero .cs-platforms{gap:8px;}
+.cs-hero .cs-platforms{gap:8px; margin:0 0 26px;}
 
 /* --- the body --- */
 /* 64px between every block is the right measure for a service page, where the
@@ -1321,10 +1309,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 @media (max-width:700px){
   .page-hero.cs-hero h1{font-size:26px;}
   .page-hero.cs-hero .lede{font-size:15.5px;}
-  /* Dividers between wrapped rows read as misalignment, so the plate becomes
-     three plain stacked pairs. */
-  .cs-facts{gap:14px 24px;}
-  .cs-facts > div{padding-right:0; border-right:none;}
   .cs-body > section{padding:34px 0;}
   .cs-body .article-wrap h2{font-size:22px;}
 }

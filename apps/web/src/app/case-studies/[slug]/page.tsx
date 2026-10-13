@@ -50,10 +50,14 @@ export default async function CaseStudyPage({ params }: Props) {
       />
 
       <article>
-        {/* Same hero contract as a CMS page: the photograph is optional, and a
-            study without one keeps the light header rather than rendering a
-            navy band over nothing. */}
-        <header className={`page-hero cs-hero${cs.heroImage ? ' page-hero-dark' : ''}`}>
+        {/* Deliberately the same hero as a service page — same element, same
+            classes, same order of breadcrumb, pill, heading, lede, actions —
+            so a case study does not read as a different kind of page. The only
+            addition is the platform row, which a service page has no
+            equivalent of. The photograph is optional: a study without one
+            keeps the light header rather than rendering a navy band over
+            nothing. */}
+        <section className={`page-hero cs-hero${cs.heroImage ? ' page-hero-dark' : ''}`}>
           {cs.heroImage && <PageHeroImage src={cs.heroImage} />}
           <div className="wrap">
             <Breadcrumb
@@ -63,30 +67,16 @@ export default async function CaseStudyPage({ params }: Props) {
                 { label: cs.sector },
               ]}
             />
+            {/* Sector, region and year ride in the pill, which is where every
+                other page carries its qualifying line. They used to sit in a
+                separate plate below the lede, and that was the thing making
+                this header look unlike the rest of the site. */}
             <span className="eyebrow-pill">
               <span className="dot" aria-hidden="true" />
-              Delivered engagement
+              {cs.sector} · {cs.region} · Delivered {cs.deliveredYear}
             </span>
             <h1>{cs.title}</h1>
             <p className="lede">{cs.summary}</p>
-
-            {/* The facts a buyer scans for before reading a word of the body:
-                who it was for, where, and when. A definition list rather than
-                a sentence, because these three are compared across studies. */}
-            <dl className="cs-facts">
-              <div>
-                <dt>Sector</dt>
-                <dd>{cs.sector}</dd>
-              </div>
-              <div>
-                <dt>Region</dt>
-                <dd>{cs.region}</dd>
-              </div>
-              <div>
-                <dt>Delivered</dt>
-                <dd>{cs.deliveredYear}</dd>
-              </div>
-            </dl>
 
             {cs.platforms.length > 0 && (
               <p className="cs-platforms">
@@ -97,8 +87,17 @@ export default async function CaseStudyPage({ params }: Props) {
                 ))}
               </p>
             )}
+
+            <div className="page-hero-cta">
+              <Link className="btn btn-primary" href="/contact">
+                Discuss a project like this
+              </Link>
+              <Link className="btn btn-outline" href="/case-studies">
+                All case studies
+              </Link>
+            </div>
           </div>
-        </header>
+        </section>
 
         {/* Case studies are authored as blocks, so they are edited with the
             same tools as every other page and can carry a checklist, a steps
