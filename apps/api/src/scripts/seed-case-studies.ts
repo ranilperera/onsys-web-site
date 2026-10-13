@@ -67,6 +67,7 @@ export const caseStudies: SeedCaseStudy[] = [
      * not asynchronous replication with a forced failover.
      */
     slug: 'sql-server-azure-sql-mi-migration-pacific-telco',
+    heroImage: '/images/hero-cs-azure-sql-mi.jpg',
     title: 'Migrating a Mission-Critical SQL Server Platform to Azure SQL Managed Instance',
     summary:
       'A cloud database migration where losing a transaction was not an option. The databases moved, and so did the jobs, the logins and the encryption objects the applications depend on — rehearsed first, cut over with writes stopped and the final state validated, then geo-replicated to a second region that also takes read traffic.',
@@ -169,6 +170,7 @@ export const caseStudies: SeedCaseStudy[] = [
      * twenty places and is stripped throughout.
      */
     slug: 'azure-payment-platform-migration-pacific-telco',
+    heroImage: '/images/hero-cs-azure-payments.jpg',
     title: 'A payment platform going to cloud, with customers, banks and partners attached',
     summary:
       'Moving the application was only part of the challenge. Public traffic, an existing data centre, banks and remittance partners all needed to reach the new Azure platform — without being able to reach each other. A segmented, multi-region design with private hybrid connectivity, isolated partner access and database disaster recovery.',
@@ -284,6 +286,7 @@ export const caseStudies: SeedCaseStudy[] = [
      * host name appears, although the source material discusses all four.
      */
     slug: 'sql-server-always-on-healthcare-australia',
+    heroImage: '/images/hero-cs-healthcare-ha.jpg',
     title: 'Building an Always-On SQL Server Platform for an Australian Healthcare Provider',
     summary:
       'A business-critical healthcare database was running without database-level high availability. Now: a two-node Always On architecture with synchronous replication and automatic failover, a stable listener for the applications, and encryption at rest across the databases — so losing the primary server is not the same as losing the service.',
@@ -403,6 +406,7 @@ export const caseStudies: SeedCaseStudy[] = [
      * engineering supports.
      */
     slug: 'manufacturing-distributed-availability-groups-two-data-centres',
+    heroImage: '/images/hero-cs-manufacturing-dag.jpg',
     title: 'From legacy replication to tested ERP disaster recovery, for a manufacturing organisation',
     summary:
       'A business-critical ERP database needed a new disaster-recovery strategy as its replication platform reached end of life. Now: a multi-site SQL Server distributed availability group, a runbook for a real site loss, and a DR test that runs while production stays open to applications.',
@@ -518,6 +522,7 @@ export const caseStudies: SeedCaseStudy[] = [
      * slug is not worth a 404 and the lost equity.
      */
     slug: 'telecommunications-mysql-group-replication-cluster-migration',
+    heroImage: '/images/hero-cs-mysql-telco.jpg',
     title: 'From standalone MySQL to an always-on, multi-site platform, for a Pacific telecommunications operator',
     summary:
       'Single points of failure removed from the database, the routing layer and the recovery position at once: group replication with automatic primary election, redundant routers behind a floating connection point, a replica at a second site, and a migration whose validation gate sat before the cutover.',
@@ -525,7 +530,6 @@ export const caseStudies: SeedCaseStudy[] = [
     region: 'Pacific',
     deliveredYear: 2025,
     platforms: ['MySQL Enterprise', 'Group Replication', 'MySQL Router', 'Keepalived'],
-    heroImage: '/images/hero-cs-mysql-telco.jpg',
     seoTitle: 'MySQL High Availability for a Pacific Telco — Case Study',
     seoDescription:
       'How Onsys built a MySQL high-availability platform for a Pacific telecommunications operator — group replication, automatic failover, redundant routers and a disaster-recovery replica.',
@@ -634,6 +638,7 @@ export const caseStudies: SeedCaseStudy[] = [
      * the only unverified fact on the page.
      */
     slug: 'oracle-rac-migration-australian-telco',
+    heroImage: '/images/hero-cs-oracle-rac.jpg',
     title: 'Migrating a Business-Critical Oracle RAC Estate with Minimal Cutover Risk',
     summary:
       'Replacing the storage under a business-critical Oracle RAC estate put databases, applications, failover and disaster recovery at risk at once. The replacement cluster was built alongside production and tested against real applications first, with Data Guard closing the gap at cutover and the old cluster kept as the way back.',

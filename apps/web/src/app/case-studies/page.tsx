@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { getCaseStudies } from '@/lib/api';
 import { buildMetadata } from '@/lib/seo';
+import { Breadcrumb } from '@/components/Breadcrumb';
+import { PageHeroImage } from '@/components/PageHeroImage';
 
 /**
  * /case-studies — anonymised accounts of delivered work.
@@ -27,28 +29,51 @@ export default async function CaseStudiesIndex() {
 
   return (
     <>
+      {/* The same hero every other landing page has. The heading and the first
+          paragraph of the supplied intro move up into it; the rest stays in
+          the section below, in the order it was written. */}
+      <section className="page-hero page-hero-dark cs-hero">
+        <PageHeroImage src="/images/hero-case-studies.jpg" />
+        <div className="wrap">
+          <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Case studies' }]} />
+          <span className="eyebrow-pill">
+            <span className="dot" aria-hidden="true" />
+            Delivered work · Fixed price · Australia, New Zealand &amp; the Pacific
+          </span>
+          <h1>Projects We’ve Delivered — Proven Outcomes, Fixed-Price Certainty</h1>
+          <p className="lede">
+            These are real projects delivered for organisations across Australia, New Zealand and
+            the Pacific. Each engagement was completed to an agreed scope, fixed price and delivery
+            timeline — without unexpected cost variations.
+          </p>
+          <div className="page-hero-cta">
+            <Link className="btn btn-primary" href="/contact">
+              Discuss a project
+            </Link>
+            <Link className="btn btn-outline" href="/book">
+              Book a consultation
+            </Link>
+          </div>
+        </div>
+      </section>
+
       <section className="section">
         <div className="wrap">
           {/*
             * Wider than the 640px every other section head uses, because this
-            * one is a four-paragraph page introduction under a 32px h1 rather
-            * than the single-sentence lede that measure was set for — at 640
-            * it ran to a thin column down the left of an empty row.
+            * one is a multi-paragraph page introduction rather than the
+            * single-sentence lede that measure was set for — at 640 it ran to
+            * a thin column down the left of an empty row.
             *
             * The supplied copy arrived as six separate lines. Nothing is
             * reworded or reordered; adjacent sentences making the same point
             * are grouped so the intro reads as prose instead of six one-line
             * paragraphs, and the closing hook keeps a paragraph of its own
-            * because it is the line that asks for the click.
+            * because it is the line that asks for the click. The heading and
+            * the opening paragraph now sit in the hero above, which is the
+            * only change to how this copy is arranged.
             */}
           <div className="section-head cs-intro">
-            <div className="eyebrow">Case studies</div>
-            <h1>Projects We’ve Delivered — Proven Outcomes, Fixed-Price Certainty</h1>
-            <p>
-              These are real projects delivered for organisations across Australia, New Zealand and
-              the Pacific. Each engagement was completed to an agreed scope, fixed price and
-              delivery timeline — without unexpected cost variations.
-            </p>
             <p>
               From database migrations and high availability to disaster recovery, cloud
               transformation and critical platform upgrades, the work reflects real-world
