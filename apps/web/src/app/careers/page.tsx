@@ -45,9 +45,17 @@ export default async function CareersIndex() {
           <div className="section-head">
             <div className="eyebrow">Careers</div>
             <h1>Work at Onsys</h1>
+            {/*
+              Both places we hire, because the previous line said "for
+              Australian organisations" while the only advert on the page was
+              for interns in Colombo — a candidate reading it had no reason to
+              think there was anything here for them. It stops at the
+              disciplines on purpose: which work sits where is a matter for the
+              individual advert, and client databases are run from Australia.
+            */}
             <p>
-              We run production databases and the infrastructure around them for Australian
-              organisations. Roles are posted here as they open.
+              We hire across Melbourne and Colombo — database, cloud, infrastructure, security and
+              software engineering. Roles are listed here as they open.
             </p>
           </div>
 
