@@ -210,6 +210,90 @@ export function renderLeadAcknowledgement(lead: LeadEmailData): string {
   );
 }
 
+export interface ApplicationEmailData {
+  jobTitle: string;
+  jobSlug: string;
+  applicationId: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  location: string;
+  noticePeriod?: string | null;
+  expectedSalary?: string | null;
+  linkedinUrl?: string | null;
+  coverNote?: string | null;
+  cvOriginalName: string;
+  cvBytes: number;
+}
+
+/** "248 KB" — a CV is never big enough to need more than this. */
+function fileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} bytes`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+/**
+ * "A CV has arrived" — to the careers address.
+ *
+ * The CV is deliberately NOT attached. The point of the console is that there
+ * is one copy of a candidate's personal information, in one place, with a
+ * record of who opened it; attaching it here would scatter copies through a
+ * mail system and defeat that on the first forward. So this email carries the
+ * facts needed to triage and a link to the file, and nothing to detach.
+ */
+export function renderApplicationNotification(data: ApplicationEmailData): string {
+  return wrapEmail(
+    `New application — ${data.jobTitle}`,
+    `<p style="margin:0 0 18px;font-size:15px;">${escapeHtml(data.fullName)} has applied for <strong>${escapeHtml(data.jobTitle)}</strong>.</p>
+     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+       ${row('Name', data.fullName)}
+       ${row('Email', data.email)}
+       ${row('Phone', data.phone)}
+       ${row('Based in', data.location)}
+       ${row('Notice period', data.noticePeriod)}
+       ${row('Expected salary', data.expectedSalary)}
+       ${row('LinkedIn', data.linkedinUrl)}
+       ${row('CV', `${data.cvOriginalName} (${fileSize(data.cvBytes)})`)}
+     </table>
+     ${
+       data.coverNote
+         ? `<div style="margin-top:20px;">
+              <div style="font-size:13px;color:#605E5C;margin-bottom:6px;">Their note</div>
+              <div style="background:#F8FAFC;border-left:3px solid ${BRAND_ORANGE};padding:14px 16px;font-size:14px;line-height:1.6;white-space:pre-wrap;">${escapeHtml(data.coverNote)}</div>
+            </div>`
+         : ''
+     }
+     <p style="margin:24px 0 0;">
+       <a href="${env.SITE_URL}/admin/applications/${encodeURIComponent(data.applicationId)}" style="display:inline-block;background:${BRAND_ORANGE};color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:4px;font-weight:600;font-size:14px;">Open the application</a>
+     </p>
+     <p style="margin:20px 0 0;font-size:13px;color:#605E5C;line-height:1.6;">The CV is not attached. It is on the application, where opening it is recorded — please read it there rather than forwarding copies. Replying to this email goes straight to ${escapeHtml(data.fullName.split(' ')[0] || data.fullName)}.</p>`,
+  );
+}
+
+/**
+ * "We have your application" — to the candidate.
+ *
+ * Says what happens next and does not promise what we cannot deliver. It
+ * deliberately does not say "we will respond to every applicant": with open
+ * adverts that is not true, and a candidate waiting on a reply that was never
+ * coming is the thing people most resent about applying for work.
+ */
+export function renderApplicationAcknowledgement(data: {
+  fullName: string;
+  jobTitle: string;
+}): string {
+  const firstName = data.fullName.split(' ')[0] || data.fullName;
+  return wrapEmail(
+    'We have your application',
+    `<p style="margin:0 0 16px;font-size:15px;">Hi ${escapeHtml(firstName)},</p>
+     <p style="margin:0 0 16px;font-size:15px;line-height:1.6;">Thanks for applying for <strong>${escapeHtml(data.jobTitle)}</strong>. Your application and CV have reached us and are with the team reviewing this role.</p>
+     <p style="margin:0 0 16px;font-size:15px;line-height:1.6;">If your experience lines up with what the role needs, someone will contact you directly to arrange a conversation. We keep your CV on file for future openings unless you ask us not to.</p>
+     <p style="margin:0 0 16px;font-size:15px;line-height:1.6;">You do not need to send anything else. If you want to correct something or withdraw, reply to this email and we will sort it out.</p>
+     <p style="margin:24px 0 0;font-size:14px;color:#605E5C;">— The Onsys team</p>`,
+  );
+}
+
 /**
  * One-time code that unlocks the chat widget.
  *

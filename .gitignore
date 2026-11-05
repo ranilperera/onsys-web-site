@@ -102,3 +102,6 @@ blog/*.docx
 blog/*.doc
 blog/*.pptx
 blog/*.xlsx
+
+# Locally uploaded CVs. Real people's personal information: never committed.
+.data/

@@ -821,6 +821,28 @@ footer li a:hover{color:var(--navy);}
 .admin-card h3{font-size:15px; margin:0 0 8px;}
 .admin-card .btn{margin-right:8px; margin-top:6px;}
 
+/* ===== Applying for a job ===== */
+/* Form first, "what happens next" beside it on a wide screen and under it on
+   a phone — the aside answers the questions the form provokes, so it must not
+   be above the thing it is about. */
+.apply-layout{display:grid; grid-template-columns:minmax(0,1.6fr) minmax(0,1fr); gap:32px; align-items:start;}
+.apply-aside{border:1px solid var(--gray-light); border-radius:10px; padding:22px 24px; background:#F8FAFC;}
+.apply-aside h2{font-size:15px; color:var(--navy); margin:0 0 8px;}
+.apply-aside h2 + p, .apply-aside h2 + ol{margin-top:0;}
+.apply-aside p{font-size:13.5px; line-height:1.65; color:#3B3A39; margin:0 0 18px;}
+.apply-aside ol{margin:0 0 18px; padding-left:20px;}
+.apply-aside li{font-size:13.5px; line-height:1.6; color:#3B3A39; padding:3px 0;}
+@media (max-width:860px){
+  .apply-layout{grid-template-columns:1fr;}
+}
+
+/* A consent tick is a sentence with a box in front of it, not a labelled
+   field: baseline-aligning the box to the first line keeps it readable when
+   the sentence wraps, which it always does. */
+.checkbox-label{display:flex; gap:10px; align-items:flex-start; font-weight:400; line-height:1.55; cursor:pointer;}
+.checkbox-label input[type=checkbox]{width:17px; height:17px; margin:2px 0 0; flex:0 0 auto;}
+.checkbox-label span{font-size:13.5px; color:#3B3A39;}
+
 .admin-table{width:100%; border-collapse:collapse; font-size:14px;}
 .admin-table thead th{text-align:left; padding:10px; border-bottom:2px solid var(--gray-light); font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:#605E5C; white-space:nowrap;}
 .admin-table tbody td{padding:10px; border-bottom:1px solid var(--gray-light); vertical-align:top;}

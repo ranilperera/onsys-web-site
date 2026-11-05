@@ -20,6 +20,25 @@ export const leadLimiter = rateLimit({
   message: { error: `Too many submissions. Please try again later or call us on ${org.phone}.` },
 });
 
+/**
+ * Job applications: bounded, but not as tightly as the contact form.
+ *
+ * Tighter would cost us candidates. A careers fair, a university lab, a shared
+ * office and an entire country behind carrier NAT all submit from one address,
+ * and the limit is per IP. The real brake on abuse here is the 10 MB upload
+ * cap and the captcha, not this — this exists so a script cannot sit in a
+ * loop. Read from env so a stuck deployment can be unblocked without a build.
+ */
+export const applicationLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: env.APPLICATION_RATE_LIMIT,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: {
+    error: `Too many applications from this connection. Try again in an hour, or call us on ${org.phone} if you are stuck.`,
+  },
+});
+
 /** Chat: chatty by nature, but bounded so nobody burns our model budget. */
 export const chatLimiter = rateLimit({
   windowMs: 5 * 60 * 1000,

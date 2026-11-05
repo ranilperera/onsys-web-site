@@ -24,6 +24,9 @@ interface JobRow {
   publishedAt: string | null;
   updatedAt: string;
   createdBy: { name: string } | null;
+  /** Everyone who applied, and the subset nobody has opened yet. */
+  applicationCount?: number;
+  newApplicationCount?: number;
 }
 
 /** Reads the CSRF cookie set at login so mutations pass the double-submit check. */
@@ -170,6 +173,7 @@ export default function JobsPage() {
                 <th style={{ padding: 10 }}>Role</th>
                 <th style={{ padding: 10 }}>Where</th>
                 <th style={{ padding: 10 }}>Closes</th>
+                <th style={{ padding: 10 }}>Applications</th>
                 <th style={{ padding: 10 }}>Status</th>
                 <th style={{ padding: 10 }}>Posted by</th>
                 <th style={{ padding: 10 }}>Action</th>
@@ -213,6 +217,25 @@ export default function JobsPage() {
                           </span>
                         </>
                       )}
+                    </td>
+                    <td style={{ padding: 10, whiteSpace: 'nowrap' }}>
+                      {j.applicationCount ? (
+                        <a href={`/admin/applications?jobId=${j.id}`}>
+                          {j.applicationCount} total
+                        </a>
+                      ) : (
+                        <span style={{ color: 'var(--gray)' }}>None yet</span>
+                      )}
+                      {/* The number that decides whether to open this advert
+                          now: applications nobody has looked at. */}
+                      {j.newApplicationCount ? (
+                        <>
+                          <br />
+                          <span style={{ fontSize: 12, color: '#6B5900', fontWeight: 600 }}>
+                            {j.newApplicationCount} new
+                          </span>
+                        </>
+                      ) : null}
                     </td>
                     <td style={{ padding: 10 }}>
                       <label htmlFor={`status-${j.id}`} className="sr-only">

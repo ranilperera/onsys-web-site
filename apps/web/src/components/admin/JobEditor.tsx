@@ -303,7 +303,7 @@ export function JobEditor({ jobId }: { jobId?: string }) {
           </div>
 
           <div className="form-field">
-            <label htmlFor="applyEmail">Applications to (optional)</label>
+            <label htmlFor="applyEmail">Notify instead of the careers inbox (optional)</label>
             <input
               id="applyEmail"
               type="email"
@@ -312,6 +312,11 @@ export function JobEditor({ jobId }: { jobId?: string }) {
               maxLength={200}
               placeholder={siteConfig.careersEmail}
             />
+            <p style={{ fontSize: 12.5, color: 'var(--gray)', margin: '6px 0 0' }}>
+              For a role advertised on behalf of a client. Candidates apply on the site and every
+              application appears under Applications — this only changes who gets told. The address
+              is never published on the advert.
+            </p>
           </div>
         </div>
       </section>

@@ -18,6 +18,8 @@ import { emergencyRouter } from './routes/emergency.routes';
 import { healthCheckRouter } from './routes/healthcheck.routes';
 import { authRouter } from './routes/auth.routes';
 import { adminRouter } from './routes/admin.routes';
+import { applicationRouter } from './routes/application.routes';
+import { ensureCvStorage } from './services/cvStorage.service';
 
 const app = express();
 
@@ -115,6 +117,9 @@ app.get('/health', async (_req, res) => {
 
 app.use('/api/content', contentRouter);
 app.use('/api/leads', leadRouter);
+// Multipart, and the only route on the site that takes a file. It parses its
+// own body with multer, so express.json above never sees it.
+app.use('/api/applications', applicationRouter);
 app.use('/api/bookings', bookingRouter);
 app.use('/api/chat', chatRouter);
 app.use('/api/emergency', emergencyRouter);
@@ -136,6 +141,9 @@ const server = app.listen(env.PORT, () => {
     },
     'Onsys API listening',
   );
+
+  // Before the first candidate finds out the hard way.
+  void ensureCvStorage();
 
   if (isProd) {
     if (!graphConfigured) logger.warn('Microsoft Graph is NOT configured — enquiry emails will not send.');

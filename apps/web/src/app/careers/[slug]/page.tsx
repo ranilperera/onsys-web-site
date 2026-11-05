@@ -46,9 +46,6 @@ export default async function JobPage({ params }: Props) {
   if (!job) notFound();
 
   const open = isJobOpen(job.closesAt);
-  // Per-job address when the advert sets one, the careers mailbox otherwise.
-  const applyTo = job.applyEmail || siteConfig.careersEmail;
-  const subject = encodeURIComponent(`Application — ${job.title}`);
 
   return (
     <>
@@ -115,20 +112,34 @@ export default async function JobPage({ params }: Props) {
           */}
           <div className="article-body" dangerouslySetInnerHTML={{ __html: job.descriptionHtml }} />
 
+          {/*
+            Applications come through the site, not by email.
+            Until now this block asked for a CV by email, which lost
+            applications in the ordinary course of business: an inbox cannot
+            record that a CV was read, cannot stop two people replying, and
+            cannot tell a message that was dealt with from one that landed
+            while somebody was on leave. The form posts into a queue at
+            /admin/applications instead, so every CV has a state.
+
+            `job.applyEmail` is still on the record and still editable — it is
+            how a role advertised on behalf of a client can route elsewhere —
+            but it is no longer published here, because a published address
+            collects applications nothing tracks.
+          */}
           {open && (
             <div className="article-cta">
               <div>
                 <h2>Apply for this role</h2>
                 <p>
-                  Send a CV and a short note to{' '}
-                  <a href={`mailto:${applyTo}?subject=${subject}`}>{applyTo}</a>, quoting the role
-                  title. We read everything that arrives and reply either way.
+                  Applications close {dateFmt.format(new Date(job.closesAt))}. It takes a couple of
+                  minutes: a few details, your CV, and anything you want us to know. You will get a
+                  confirmation by email straight away.
                 </p>
               </div>
               <div className="article-cta-actions">
-                <a className="btn btn-primary" href={`mailto:${applyTo}?subject=${subject}`}>
-                  Email your application
-                </a>
+                <Link className="btn btn-primary" href={`/careers/${job.slug}/apply`}>
+                  Apply for this role
+                </Link>
                 <Link className="btn btn-outline" href="/careers">
                   Other open roles
                 </Link>

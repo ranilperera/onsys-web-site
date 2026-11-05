@@ -48,9 +48,9 @@ enum WorkArrangement {
 /// (the existing admin account) rather than that app's separate HrUser table,
 /// so there is one set of admin credentials with one MFA enrolment.
 ///
-/// Applications are deliberately NOT here yet. They carry CVs and salary
-/// expectations — personal information with storage, retention and privacy
-/// obligations that need deciding before any of it is collected.
+/// Applications arrive through /careers/<slug>/apply and are worked from
+/// /admin/applications — see JobApplication, which carries the privacy and
+/// retention notes that held this back.
 model Job {
   id              String          @id @default(cuid())
   slug            String          @unique
@@ -82,12 +82,107 @@ model Job {
   createdById String?
   createdBy   User?   @relation(fields: [createdById], references: [id], onDelete: SetNull)
 
+  applications JobApplication[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   /// The public listing query: published, not past its close date.
   @@index([status, closesAt])
   @@map("jobs")
+}
+
+/// Where an application is up to. Mirrors APPLICATION_STATUSES in
+/// @onsys/shared; the two must be changed together.
+enum ApplicationStatus {
+  NEW
+  REVIEWED
+  SHORTLISTED
+  INTERVIEWING
+  OFFERED
+  HIRED
+  REJECTED
+  WITHDRAWN
+}
+
+/// A candidate's application for one vacancy.
+///
+/// Replaces "email a CV to the careers address". An inbox holds no state: it
+/// cannot record that a CV was read, cannot stop two people replying, and
+/// cannot tell a message that has been dealt with from one that arrived while
+/// somebody was on leave. Each of those is a candidate who never hears back,
+/// which is what this table exists to prevent.
+///
+/// Privacy, since this is the first personal information the site stores
+/// beyond a name and an email:
+///   - The CV file is NOT in the database. Only a storage key is, and the
+///     bytes sit on the api container's volume; nothing is ever served from a
+///     public URL, so a CV can only be read through an authenticated admin
+///     request that logs who asked.
+///   - `consentAt` records the moment the candidate agreed we may keep it on
+///     file. Required, not nullable: there is no lawful route to a CV in here
+///     without it.
+///   - Deleting the row deletes the file too (see the admin delete handler).
+///     Retention is a decision for whoever runs recruitment, so nothing
+///     expires on its own yet — better an explicit purge than a cron job
+///     quietly destroying the record of a hire.
+model JobApplication {
+  id    String @id @default(cuid())
+  jobId String
+  /// Cascade: an advert that is deleted takes its applications with it. The
+  /// alternative is orphaned CVs nobody can see a role for, which is the worse
+  /// privacy outcome.
+  job   Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  fullName String
+  email    String
+  phone    String
+  /// Free text, as the candidate wrote it — "Colombo", "Melbourne, remote".
+  location String
+
+  noticePeriod   String?
+  expectedSalary String?
+  linkedinUrl    String?
+  coverNote      String? @db.Text
+
+  /// Storage key, relative to the CV volume root. Opaque: a generated id plus
+  /// the original extension, never the candidate's filename, because that is
+  /// attacker-controlled and ends up on a filesystem.
+  cvStorageKey   String
+  /// What the candidate called the file. Shown in the console and used for the
+  /// download filename, never for a path.
+  cvOriginalName String
+  cvBytes        Int
+  cvMimeType     String
+
+  status          ApplicationStatus @default(NEW)
+  statusChangedAt DateTime?
+  statusChangedById String?
+  statusChangedBy   User?           @relation(fields: [statusChangedById], references: [id], onDelete: SetNull)
+
+  /// Shared internal commentary. Never shown to the candidate.
+  notes String? @db.Text
+
+  /// When the candidate ticked the consent box. See the privacy note above.
+  consentAt DateTime
+
+  /// Set once the "we have your application" email goes out, so a Graph outage
+  /// is visible as a gap rather than leaving us guessing who was told.
+  acknowledgedAt DateTime?
+
+  /// Provenance, as leads carry it.
+  referrer    String?
+  landingPath String?
+  ip          String?
+
+  submittedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  /// The console's default view: one job's queue, newest first.
+  @@index([jobId, status, submittedAt])
+  /// "Has this person applied before?", across every role.
+  @@index([email])
+  @@map("job_applications")
 }
 
 /// An anonymised account of delivered work, listed on /case-studies.
@@ -544,6 +639,9 @@ model User {
 
   challenges   MfaChallenge[]
   jobs         Job[]
+  /// Who moved an application along the pipeline. SetNull, like jobs: removing
+  /// an admin account must never delete a candidate's application.
+  applicationStatusChanges JobApplication[]
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

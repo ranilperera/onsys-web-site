@@ -448,6 +448,12 @@ export function jobPostingSchema(job: {
       : {}),
     ...(job.salaryRange ? { baseSalary: { '@type': 'MonetaryAmount', value: { '@type': 'QuantitativeValue', value: job.salaryRange } } } : {}),
     url: `${siteConfig.url}/careers/${job.slug}`,
+    // True since applications moved onto the site: the candidate completes the
+    // whole application at this URL, with no redirect to a third-party board
+    // and no account to create. Google Jobs surfaces it, and claiming it
+    // falsely is what the flag exists to catch, so it is set here rather than
+    // left on by default.
+    directApply: true,
   };
 }
 

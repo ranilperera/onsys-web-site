@@ -36,8 +36,9 @@ export function AdminNav() {
       name: 'Enquiries',
       links: [
         { href: '/admin/case-studies', label: 'Case studies' },
-  { href: '/admin/jobs', label: 'Jobs' },
-  { href: '/admin/leads', label: 'Leads' },
+        { href: '/admin/jobs', label: 'Jobs' },
+        { href: '/admin/applications', label: 'Applications' },
+        { href: '/admin/leads', label: 'Leads' },
         { href: '/admin/chat', label: 'Chat' },
       ],
     },

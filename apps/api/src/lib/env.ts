@@ -73,6 +73,16 @@ const envSchema = z.object({
    * address that nobody answers from.
    */
   LEAD_NOTIFY_CC: z.string().default('admin@onsys.com.au'),
+  /**
+   * Where "a CV has arrived" notifications go.
+   *
+   * Defaults to the careers address, not the sales inbox: an application is
+   * not an enquiry, and a CV carries personal information the sales team has
+   * no reason to hold. The CV itself is never attached to the notification —
+   * the mail is a prompt to open the console, so the file stays in one place
+   * with one audit trail instead of being forwarded around a mail system.
+   */
+  APPLICATION_NOTIFY_TO: z.string().default('jobs@onsys.com.au'),
 
   // --- Microsoft Teams (chat escalation) ---
   /// Simplest path: an Incoming Webhook URL on the target channel.
@@ -172,11 +182,35 @@ const envSchema = z.object({
   /// but it makes debugging a deployment painful — raise it temporarily
   /// rather than wondering why the fifth test returns 429.
   LEAD_RATE_LIMIT: z.coerce.number().int().min(1).max(1000).default(5),
+  /**
+   * Applications allowed per IP per hour.
+   *
+   * Higher than LEAD_RATE_LIMIT rather than lower, which looks wrong until you
+   * picture the traffic: a university careers fair, a shared office or a whole
+   * country behind one carrier NAT all submit from a single address, and the
+   * cost of turning a real candidate away is losing them. Three is plenty for
+   * one person — the cap is here to stop a script, and a script hits a 10 MB
+   * upload limit long before it hits this.
+   */
+  APPLICATION_RATE_LIMIT: z.coerce.number().int().min(1).max(1000).default(12),
   SESSION_SECRET: z.string().min(16).default('change-me-in-production-please!!'),
   // Captcha is only enforced when BOTH are present — see verifyCaptcha.
   TURNSTILE_SECRET: z.string().optional(),
   TURNSTILE_SITE_KEY: z.string().optional(),
   ADMIN_ORIGIN: z.string().optional(),
+
+  // --- Candidate CVs ---
+  /**
+   * Where uploaded CVs are written.
+   *
+   * A directory on a volume, not the database and not a public bucket: the
+   * bytes are only ever read back through an authenticated admin request, so
+   * there is no URL to leak and no object store to misconfigure. In production
+   * this is a bind mount under DATA_ROOT, beside the Postgres data, so one
+   * backup covers the row and the file it points at — a CV with no
+   * application, or an application with no CV, is no use to anybody.
+   */
+  CV_STORAGE_DIR: z.string().default('./.data/cvs'),
 });
 
 const parsed = envSchema.safeParse(rawEnv);

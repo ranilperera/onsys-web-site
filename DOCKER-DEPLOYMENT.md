@@ -49,9 +49,15 @@ Create the data directory. Postgres runs as uid 999 inside the container and
 writes straight to this path on the host:
 
 ```bash
-sudo mkdir -p /opt/data/postgres /opt/data/backups
+sudo mkdir -p /opt/data/postgres /opt/data/backups /opt/data/cvs
 sudo chown -R 999:999 /opt/data/postgres
 sudo chmod 700 /opt/data/postgres
+
+# Candidate CVs, written by the api container. It runs as uid 1001 (see
+# infra/Dockerfile.api), and 700 keeps the directory off-limits to every other
+# account on the VM -- these are real people's CVs, not application assets.
+sudo chown -R 1001:1001 /opt/data/cvs
+sudo chmod 700 /opt/data/cvs
 ```
 
 > **Why `/opt/data/postgres` rather than `/opt/data` itself.** The compose file
@@ -374,6 +380,27 @@ Restore:
 gunzip -c /opt/data/backups/onsys-2026-08-26-0200.sql.gz \
   | docker compose -f docker-compose.prod.yml exec -T postgres psql -U onsys -d onsys
 ```
+
+### Candidate CVs
+
+`pg_dump` does **not** cover these. Job applications store the CV file at
+`/opt/data/cvs` and only a storage key in the database, so a database-only
+backup restores a queue of applications whose CVs all 410. The two halves are
+only useful together:
+
+```bash
+sudo tee -a /usr/local/bin/onsys-backup.sh > /dev/null <<'SH'
+# Candidate CVs. Written once and never modified, so a file-level copy is safe
+# while the stack runs -- unlike the Postgres directory above.
+tar -czf "/opt/data/backups/cvs-$STAMP.tar.gz" -C /opt/data cvs
+find /opt/data/backups -name 'cvs-*.tar.gz' -mtime +14 -delete
+SH
+```
+
+Retention is a decision, not a default: nothing expires on its own, and a CV
+sits there until somebody deletes the application in
+`/admin/applications`. That deletion erases the file as well as the row, which
+is what makes "please remove my details" answerable.
 
 Back up `.env` separately — it is not in git, and losing it means reconstructing
 every Graph credential by hand. Azure Key Vault or an encrypted blob, never the

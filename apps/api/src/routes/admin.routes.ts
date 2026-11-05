@@ -10,6 +10,9 @@ import {
   jobInputSchema,
   caseStudyInputSchema,
   findForbiddenIdentifiers,
+  APPLICATION_STATUSES,
+  applicationStatusSchema,
+  applicationNotesSchema,
 } from '@onsys/shared';
 import { prisma } from '../lib/prisma';
 import { asyncHandler } from '../middleware/error';
@@ -18,6 +21,7 @@ import { requireAuth, requireAdmin, verifyCsrf, type AuthedRequest } from '../mi
 import { sendEmail, renderChatTranscript } from '../services/email.service';
 import { revalidateInBackground, tags } from '../services/revalidate.service';
 import { pageFingerprint, postFingerprint, nextContentUpdatedAt } from '../lib/content-changed';
+import { openCv, deleteCv } from '../services/cvStorage.service';
 
 /**
  * Admin CMS API. Every route requires an authenticated session and a valid
@@ -980,9 +984,20 @@ adminRouter.get(
         id: true, slug: true, title: true, type: true, location: true,
         workArrangement: true, status: true, closesAt: true, publishedAt: true,
         updatedAt: true, createdBy: { select: { name: true } },
+        // Two counts, because they answer different questions: how many people
+        // applied, and how many are still waiting on us. The second decides
+        // what to open first.
+        _count: { select: { applications: true } },
+        applications: { where: { status: 'NEW' }, select: { id: true } },
       },
     });
-    res.json({ jobs });
+    res.json({
+      jobs: jobs.map(({ _count, applications, ...job }) => ({
+        ...job,
+        applicationCount: _count.applications,
+        newApplicationCount: applications.length,
+      })),
+    });
   }),
 );
 
@@ -1146,6 +1161,282 @@ adminRouter.delete(
       paths: [`/careers/${job.slug}`, '/careers'],
     });
     logger.warn({ jobId: job.id, slug: job.slug }, 'Job deleted');
+    res.json({ ok: true });
+  }),
+);
+
+/**
+ * Applications.
+ *
+ * The queue that replaced the careers inbox. Everything here is personal
+ * information — a CV, a phone number, what somebody expects to be paid — so
+ * two rules hold throughout: the list returns only what the console displays,
+ * and reading a CV is an authenticated request that gets logged.
+ */
+const applicationListQuery = z.object({
+  jobId: z.string().trim().min(1).optional(),
+  status: z.enum(APPLICATION_STATUSES).optional(),
+  /** Name or email search, for "has this person applied before?". */
+  q: z.string().trim().max(200).optional(),
+});
+
+/** Columns the queue shows. The CV storage key is deliberately not among them. */
+const applicationSummarySelect = {
+  id: true,
+  fullName: true,
+  email: true,
+  phone: true,
+  location: true,
+  status: true,
+  cvOriginalName: true,
+  cvBytes: true,
+  submittedAt: true,
+  statusChangedAt: true,
+  job: { select: { id: true, slug: true, title: true } },
+} as const;
+
+adminRouter.get(
+  '/applications',
+  asyncHandler(async (req, res) => {
+    const query = applicationListQuery.parse(req.query);
+
+    const applications = await prisma.jobApplication.findMany({
+      where: {
+        jobId: query.jobId,
+        status: query.status,
+        ...(query.q
+          ? {
+              OR: [
+                { fullName: { contains: query.q, mode: 'insensitive' as const } },
+                { email: { contains: query.q, mode: 'insensitive' as const } },
+              ],
+            }
+          : {}),
+      },
+      // Newest first within the queue. Status is not sorted on: an application
+      // moved to "not proceeding" should not jump position in a list someone
+      // is working down.
+      orderBy: { submittedAt: 'desc' },
+      take: 500,
+      select: applicationSummarySelect,
+    });
+
+    res.json({ applications });
+  }),
+);
+
+adminRouter.get(
+  '/applications/:id',
+  asyncHandler(async (req, res) => {
+    const application = await prisma.jobApplication.findUnique({
+      where: { id: req.params.id },
+      select: {
+        ...applicationSummarySelect,
+        noticePeriod: true,
+        expectedSalary: true,
+        linkedinUrl: true,
+        coverNote: true,
+        notes: true,
+        consentAt: true,
+        referrer: true,
+        landingPath: true,
+        ip: true,
+        acknowledgedAt: true,
+        statusChangedBy: { select: { name: true } },
+      },
+    });
+    if (!application) {
+      res.status(404).json({ error: 'Application not found' });
+      return;
+    }
+    res.json({ application });
+  }),
+);
+
+/**
+ * A filename every browser can parse, for the ASCII half of the header.
+ *
+ * Content-Disposition is byte-oriented: a quote or a newline in a filename
+ * breaks the header, and non-ASCII is not allowed there at all. The UTF-8 form
+ * beside it carries the real name for anything built this decade, and this is
+ * what the rest fall back to. Built from the candidate's name rather than
+ * their filename, so a folder of downloads is readable without opening them.
+ */
+function cvDownloadFilename(application: { cvOriginalName: string; fullName: string }): string {
+  const dot = application.cvOriginalName.lastIndexOf('.');
+  const ext = dot >= 0 ? application.cvOriginalName.slice(dot) : '';
+  const safeExt = /^\.[a-z0-9]{1,5}$/i.test(ext) ? ext.toLowerCase() : '';
+  const name = application.fullName
+    .normalize('NFKD')
+    .replace(/[^\x20-\x7E]/g, '')
+    .replace(/[^A-Za-z0-9 ._-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .slice(0, 60);
+  return `${name || 'candidate'}-CV${safeExt}`;
+}
+
+/**
+ * Download a CV.
+ *
+ * Streamed through the api rather than handed out as a URL, so there is no
+ * link that works without a session and every read is attributable. Contrast
+ * the standalone app, which mints a 30-minute Azure SAS link: that link is a
+ * bearer token in a query string, and it keeps working for whoever it gets
+ * pasted to.
+ */
+adminRouter.get(
+  '/applications/:id/cv',
+  asyncHandler(async (req: AuthedRequest, res) => {
+    const application = await prisma.jobApplication.findUnique({
+      where: { id: req.params.id },
+      select: {
+        id: true,
+        cvStorageKey: true,
+        cvOriginalName: true,
+        cvMimeType: true,
+        fullName: true,
+      },
+    });
+    if (!application) {
+      res.status(404).json({ error: 'Application not found' });
+      return;
+    }
+
+    let file: Awaited<ReturnType<typeof openCv>>;
+    try {
+      file = await openCv(application.cvStorageKey);
+    } catch (err) {
+      // The row survived but the file did not — a restore that missed the
+      // volume, or a hand-tidied directory. Said plainly, because a bare "not
+      // found" reads as "no such application" and sends someone looking in
+      // entirely the wrong place.
+      logger.error(
+        { err, applicationId: application.id, key: application.cvStorageKey },
+        'Stored CV is missing from the volume',
+      );
+      res.status(410).json({
+        error:
+          'The CV file is missing from storage. The application record is intact — ask the candidate to send it again.',
+      });
+      return;
+    }
+
+    logger.info(
+      { applicationId: application.id, adminId: req.user?.id, adminEmail: req.user?.email },
+      'CV downloaded',
+    );
+
+    // attachment, not inline: a PDF rendered in the admin tab is a document
+    // from an untrusted source being opened by the browser inside our own
+    // origin. Downloading hands it to the operating system instead.
+    res.setHeader('Content-Type', application.cvMimeType || 'application/octet-stream');
+    res.setHeader('Content-Length', String(file.bytes));
+    res.setHeader(
+      'Content-Disposition',
+      [
+        'attachment',
+        `filename="${cvDownloadFilename(application)}"`,
+        `filename*=UTF-8''${encodeURIComponent(application.cvOriginalName)}`,
+      ].join('; '),
+    );
+    // Nothing about a CV belongs in a shared cache or a proxy.
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+
+    file.stream.on('error', (err) => {
+      logger.error({ err, applicationId: application.id }, 'CV stream failed mid-download');
+      res.destroy();
+    });
+    file.stream.pipe(res);
+  }),
+);
+
+adminRouter.patch(
+  '/applications/:id/status',
+  asyncHandler(async (req: AuthedRequest, res) => {
+    const { status } = applicationStatusSchema.parse(req.body);
+
+    const existing = await prisma.jobApplication.findUnique({
+      where: { id: req.params.id },
+      select: { id: true, status: true },
+    });
+    if (!existing) {
+      res.status(404).json({ error: 'Application not found' });
+      return;
+    }
+
+    const application = await prisma.jobApplication.update({
+      where: { id: existing.id },
+      data: {
+        status,
+        // Stamped only on a real change, so "reviewed 3 days ago" does not
+        // reset because someone re-selected the status it already had.
+        ...(status === existing.status
+          ? {}
+          : { statusChangedAt: new Date(), statusChangedById: req.user?.id ?? null }),
+      },
+      select: applicationSummarySelect,
+    });
+
+    logger.info(
+      { applicationId: application.id, from: existing.status, to: status, adminId: req.user?.id },
+      'Application status changed',
+    );
+    res.json({ application });
+  }),
+);
+
+adminRouter.patch(
+  '/applications/:id/notes',
+  asyncHandler(async (req, res) => {
+    const { notes } = applicationNotesSchema.parse(req.body);
+
+    const existing = await prisma.jobApplication.findUnique({
+      where: { id: req.params.id },
+      select: { id: true },
+    });
+    if (!existing) {
+      res.status(404).json({ error: 'Application not found' });
+      return;
+    }
+
+    await prisma.jobApplication.update({
+      where: { id: existing.id },
+      data: { notes: notes || null },
+    });
+    res.json({ ok: true });
+  }),
+);
+
+/**
+ * Erase an application and its CV.
+ *
+ * requireAdmin, like every other delete on this router — and this is the one
+ * route that removes personal information from the system, which is why it
+ * exists: a candidate who asks us to delete their CV has a right to have it
+ * deleted rather than archived. The file goes with the row.
+ */
+adminRouter.delete(
+  '/applications/:id',
+  requireAdmin,
+  asyncHandler(async (req: AuthedRequest, res) => {
+    const application = await prisma.jobApplication.findUnique({
+      where: { id: req.params.id },
+      select: { id: true, cvStorageKey: true, jobId: true },
+    });
+    if (!application) {
+      res.status(404).json({ error: 'Application not found' });
+      return;
+    }
+
+    await prisma.jobApplication.delete({ where: { id: application.id } });
+    await deleteCv(application.cvStorageKey);
+
+    logger.warn(
+      { applicationId: application.id, jobId: application.jobId, adminId: req.user?.id },
+      'Application and CV deleted',
+    );
     res.json({ ok: true });
   }),
 );

@@ -65,6 +65,16 @@ services:
       # visitor shares HAProxy's IP, which means one person can rate-limit
       # everybody.
       TRUST_PROXY_HOPS: ${TRUST_PROXY_HOPS:-2}
+      # Inside the container the CVs live here; the host path is the volume
+      # below. Overridden rather than read from .env so the two cannot disagree.
+      CV_STORAGE_DIR: /data/cvs
+    volumes:
+      # Candidate CVs. Personal information, and the one thing in this stack
+      # that a `docker compose down -v` would destroy with no way back, so it
+      # is a bind mount under DATA_ROOT beside the database rather than a named
+      # volume. BACK THIS UP WITH THE DATABASE: the rows and the files are only
+      # useful together.
+      - ${DATA_ROOT:-/opt/data}/cvs:/data/cvs
     healthcheck:
       test:
         - CMD
