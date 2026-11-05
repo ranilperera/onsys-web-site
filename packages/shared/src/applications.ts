@@ -287,7 +287,16 @@ export const applicationNotesSchema = z.object({
   notes: z.string().trim().max(8000),
 });
 
-/** What the admin console receives for each row of the queue. */
+/**
+ * What the admin console receives for each row of the queue.
+ *
+ * It carries the short answers — notice period, salary expectation, a link —
+ * because those are what a row is triaged on, and a reviewer who has to open
+ * every application to find them ends up opening none of them. The candidate's
+ * written note is not here: only whether there is one, since the text can run
+ * to four thousand characters and five hundred of those would be a payload
+ * nobody reads in a table.
+ */
 export interface ApplicationSummary {
   id: string;
   fullName: string;
@@ -299,13 +308,15 @@ export interface ApplicationSummary {
   cvBytes: number;
   submittedAt: string;
   statusChangedAt: string | null;
+  noticePeriod: string | null;
+  expectedSalary: string | null;
+  linkedinUrl: string | null;
+  /** Is there a note to read? The note itself is on the detail page. */
+  hasCoverNote: boolean;
   job: { id: string; slug: string; title: string };
 }
 
 export interface ApplicationRecord extends ApplicationSummary {
-  noticePeriod: string | null;
-  expectedSalary: string | null;
-  linkedinUrl: string | null;
   coverNote: string | null;
   notes: string | null;
   consentAt: string;

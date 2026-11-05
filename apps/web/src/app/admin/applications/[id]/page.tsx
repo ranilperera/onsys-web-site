@@ -38,14 +38,33 @@ function fileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  if (children === null || children === undefined || children === '') return null;
+/**
+ * One labelled value.
+ *
+ * An empty field renders as "Not supplied" rather than disappearing. A field
+ * that vanishes when blank is indistinguishable from a field the page forgot
+ * to render, which is exactly the doubt this screen must not create: a
+ * reviewer has to be able to tell "the candidate left this blank" from "the
+ * console is not showing me everything".
+ */
+function Field({
+  label,
+  children,
+  empty = 'Not supplied',
+}: {
+  label: string;
+  children: React.ReactNode;
+  empty?: string;
+}) {
+  const isEmpty = children === null || children === undefined || children === '';
   return (
     <div style={{ marginBottom: 14 }}>
       <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '.04em', color: '#605E5C' }}>
         {label}
       </div>
-      <div style={{ fontSize: 14.5, marginTop: 3 }}>{children}</div>
+      <div style={{ fontSize: 14.5, marginTop: 3, color: isEmpty ? '#9A9A9A' : undefined }}>
+        {isEmpty ? empty : children}
+      </div>
     </div>
   );
 }
@@ -255,7 +274,11 @@ export default function ApplicationPage() {
       </section>
 
       <section className="admin-card">
-        <h2>Candidate</h2>
+        <h2>Everything they submitted</h2>
+        <p style={{ fontSize: 13, color: 'var(--gray)', margin: '0 0 14px' }}>
+          Every field from the application form. The CV is the one thing not shown here — download
+          it above; opening it is recorded against your account.
+        </p>
         <div className="form-row">
           <div className="form-field">
             <Field label="Email">
@@ -285,11 +308,11 @@ export default function ApplicationPage() {
           {application.cvOriginalName} · {fileSize(application.cvBytes)}
         </Field>
 
-        {application.coverNote && (
-          <div style={{ marginTop: 8 }}>
-            <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '.04em', color: '#605E5C', marginBottom: 6 }}>
-              What they wrote
-            </div>
+        <div style={{ marginTop: 8 }}>
+          <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '.04em', color: '#605E5C', marginBottom: 6 }}>
+            What they wrote
+          </div>
+          {application.coverNote ? (
             <div
               style={{
                 background: '#F8FAFC',
@@ -297,13 +320,19 @@ export default function ApplicationPage() {
                 padding: '14px 16px',
                 fontSize: 14.5,
                 lineHeight: 1.65,
+                // The candidate typed paragraphs; they are preserved rather
+                // than collapsed into one block of text.
                 whiteSpace: 'pre-wrap',
               }}
             >
               {application.coverNote}
             </div>
-          </div>
-        )}
+          ) : (
+            <p style={{ fontSize: 14, color: '#9A9A9A', margin: 0 }}>
+              They did not write a note — the field is optional.
+            </p>
+          )}
+        </div>
       </section>
 
       <section className="admin-card">

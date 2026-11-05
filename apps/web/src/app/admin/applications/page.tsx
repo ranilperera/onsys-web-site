@@ -59,6 +59,13 @@ const STATUS_STYLE: Record<ApplicationStatusValue, { bg: string; fg: string }> =
   WITHDRAWN: { bg: '#F3F2F1', fg: '#605E5C' },
 };
 
+/** "248 KB" — a CV is never big enough to need more than this. */
+function fileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} bytes`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 /** "3 days ago" — how long a candidate has been waiting, which is the point. */
 function waiting(iso: string): string {
   const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
@@ -260,15 +267,22 @@ export default function ApplicationsPage() {
         </section>
       ) : (
         <section className="admin-card" style={{ overflowX: 'auto' }}>
+          <p style={{ margin: '0 0 12px', fontSize: 13, color: 'var(--gray)' }}>
+            Open a candidate to read their note, add an internal comment and see the full record.
+          </p>
           <table className="admin-table">
             <thead>
               <tr>
                 <th>Candidate</th>
                 <th>Role</th>
                 <th>Based in</th>
+                <th>Available</th>
                 <th>Applied</th>
                 <th>Status</th>
                 <th>CV</th>
+                <th>
+                  <span className="sr-only">Open the full application</span>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -277,15 +291,51 @@ export default function ApplicationsPage() {
                 return (
                   <tr key={application.id}>
                     <td>
-                      <Link href={`/admin/applications/${application.id}`}>
-                        <strong>{application.fullName}</strong>
+                      <Link
+                        href={`/admin/applications/${application.id}`}
+                        style={{ fontWeight: 700, textDecoration: 'underline' }}
+                      >
+                        {application.fullName}
                       </Link>
                       <div style={{ fontSize: 12.5, color: 'var(--gray)' }}>
-                        {application.email} · {application.phone}
+                        {/* Clickable, because the first thing anyone does with
+                            a promising application is write to them. */}
+                        <a
+                          href={`mailto:${application.email}?subject=${encodeURIComponent(
+                            `Your application — ${application.job.title}`,
+                          )}`}
+                        >
+                          {application.email}
+                        </a>{' '}
+                        · {application.phone}
+                      </div>
+                      <div style={{ fontSize: 12.5, color: 'var(--gray)', marginTop: 2 }}>
+                        {application.linkedinUrl && (
+                          <a
+                            href={application.linkedinUrl}
+                            target="_blank"
+                            rel="noreferrer nofollow"
+                            style={{ marginRight: 8 }}
+                          >
+                            LinkedIn ↗
+                          </a>
+                        )}
+                        {/* A note is the one thing a table cannot summarise,
+                            so the row says there is one and the detail page
+                            shows it. */}
+                        {application.hasCoverNote && <span>Wrote a note</span>}
                       </div>
                     </td>
                     <td>{application.job.title}</td>
                     <td>{application.location}</td>
+                    <td>
+                      {application.noticePeriod || <span style={{ color: 'var(--gray)' }}>—</span>}
+                      {application.expectedSalary && (
+                        <div style={{ fontSize: 12.5, color: 'var(--gray)' }}>
+                          Asking {application.expectedSalary}
+                        </div>
+                      )}
+                    </td>
                     <td title={dateFmt.format(new Date(application.submittedAt))}>
                       {waiting(application.submittedAt)}
                     </td>
@@ -328,6 +378,14 @@ export default function ApplicationsPage() {
                       >
                         Download
                       </a>
+                      <div style={{ fontSize: 12, color: 'var(--gray)' }}>
+                        {fileSize(application.cvBytes)}
+                      </div>
+                    </td>
+                    <td style={{ whiteSpace: 'nowrap' }}>
+                      <Link className="btn btn-outline btn-sm" href={`/admin/applications/${application.id}`}>
+                        Open
+                      </Link>
                     </td>
                   </tr>
                 );

@@ -1180,7 +1180,13 @@ const applicationListQuery = z.object({
   q: z.string().trim().max(200).optional(),
 });
 
-/** Columns the queue shows. The CV storage key is deliberately not among them. */
+/**
+ * Columns the queue shows. The CV storage key is deliberately not among them.
+ *
+ * `coverNote` is selected but never sent as text: the list reports only
+ * whether there is one. Four thousand characters times five hundred rows is a
+ * payload nobody reads in a table, and the note is one click away.
+ */
 const applicationSummarySelect = {
   id: true,
   fullName: true,
@@ -1192,8 +1198,18 @@ const applicationSummarySelect = {
   cvBytes: true,
   submittedAt: true,
   statusChangedAt: true,
+  noticePeriod: true,
+  expectedSalary: true,
+  linkedinUrl: true,
+  coverNote: true,
   job: { select: { id: true, slug: true, title: true } },
 } as const;
+
+/** Swap the note's text for the one fact a row needs: is there one. */
+function toQueueRow<T extends { coverNote: string | null }>(row: T) {
+  const { coverNote, ...rest } = row;
+  return { ...rest, hasCoverNote: Boolean(coverNote && coverNote.trim()) };
+}
 
 adminRouter.get(
   '/applications',
@@ -1221,7 +1237,7 @@ adminRouter.get(
       select: applicationSummarySelect,
     });
 
-    res.json({ applications });
+    res.json({ applications: applications.map(toQueueRow) });
   }),
 );
 
@@ -1383,7 +1399,7 @@ adminRouter.patch(
       { applicationId: application.id, from: existing.status, to: status, adminId: req.user?.id },
       'Application status changed',
     );
-    res.json({ application });
+    res.json({ application: toQueueRow(application) });
   }),
 );
 
