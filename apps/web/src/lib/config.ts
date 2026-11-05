@@ -45,13 +45,14 @@ export const siteConfig = {
    * is not a sales enquiry: it goes to whoever is hiring, and it carries
    * personal information that the sales inbox has no reason to hold.
    *
-   * Falls back to the general address so a deployment that has not set it still
-   * shows something reachable rather than an empty mailto.
+   * It deliberately does NOT fall back to the general address. That chain is
+   * what published sales@ on the careers page: the build on the VM had no
+   * ORG_CAREERS_EMAIL set, so it fell through to ORG_EMAIL, and every CV was
+   * invited into the sales inbox — the exact thing the paragraph above says
+   * not to do. A missing variable now fails safe to the careers address
+   * instead.
    */
-  careersEmail:
-    process.env.NEXT_PUBLIC_ORG_CAREERS_EMAIL ||
-    process.env.NEXT_PUBLIC_ORG_EMAIL ||
-    'sales@onsys.com.au',
+  careersEmail: process.env.NEXT_PUBLIC_ORG_CAREERS_EMAIL || 'jobs@onsys.com.au',
   phone: process.env.NEXT_PUBLIC_ORG_PHONE || '1800 431 416',
   phoneE164: process.env.NEXT_PUBLIC_ORG_PHONE_E164 || '+611800431416',
   /**
