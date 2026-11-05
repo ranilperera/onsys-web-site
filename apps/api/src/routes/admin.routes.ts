@@ -1007,7 +1007,12 @@ function jobData(input: ReturnType<typeof jobInputSchema.parse>) {
     type: input.type,
     location: input.location,
     workArrangement: input.workArrangement,
-    descriptionHtml: DOMPurify.sanitize(input.descriptionHtml),
+    // The same pipeline post bodies take, for the same reason: an advert is
+    // drafted somewhere else and pasted in, and a bare sanitise keeps the
+    // source app's inline styles, span soup and heading levels. The adverts
+    // already published were stored that way — re-saving one through the
+    // editor now cleans it.
+    descriptionHtml: normalisePastedHtml(input.descriptionHtml, sanitise),
     salaryRange: input.salaryRange || null,
     // An <input type="date"> posts "2026-11-30", which Date parses as UTC
     // midnight. Stored as given; "end of that day" is applied when filtering,

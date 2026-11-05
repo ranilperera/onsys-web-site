@@ -100,9 +100,20 @@ export default async function JobPage({ params }: Props) {
             </div>
           )}
 
-          {/* Operator-authored HTML, sanitised server-side on save in the
-              admin API — the same path post bodies take. */}
-          <div className="prose" dangerouslySetInnerHTML={{ __html: job.descriptionHtml }} />
+          {/*
+            Operator-authored HTML, sanitised server-side on save in the admin
+            API — the same path post bodies take.
+
+            `article-body`, not a class of its own. The advert is the same kind
+            of document as a blog post and there is one stylesheet for that.
+            This rendered as `prose` for a while, which is a Tailwind name and
+            this site does not use Tailwind — so it matched no rule at all, and
+            the global `ul{list-style:none}` reset meant every bullet in every
+            advert rendered as an unmarked, unindented line. It is also the
+            class the admin editor puts on its own editing surface, so what an
+            author sees while writing is now what the page serves.
+          */}
+          <div className="article-body" dangerouslySetInnerHTML={{ __html: job.descriptionHtml }} />
 
           {open && (
             <div className="article-cta">
