@@ -127,7 +127,25 @@ const escapeHtml = (value: string): string =>
 const BRAND_NAVY = '#0E336A';
 const BRAND_ORANGE = '#FF8B00';
 
-function wrapEmail(title: string, bodyHtml: string): string {
+/**
+ * The shell every transactional email is rendered into.
+ *
+ * `footer: false` drops the company address and phone strip. It exists for
+ * mail to people who are not customers and must not be directed at the sales
+ * line: a candidate who reads "1800 431 416" at the foot of an application
+ * acknowledgement will ring it to ask how their application is going, and that
+ * number reaches consultants who know nothing about hiring. Everything else
+ * keeps the strip — an enquiry or a booking is exactly the conversation that
+ * number is for.
+ */
+function wrapEmail(title: string, bodyHtml: string, options: { footer?: boolean } = {}): string {
+  const footer =
+    options.footer === false
+      ? ''
+      : `<tr><td style="background:#F3F2F1;padding:16px 28px;font-size:12px;color:#605E5C;">
+          ${org.legalName} · ${org.postalAddress} · ${org.phone}
+        </td></tr>`;
+
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#FAF9F8;font-family:'Segoe UI',Arial,sans-serif;color:#1B1B1B;">
@@ -138,9 +156,7 @@ function wrapEmail(title: string, bodyHtml: string): string {
           <h1 style="margin:0;color:#ffffff;font-size:18px;font-weight:600;">${escapeHtml(title)}</h1>
         </td></tr>
         <tr><td style="padding:28px;">${bodyHtml}</td></tr>
-        <tr><td style="background:#F3F2F1;padding:16px 28px;font-size:12px;color:#605E5C;">
-          ${org.legalName} · ${org.postalAddress} · ${org.phone}
-        </td></tr>
+        ${footer}
       </table>
     </td></tr>
   </table>
@@ -291,6 +307,7 @@ export function renderApplicationAcknowledgement(data: {
      <p style="margin:0 0 16px;font-size:15px;line-height:1.6;">If your experience lines up with what the role needs, someone will contact you directly to arrange a conversation. We keep your CV on file for future openings unless you ask us not to.</p>
      <p style="margin:0 0 16px;font-size:15px;line-height:1.6;">You do not need to send anything else. If you want to correct something or withdraw, reply to this email and we will sort it out.</p>
      <p style="margin:24px 0 0;font-size:14px;color:#605E5C;">— The Onsys team</p>`,
+    { footer: false },
   );
 }
 
