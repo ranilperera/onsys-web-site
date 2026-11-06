@@ -226,6 +226,12 @@ section{padding:64px 0;}
 .mcard:hover{box-shadow:0 14px 34px -14px rgba(14,51,106,0.28); transform:translateY(-2px);}
 .mcard .cover{height:130px; display:flex; align-items:center; justify-content:center;}
 .mcard .cover svg{width:46px; height:46px;}
+/* Artwork covers: the file carries its own background, so it runs edge to
+   edge and nothing shows behind it. Cropped from the centre on a narrow card
+   rather than squashed — these illustrations are centred, so the crop takes
+   margin, not drawing. */
+.mcard .cover-image{padding:0;}
+.mcard .cover-image img{width:100%; height:100%; object-fit:cover; object-position:center; display:block;}
 .mcard .tag{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--orange-dark); padding:14px 22px 0;}
 .mcard .body{padding:8px 22px 24px;}
 .mcard .body.notag{padding-top:20px;}

@@ -317,12 +317,31 @@ function BlockSwitch({ block, index }: { block: Block; index: number }) {
             <div className={`card-grid${block.columns !== 3 ? ` cols-${block.columns}` : ''}`}>
               {block.cards.map((card) => (
                 <article className="mcard" key={card.title}>
-                  {card.icon && (
-                    <div className="cover" style={{ background: card.coverColor ?? '#EAF1FB' }}>
-                      <svg aria-hidden="true">
-                        <use href={card.icon} />
-                      </svg>
+                  {/* Artwork wins over the icon when a card has both. The
+                      image fills the cover, so no tint shows behind it. */}
+                  {card.coverImage ? (
+                    <div className="cover cover-image">
+                      {/* eslint-disable-next-line @next/next/no-img-element --
+                          these are fixed-size decorative covers served from
+                          /public; next/image buys nothing here and costs a
+                          layout shift while it measures. */}
+                      <img
+                        src={card.coverImage}
+                        alt={card.coverImageAlt ?? ''}
+                        width={680}
+                        height={260}
+                        loading="lazy"
+                        decoding="async"
+                      />
                     </div>
+                  ) : (
+                    card.icon && (
+                      <div className="cover" style={{ background: card.coverColor ?? '#EAF1FB' }}>
+                        <svg aria-hidden="true">
+                          <use href={card.icon} />
+                        </svg>
+                      </div>
+                    )
                   )}
                   {card.tag && <div className="tag">{card.tag}</div>}
                   <div className={`body${card.tag ? '' : ' notag'}`}>

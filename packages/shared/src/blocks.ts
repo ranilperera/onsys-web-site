@@ -11,6 +11,17 @@ const cardSchema = z.object({
   title: z.string(),
   body: z.string(),
   icon: z.string().optional(),
+  /**
+   * Artwork across the top of the card, in place of the icon.
+   *
+   * A path under /images. The file carries its own background edge to edge,
+   * so `coverColor` is not consulted when this is set — a card has one cover
+   * treatment or the other, never a picture floated on a tint that does not
+   * quite match it.
+   */
+  coverImage: z.string().optional(),
+  /** What the artwork shows. Required alongside coverImage, for a reason. */
+  coverImageAlt: z.string().optional(),
   coverColor: z.string().optional(),
   link: linkSchema.optional(),
   tag: z.string().optional(),

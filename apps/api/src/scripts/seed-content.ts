@@ -1474,12 +1474,12 @@ const onCallBlocks: Block[] = [
     altBackground: true,
     columns: 3,
     cards: [
-      { title: 'Reduce costs', body: 'With an on-call subscription you hold the cover for a low monthly fee and pay for support calls only when you need one.', icon: '#s-managed', coverColor: '#EAF1FB' },
-      { title: 'Improve availability', body: '24×7 service coverage for critical database infrastructure, so an out-of-hours incident does not wait until Monday.', icon: '#s-ha', coverColor: '#FFF1E0' },
-      { title: 'Fast response', body: 'We attend to problems immediately, resolve the incident, investigate root cause and issue an incident report so it does not recur.', icon: '#s-emergency', coverColor: '#E7F5EC' },
-      { title: 'Increase efficiency', body: 'Our database experts work alongside your own team on an incident rather than taking over, so knowledge stays in-house.', icon: '#s-consult', coverColor: '#F3F2F1' },
-      { title: 'Experienced consultants', body: 'Certified professionals with years of production experience across current and legacy database technologies — no first-line triage layer.', icon: '#s-shield', coverColor: '#EAF1FB' },
-      { title: 'Increase your resource pool', body: 'No more exposure to sick days, annual leave, absences or employee turnover taking your only DBA off the board.', icon: '#s-etl', coverColor: '#FFF1E0' },
+      { title: 'Reduce costs', body: 'With an on-call subscription you hold the cover for a low monthly fee and pay for support calls only when you need one.', coverImage: '/images/oncall-card-reduce-costs.png', coverImageAlt: 'A database stack beside a stack of coins', icon: '#s-managed', coverColor: '#EAF1FB' },
+      { title: 'Improve availability', body: '24×7 service coverage for critical database infrastructure, so an out-of-hours incident does not wait until Monday.', coverImage: '/images/oncall-card-availability.png', coverImageAlt: 'A stack of database servers beside a clock face', icon: '#s-ha', coverColor: '#FFF1E0' },
+      { title: 'Fast response', body: 'We attend to problems immediately, resolve the incident, investigate root cause and issue an incident report so it does not recur.', coverImage: '/images/oncall-card-fast-response.png', coverImageAlt: 'A database beside a running stopwatch', icon: '#s-emergency', coverColor: '#E7F5EC' },
+      { title: 'Increase efficiency', body: 'Our database experts work alongside your own team on an incident rather than taking over, so knowledge stays in-house.', coverImage: '/images/oncall-card-efficiency.png', coverImageAlt: 'Two teams at laptops linked to one database through a cog', icon: '#s-consult', coverColor: '#F3F2F1' },
+      { title: 'Experienced consultants', body: 'Certified professionals with years of production experience across current and legacy database technologies — no first-line triage layer.', coverImage: '/images/oncall-card-consultants.png', coverImageAlt: 'A consultant at a laptop beside a database and a certification rosette', icon: '#s-shield', coverColor: '#EAF1FB' },
+      { title: 'Increase your resource pool', body: 'No more exposure to sick days, annual leave, absences or employee turnover taking your only DBA off the board.', coverImage: '/images/oncall-card-resource-pool.png', coverImageAlt: 'Three people at laptops, one joining the team', icon: '#s-etl', coverColor: '#FFF1E0' },
     ],
   },
   {
