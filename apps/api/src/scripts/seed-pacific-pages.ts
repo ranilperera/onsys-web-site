@@ -122,7 +122,7 @@ export const pacificPages: SeedPage[] = [
         body: 'Pacific environments are rarely one vendor. A telco with Oracle billing, MySQL behind a mobile money platform and SQL Server under finance is the normal shape, not the exception — and it is the shape that makes hiring one DBA impossible.',
         groups: [
           { title: 'Microsoft', chips: [
-            { label: 'SQL Server 2008–2022', color: '#CC2927' },
+            { label: 'SQL Server 2008–2025', color: '#CC2927' },
             { label: 'Azure SQL Database', color: '#0078D4' },
             { label: 'Azure SQL Managed Instance', color: '#0063B1' },
             { label: 'Always On availability groups', color: '#CC2927' },

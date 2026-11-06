@@ -70,7 +70,7 @@ const sqlServer2017Blocks: Block[] = [
     cards: [
       {
         title: 'Upgrade in place',
-        body: 'Move to SQL Server 2022 on the same or new hardware. Usually the cheapest outcome over three years and the one your team already knows how to operate — but it needs application compatibility testing, which is the work most plans underestimate.',
+        body: 'Move to SQL Server 2025 or 2022 on the same or new hardware. Usually the cheapest outcome over three years and the one your team already knows how to operate — but it needs application compatibility testing, which is the work most plans underestimate.',
         tag: 'Usually best',
         coverColor: '#E7F5EC',
         icon: '#s-ha',

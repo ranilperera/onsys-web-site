@@ -1608,7 +1608,7 @@ const onCallBlocks: Block[] = [
       {
         title: 'Database versions',
         chips: [
-          { label: 'SQL Server 2022 / 2019', color: '#CC2927' },
+          { label: 'SQL Server 2025 / 2022 / 2019', color: '#CC2927' },
           { label: 'SQL Server 2017 / 2016', color: '#A4373A' },
           { label: 'SQL Server 2014 and below', color: '#8A5A44' },
           { label: 'Azure SQL Database', color: '#0078D4' },
@@ -1805,7 +1805,7 @@ const emergencyBlocks: Block[] = [
       {
         title: 'Database platforms',
         chips: [
-          { label: 'SQL Server (2008–2022)', color: '#CC2927' },
+          { label: 'SQL Server (2008–2025)', color: '#CC2927' },
           { label: 'Oracle (10g–23ai)', color: '#C74634' },
           { label: 'PostgreSQL & EDB', color: '#336791' },
           { label: 'MySQL & MariaDB', color: '#00758F' },
@@ -2482,7 +2482,7 @@ const sqlServerProjectBlocks: Block[] = [
     heading: 'SQL Server project work, delivered to a defined outcome',
     body: 'Each of these is scoped, quoted as a fixed price and signed off against acceptance criteria agreed before the work starts. If it cannot be defined that precisely, we say so and quote it hourly instead.',
     steps: [
-      { title: 'Version upgrades', body: 'SQL Server 2008 through 2019 up to 2022, in place or side by side. A compatibility assessment against deprecated features and your third-party support matrix, a dry run on a copy of production, and a rehearsed rollback. Compatibility level is raised deliberately afterwards with Query Store capturing regressions \u2014 never bundled into the cutover, where a performance change cannot be attributed to either the engine or the optimiser.' },
+      { title: 'Version upgrades', body: 'SQL Server 2008 through 2019 up to 2022 or 2025, in place or side by side. A compatibility assessment against deprecated features and your third-party support matrix, a dry run on a copy of production, and a rehearsed rollback. Compatibility level is raised deliberately afterwards with Query Store capturing regressions \u2014 never bundled into the cutover, where a performance change cannot be attributed to either the engine or the optimiser.' },
       { title: 'Always On availability groups', body: 'Failover clustering and availability group design against the specific failure you are protecting against, quorum and node weights that survive it, and the instance-level objects an availability group does not replicate: logins, SQL Agent jobs, linked servers, credentials and certificates. We fail the cluster over in front of you before handover, twice.' },
       { title: 'Azure SQL Managed Instance migration', body: 'Assessment of what actually comes across, vCore and service-tier sizing modelled before the decision rather than after it, Azure Database Migration Service with log shipping so the cutover is minutes rather than hours, and the backup and Agent strategy rebuilt for a platform that manages its own.' },
       { title: 'Platform and hosting migrations', body: 'On-premises to Azure or AWS, physical to virtual, one data centre to another, or consolidation of instance sprawl onto fewer, larger hosts. Collation, linked servers, SSIS packages, SSRS subscriptions and Agent jobs all move with the databases \u2014 they are the things most often left behind.' },
@@ -2499,7 +2499,7 @@ const sqlServerProjectBlocks: Block[] = [
       {
         title: 'Versions & editions',
         chips: [
-          { label: 'SQL Server 2008 to 2022', color: '#CC2927' },
+          { label: 'SQL Server 2008 to 2025', color: '#CC2927' },
           { label: 'Standard, Enterprise & Developer', color: '#CC2927' },
           { label: 'Azure SQL Managed Instance', color: '#0078D4' },
           { label: 'Azure SQL Database', color: '#0078D4' },
@@ -2548,7 +2548,7 @@ const sqlServerProjectBlocks: Block[] = [
         { label: 'Engagement', value: 'Fixed price on defined scope' },
         { label: 'Hourly alternative', value: '$150 / hour, 4-hour minimum' },
         { label: 'Scoping call', value: 'Free, 30 minutes' },
-        { label: 'Versions', value: 'SQL Server 2008 to 2022' },
+        { label: 'Versions', value: 'SQL Server 2008 to 2025' },
         { label: 'Targets', value: 'On-premises, Azure, AWS' },
         { label: 'Prices shown', value: 'GST exclusive' },
       ],
@@ -5314,6 +5314,7 @@ const sqlServerDbaBlocks: Block[] = [
       {
         title: 'Versions',
         chips: [
+          { label: 'SQL Server 2025', color: '#CC2927' },
           { label: 'SQL Server 2022', color: '#CC2927' },
           { label: 'SQL Server 2019', color: '#CC2927' },
           { label: 'SQL Server 2017', color: '#CC2927' },
@@ -5745,7 +5746,7 @@ const sqlServer2016Blocks: Block[] = [
     cards: [
       {
         title: 'Upgrade in place',
-        body: 'Move to SQL Server 2019 or 2022 on the same or new hardware. The cleanest outcome and usually the cheapest over three years — but it needs application compatibility testing, and that is the work most teams underestimate.',
+        body: 'Move to SQL Server 2022 or 2025 on the same or new hardware. The cleanest outcome and usually the cheapest over three years — but it needs application compatibility testing, and that is the work most teams underestimate.',
         tag: 'Usually best',
         coverColor: '#E7F5EC',
         icon: '#s-ha',
@@ -5886,7 +5887,7 @@ const remoteSupportBlocks: Block[] = [
     body: 'Four production platforms plus their managed cloud equivalents, supported by engineers certified on each.',
     groups: [
       { title: 'Microsoft', chips: [
-        { label: 'SQL Server 2008–2022', color: '#CC2927' },
+        { label: 'SQL Server 2008–2025', color: '#CC2927' },
         { label: 'Azure SQL Database', color: '#0078D4' },
         { label: 'Azure SQL Managed Instance', color: '#0063B1' },
         { label: 'SQL Server on Azure VM', color: '#00A4EF' },
@@ -6246,7 +6247,7 @@ export const pages: SeedPage[] = [
       { question: 'How quickly will someone respond to an on-call incident?', answer: 'Within two hours, at any hour of the day or night including weekends and public holidays. You get a dedicated phone support line and service desk access, and an incident report with root cause once the issue is resolved.' },
       { question: 'Is there a minimum number of instances?', answer: 'Yes. The on-call subscription starts at four SQL Server instances. If you run fewer, tell us how many on the form above and we will come back with the option that costs you least — usually hourly consultancy at $150 per hour with a four-hour minimum.' },
       { question: 'How long does it take to set up on-call support?', answer: 'Onboarding completes within 24 hours. After a short scoping call to confirm instance count, versions and platform, we establish secure remote access, agree escalation paths and issue your dedicated support number — then cover goes live.' },
-      { question: 'Which SQL Server versions and platforms are covered?', answer: 'SQL Server 2022, 2019, 2017, 2016 and 2014 or below, plus Azure SQL Database, Azure SQL Managed Instance and SQL Server on Azure VM. Hosting can be on-premises, VMware, Hyper-V, AWS, Azure, Oracle Cloud or physical hosts, on Windows Server or Linux.' },
+      { question: 'Which SQL Server versions and platforms are covered?', answer: 'SQL Server 2025, 2022, 2019, 2017, 2016 and 2014 or below, plus Azure SQL Database, Azure SQL Managed Instance and SQL Server on Azure VM. Hosting can be on-premises, VMware, Hyper-V, AWS, Azure, Oracle Cloud or physical hosts, on Windows Server or Linux.' },
       { question: 'Does on-call support cover databases other than SQL Server?', answer: 'The on-call subscription covers SQL Server estates. Oracle, PostgreSQL, EDB, MySQL and MongoDB are covered by the monthly 24/7 DBA plans, or by hourly remote consultancy at $150 per hour across every platform.' },
       { question: 'Can we book after-hours or weekend work in advance?', answer: 'Yes. As well as reactive incidents, on-call subscribers can schedule after-hours and weekend work such as patching, migrations and cutovers. Scheduled work is billed at the same $150 per hour against actual time worked.' },
     ],
@@ -6277,7 +6278,7 @@ export const pages: SeedPage[] = [
       { question: 'Can you help if we are not an existing client?', answer: 'Yes, subject to a consultant being available. Send us your details or call, and we assign the next free senior consultant at $180 per hour plus GST with a four-hour minimum. There is no contracted response time without an agreement — clients who hold one are served first, because they have paid in advance to reserve that capacity. Most clients set up an on-call subscription afterwards so the next incident carries a guaranteed response.' },
       { question: 'Why is the rate higher without an agreement?', answer: 'Because clients on an agreement pay every month to reserve our capacity, and it would not be fair to charge them the same as someone calling once. The agreement rate is lower and carries a guaranteed response time; the ad-hoc rate is higher and carries none. That is the way round it should be.' },
       { question: 'Do we pay anything before you look at it?', answer: 'No. Send us the details or call, and a consultant assesses the situation and confirms the likely cost before any work begins. If we conclude we cannot help, we tell you and there is nothing to pay.' },
-      { question: 'Which database platforms do you support in an outage?', answer: 'SQL Server 2008 to 2022, Oracle 10g to 23ai, PostgreSQL, EDB, MySQL, MariaDB, MongoDB, Azure SQL Database and Azure SQL Managed Instance — running on-premises, on VMware or Hyper-V, or in Azure, AWS and Oracle Cloud.' },
+      { question: 'Which database platforms do you support in an outage?', answer: 'SQL Server 2008 to 2025, Oracle 10g to 23ai, PostgreSQL, EDB, MySQL, MariaDB, MongoDB, Azure SQL Database and Azure SQL Managed Instance — running on-premises, on VMware or Hyper-V, or in Azure, AWS and Oracle Cloud.' },
       { question: 'Can you recover a corrupted or accidentally deleted database?', answer: 'Often, but it depends entirely on the failure mode and what backups exist. A senior DBA assesses recoverability early in the call and tells you honestly what can and cannot be retrieved, rather than billing hours against an outcome that is not achievable.' },
       { question: 'What information do you need when we call?', answer: 'The instance or server name, the exact error message, when the problem started, and what changed beforehand — a patch, a deployment, a restart or a storage event. Someone who can approve remote access should be available, as that is usually the first blocker.' },
       { question: 'What happens after the incident is resolved?', answer: 'You receive a written incident report covering the root cause, every change we made during recovery, and the specific remediation needed to stop it recurring. If you want that remediation delivered, it can run as a fixed-price project or against blocked hours.' },
@@ -6358,7 +6359,7 @@ export const pages: SeedPage[] = [
     faqs: [
       { question: 'Do you do SQL Server migrations in Australia?', answer: 'Yes. Onsys delivers SQL Server migration, upgrade, high availability and cloud projects for organisations across Australia and New Zealand, delivered by Onsys consultants in Australia \u2014 database work is Australian-only, and no offshore engineer holds credentials to a client database. Work is remote by default, with on-site attendance in Melbourne arranged where it helps.' },
       { question: 'How much does a SQL Server migration or upgrade cost?', answer: 'Where the scope can be defined, the project is quoted as a single fixed price with milestone payments and written acceptance criteria, so there is no cost-overrun risk. Where it genuinely cannot be defined up front we say so and work at $150 per hour with a four-hour minimum. The scoping call is free and all prices are GST exclusive.' },
-      { question: 'Which SQL Server upgrade paths do you support?', answer: 'SQL Server 2008, 2008 R2, 2012, 2014, 2016 and 2017 up to 2019 or 2022, in place or side by side, plus service pack and cumulative update programmes. SQL Server 2022 is supported until 12 January 2033; SQL Server 2019 is supported until 9 January 2030 but its mainstream support ended on 1 March 2025, so it is already extended-support only.' },
+      { question: 'Which SQL Server upgrade paths do you support?', answer: 'SQL Server 2008, 2008 R2, 2012, 2014, 2016 and 2017 up to 2019, 2022 or 2025, in place or side by side, plus service pack and cumulative update programmes. SQL Server 2025 is the current release and the longest runway available; SQL Server 2022 is supported until 12 January 2033; SQL Server 2019 is supported until 9 January 2030 but its mainstream support ended on 1 March 2025, so it is already extended-support only.' },
       { question: 'Do we need Enterprise Edition for Always On?', answer: 'Not always. Standard Edition supports Basic Availability Groups, which cover one database per group with a single non-readable secondary. Enterprise Edition is required if multiple databases must fail over together or you want a readable secondary. Enterprise licensing often costs more than the whole project, so we settle the edition question during design rather than after it.' },
       { question: 'How much downtime does a SQL Server migration need?', answer: 'Usually minutes rather than hours. Log shipping or Azure Database Migration Service moves the bulk of the data while the source is still serving, so the cutover is the final catch-up and the switch. Where the window is genuinely tight, Managed Instance link narrows it further. The window is agreed before the work starts and the cutover is rehearsed against a copy of production first.' },
       { question: 'Should we move to Azure SQL Managed Instance or stay on VMs?', answer: 'Managed Instance removes the patching and the end-of-support cycle, and keeps SQL Agent, cross-database queries and linked servers, which is what a lift from an on-premises instance usually depends on. It also moves spend from licences and capital to a monthly bill. Which is better depends on your sizing, and we model that before the decision rather than after the migration.' },
@@ -7076,7 +7077,7 @@ export const pages: SeedPage[] = [
       { question: 'How much do SQL Server DBA services cost in Australia?', answer: 'Onsys plans start at $1,500 per month excluding GST for up to 10 SQL Server instances — $150 per instance. Plan B is $3,000 and Plan C is $7,500, covering larger estates and shorter response times. Ad-hoc consultancy is $150 per hour with a four-hour minimum, and emergency work without an agreement is $180 per hour.' },
       { question: 'Is outsourcing a DBA cheaper than hiring one?', answer: 'For most estates, yes. A single in-house DBA cannot cover 24 hours a day, takes leave, and knows one set of platforms. A monthly plan costs a fraction of a salary, includes service hours, and gives you a team with cover at 2am and on public holidays. Where it does not stack up is a very large estate needing someone on site daily — we will say so.' },
       { question: 'What response time do you guarantee for SQL Server?', answer: 'One hour on 24/7 DBA Plans B and C, and two hours on Plan A, around the clock including weekends and public holidays. The clock starts when the alert fires, not when someone notices it. Without a support agreement there is no contracted response time.' },
-      { question: 'Which SQL Server versions do you support?', answer: 'SQL Server 2008 and R2 through to 2022, on-premises and in the cloud — including versions past their support end date, which we can keep running safely while an upgrade is planned. We also cover Azure SQL Database, Azure SQL Managed Instance, SQL Server on Azure VMs and Amazon RDS for SQL Server.' },
+      { question: 'Which SQL Server versions do you support?', answer: 'SQL Server 2025 back to SQL Server 2008 and R2, on-premises and in the cloud — including versions past their support end date, which we can keep running safely while an upgrade is planned. We also cover Azure SQL Database, Azure SQL Managed Instance, SQL Server on Azure VMs and Amazon RDS for SQL Server.' },
       { question: 'Do you need access to our production SQL Server?', answer: 'Yes, over secure remote access established at the start of the engagement, using named accounts rather than shared credentials. We work alongside your team rather than around them, and every change is documented so the knowledge stays in your business.' },
       { question: 'Can you help with Always On availability groups?', answer: 'Yes — design, build, and the part most estates skip, which is testing a failover on purpose before you need one in anger. We also handle failover cluster instances, log shipping, replication and Transparent Data Encryption across availability groups.' },
       { question: 'Do we have to sign a long contract?', answer: 'No. All monthly plans run on a rolling basis with no lock-in. Consultancy is hourly with a four-hour minimum, and fixed-price projects carry no ongoing commitment once the work is complete.' },

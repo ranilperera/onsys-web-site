@@ -24,6 +24,7 @@ export interface HealthCheckBookingProps {
  * field a wall would lose that lead.
  */
 const SQL_VERSIONS = [
+  'SQL Server 2025',
   'SQL Server 2022',
   'SQL Server 2019',
   'SQL Server 2017',

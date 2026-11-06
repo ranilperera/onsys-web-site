@@ -190,7 +190,7 @@ export const industryPages: SeedPage[] = [
       {
         question: 'Our clinical vendor only certifies an older SQL Server version. Can you still support it?',
         answer:
-          'Yes. SQL Server 2008 through 2022 is in scope, including versions past their support end date — we can keep those running safely while the upgrade is negotiated. What we will not do is tell you that an out-of-support version is fine; we will document the exposure so you can put it in front of the vendor and your risk committee.',
+          'Yes. SQL Server 2008 through 2025 is in scope, including versions past their support end date — we can keep those running safely while the upgrade is negotiated. What we will not do is tell you that an out-of-support version is fine; we will document the exposure so you can put it in front of the vendor and your risk committee.',
       },
       {
         question: 'Who would have access to patient data?',
