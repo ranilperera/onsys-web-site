@@ -1334,3 +1334,30 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   .cs-body > section{padding:34px 0;}
   .cs-body .article-wrap h2{font-size:22px;}
 }
+
+/* ---- On-call: choose the cover, then go and buy it ---------------------
+   Two columns so the decision and what it buys are read together; one on a
+   phone, with the selector first because that is the thing to act on. */
+.oncall-buy{display:grid; grid-template-columns:3fr 2fr; gap:32px; align-items:start;}
+.oncall-buy-main{min-width:0;}
+.oncall-count-label{display:block; margin:22px 0 8px; font-size:13px; font-weight:700; color:var(--navy); letter-spacing:.02em;}
+.oncall-count{display:flex; align-items:center; gap:18px;}
+.oncall-count input[type="range"]{flex:1; min-width:0; accent-color:var(--blue, #0E336A);}
+.oncall-count-value{display:flex; flex-direction:column; align-items:center; min-width:84px; padding:8px 10px; border:1px solid var(--gray-light); border-radius:10px; background:#fff; font-size:26px; font-weight:700; color:var(--navy); line-height:1.1;}
+.oncall-count-value span{font-size:11px; font-weight:600; color:var(--gray); letter-spacing:.03em; text-transform:uppercase;}
+.oncall-price{margin:20px 0 6px; min-height:84px;}
+.oncall-price b{font-size:38px; font-weight:700; color:var(--navy); letter-spacing:-0.02em; line-height:1.05;}
+.oncall-price .unit{margin-left:8px; font-size:13px; color:var(--gray);}
+.oncall-price-sub{margin-top:8px; font-size:14px; color:var(--gray); max-width:52ch;}
+.oncall-buy-note{margin-top:12px; font-size:13px; color:var(--gray); max-width:56ch;}
+.oncall-buy-enquiry{max-width:360px; margin-top:4px;}
+.oncall-buy-side{border:1px solid var(--gray-light); border-radius:12px; padding:24px; background:#fff;}
+.oncall-buy-side h3{font-size:16px; margin-bottom:12px;}
+.oncall-buy-side ul{list-style:none; display:flex; flex-direction:column; gap:10px;}
+.oncall-buy-side li{display:flex; gap:10px; font-size:14px; color:var(--navy); line-height:1.5;}
+.oncall-buy-side li svg{width:16px; height:16px; flex:0 0 16px; margin-top:3px; fill:var(--teal, #11A294);}
+.oncall-buy-caveat{margin-top:16px; padding-top:14px; border-top:1px solid var(--gray-light); font-size:13px; color:var(--gray);}
+@media (max-width:860px){
+  .oncall-buy{grid-template-columns:1fr; gap:24px;}
+  .oncall-price b{font-size:32px;}
+}

@@ -352,6 +352,43 @@ export const blockSchema = z.discriminatedUnion('type', [
       .array(z.object({ title: z.string(), body: z.string() }))
       .default([]),
   }),
+  /**
+   * Buying on-call DBA cover, from the page that sells it.
+   *
+   * Step one of the signup and nothing more: choose how many instances the
+   * cover is for, see what that costs, and go. The account itself is created
+   * in Onsys Support, which already owns company details, the emailed code,
+   * the password rules and the country-specific address handling — building
+   * a second account form here would be a second place for all of it to be
+   * wrong.
+   *
+   * Outside the self-serve band the step becomes an enquiry rather than a
+   * dead end: somebody with three instances is a lead, and somebody with
+   * thirty wants a managed plan.
+   *
+   * The price here is **marketing copy**, the same as every other figure on
+   * the site, and must be kept in step with the ONCALL-SQL product in
+   * Support. Nobody is charged from it: the signup page re-reads the
+   * catalogue and shows the authoritative figure before anyone commits.
+   */
+  z.object({
+    type: z.literal('onCallSubscribe'),
+    eyebrow: z.string().optional(),
+    heading: z.string(),
+    body: z.string().optional(),
+    /** Per instance, per month, in cents and excluding GST. */
+    pricePerInstanceCents: z.number().int().positive(),
+    /** Support work when requested, in cents per hour. */
+    hourlyRateCents: z.number().int().positive(),
+    minInstances: z.number().int().positive().default(4),
+    maxInstances: z.number().int().positive().default(12),
+    /** Where the account is actually created. */
+    signupUrl: z.string().default('https://support.onsys.com.au/signup'),
+    /** What the cover buys, beside the selector. */
+    includes: z.array(z.string()).default([]),
+    /** The honest caveat. Shown under the price, not buried in a footnote. */
+    note: z.string().optional(),
+  }),
 ]);
 
 export type Block = z.infer<typeof blockSchema>;

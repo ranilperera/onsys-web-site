@@ -16,6 +16,12 @@ export const GOALS = {
   healthCheck: 'Lead: Health check',
   booking: 'Lead: Booking',
   emergency: 'Lead: Emergency',
+  /*
+   * Not a lead: nobody at Onsys has to do anything. It is somebody leaving
+   * for Support to create an account, which is the conversion this page
+   * exists for and the one worth separating from the enquiries.
+   */
+  onCallStart: 'Signup: On-call cover',
 } as const;
 
 export type Goal = (typeof GOALS)[keyof typeof GOALS];

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { leadInputSchema } from '@onsys/shared';
 import { siteConfig } from '@/lib/config';
 import { getAttribution } from '@/lib/attribution';
@@ -23,7 +23,18 @@ import { Turnstile } from '../Turnstile';
 /** The API requires a name; nobody is typing one into a two-field form. */
 const IMPLIED_NAME = 'Plan enquiry';
 
-export function PlanEnquiry({ plan }: { plan: string }) {
+export function PlanEnquiry({
+  plan,
+  defaultInstanceCount,
+}: {
+  plan: string;
+  /**
+   * Pre-filled when the visitor already said how many instances they run,
+   * which they have if they arrived here from the on-call selector. Asking
+   * again immediately is how a form loses somebody.
+   */
+  defaultInstanceCount?: number;
+}) {
   const [state, setState] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
   /*
@@ -34,6 +45,17 @@ export function PlanEnquiry({ plan }: { plan: string }) {
    */
   const [captchaToken, setCaptchaToken] = useState('');
   const [captchaNonce, setCaptchaNonce] = useState(0);
+  /*
+   * Controlled, so the count follows a selector that is still being moved.
+   * As an uncontrolled defaultValue it took the first number it was given
+   * and then ignored the slider, which quietly sent the wrong estate size
+   * on every enquiry after the first nudge. Held in state rather than keyed
+   * off the prop so a remount does not throw away a typed email address.
+   */
+  const [count, setCount] = useState(defaultInstanceCount?.toString() ?? '');
+  useEffect(() => {
+    if (defaultInstanceCount !== undefined) setCount(String(defaultInstanceCount));
+  }, [defaultInstanceCount]);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -125,6 +147,8 @@ export function PlanEnquiry({ plan }: { plan: string }) {
         name="instanceCount"
         inputMode="numeric"
         placeholder="e.g. 6"
+        value={count}
+        onChange={(e) => setCount(e.target.value)}
       />
 
       {/* Anti-spam. Real visitors never see this field. */}

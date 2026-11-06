@@ -7,6 +7,7 @@ import { FaqAccordion } from './FaqAccordion';
 import { EmergencyCheckout } from './EmergencyCheckout';
 import { HealthCheckBooking } from './HealthCheckBooking';
 import { PlanEnquiry } from './PlanEnquiry';
+import { OnCallSubscribe } from './OnCallSubscribe';
 import { ContactForm } from '../ContactForm';
 import { HeroRotator } from '../HeroRotator';
 
@@ -683,6 +684,22 @@ function BlockSwitch({ block, index }: { block: Block; index: number }) {
             </aside>
           </div>
         </section>
+      );
+
+    case 'onCallSubscribe':
+      return (
+        <OnCallSubscribe
+          eyebrow={block.eyebrow}
+          heading={block.heading}
+          body={block.body}
+          pricePerInstanceCents={block.pricePerInstanceCents}
+          hourlyRateCents={block.hourlyRateCents}
+          minInstances={block.minInstances}
+          maxInstances={block.maxInstances}
+          signupUrl={block.signupUrl}
+          includes={block.includes}
+          note={block.note}
+        />
       );
 
     case 'emergencyCheckout':

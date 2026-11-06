@@ -1483,6 +1483,38 @@ const onCallBlocks: Block[] = [
     ],
   },
   {
+    /*
+     * Step one of the signup, and the only step this site is in a position
+     * to take: how many instances the cover is for. The account itself is
+     * created in Onsys Support, which already owns company details, the
+     * emailed code and the address rules, so the count travels in the link
+     * and nothing else does.
+     *
+     * The figures below are marketing copy and must be kept in step with
+     * the ONCALL-SQL product in Support. Nobody is charged from them — the
+     * signup page re-reads the catalogue and shows the authoritative price
+     * before anyone commits.
+     */
+    type: 'onCallSubscribe',
+    eyebrow: 'Start your cover',
+    heading: 'Choose how many instances to cover',
+    body: 'The monthly fee holds the cover. Support work is billed only when you ask for it, so a month without a call costs you the subscription and nothing else.',
+    pricePerInstanceCents: 10000,
+    hourlyRateCents: 15000,
+    minInstances: 4,
+    maxInstances: 12,
+    signupUrl: 'https://support.onsys.com.au/signup',
+    includes: [
+      '24/7 access to Australian-based SQL Server DBAs',
+      'Service desk access for raising support tickets',
+      'A dedicated support number',
+      'A two-hour response SLA',
+      'On-premises, AWS and Azure SQL Server environments',
+      'Support work billed at $150 per hour when requested',
+    ],
+    note: 'This is reactive support. The subscription does not include continuous monitoring, routine database administration or proactive health checks.',
+  },
+  {
     type: 'pricing',
     anchor: 'on-call-pricing',
     altBackground: false,
@@ -1553,22 +1585,45 @@ const onCallBlocks: Block[] = [
         { label: 'Subscription', value: '$100 / instance / month' },
         { label: 'Minimum estate', value: '4 SQL Server instances' },
         { label: 'Support calls', value: '$150 / hour' },
-        { label: 'Response SLA', value: '2 hours, 24/7' },
+        { label: 'Response SLA', value: 'Two hours, 24/7' },
         { label: 'Onboarding', value: 'Within 24 hours' },
         { label: 'Prices shown', value: 'GST exclusive' },
       ],
     },
   },
   {
+    /*
+     * Rewritten around what the subscription *is* rather than how fast it
+     * can be set up. The old version sold a 24-hour onboarding promise;
+     * what a buyer actually needs to understand before paying is that the
+     * fee holds the cover and the work is billed separately, which is the
+     * unusual part of the deal and the reason a quiet month is cheap.
+     */
+    type: 'steps',
+    eyebrow: 'How the subscription works',
+    heading: 'Hold the cover, pay for the work',
+    body: 'Three things happen, and only the middle one is up to you.',
+    steps: [
+      { title: 'Subscribe for cover', body: 'The monthly subscription keeps the support arrangement in place for your covered SQL Server instances. Choose your instance count above and create your account.' },
+      { title: 'Contact us when you need help', body: 'Raise a ticket through the service desk or call your dedicated support number. Support is available 24/7, including weekends and public holidays.' },
+      { title: 'Pay for work performed', body: 'If you ask us to investigate or resolve an issue, work is billed at $150 per hour. In a month when no support work is requested, you pay the subscription fee only.' },
+    ],
+  },
+  {
+    /*
+     * Onboarding moved here, out of the way of the commercial explanation
+     * above. It is reassurance rather than the offer, and it was crowding
+     * out the thing a buyer has to understand first.
+     */
     type: 'steps',
     eyebrow: 'Getting started',
     heading: 'Live within 24 hours',
-    body: 'No lengthy procurement cycle — most clients are covered the day after the first call.',
+    body: 'No lengthy procurement cycle — most clients are covered the day after they sign up.',
     steps: [
-      { title: 'Scoping call', body: 'A senior consultant confirms your instance count, versions, platform and the hours you need covered.' },
-      { title: 'Environment details', body: 'You share database versions, operating systems and hosting — on-premises, VMware, Hyper-V, AWS, Azure or Oracle Cloud.' },
+      { title: 'Create your account', body: 'Your company details and sign-in, at support.onsys.com.au. Cover is recorded against your account immediately.' },
+      { title: 'Tell us about your instances', body: 'Add the sites and SQL Server instances the cover applies to, with versions and hosting — on-premises, VMware, Hyper-V, AWS, Azure or Oracle Cloud.' },
       { title: 'Secure access & onboarding', body: 'We establish secure remote access, document escalation paths and issue your dedicated support number.' },
-      { title: 'Cover goes live', body: 'The 2-hour response SLA starts, and you can raise a call at any hour from that point.' },
+      { title: 'Cover goes live', body: 'The two-hour response SLA applies, and you can raise a call at any hour from that point.' },
     ],
   },
   {
@@ -6203,10 +6258,20 @@ export const pages: SeedPage[] = [
     navOrder: 2,
     blocks: onCallBlocks,
     faqs: [
+      /*
+       * First, and new. "Do you monitor our databases?" was the one question
+       * the page never answered, while everything about it — 24/7 access,
+       * a response SLA, a dedicated number — invites somebody to assume the
+       * answer is yes. Letting that assumption stand is how a customer ends
+       * up asking why nobody told them the disk was full.
+       */
+      { question: 'Do you monitor our databases?', answer: 'No. This is a reactive support service: you contact us when you need DBA assistance, and we will not know about a problem until you tell us. Continuous monitoring and proactive management are available through our managed DBA plans.' },
+      { question: 'Do we pay extra if we do not need help that month?', answer: 'No. If no support work is requested, you pay the subscription fee only. If you ask us to work on an issue, that work is billed at $150 per hour.' },
+      { question: 'Can this cover our DBA while they are on leave?', answer: 'Yes. It is one of the most common reasons clients subscribe — it gives you access to DBA support while your usual DBA is away, unavailable or has left the business.' },
       { question: 'How much does on-call DBA support cost?', answer: 'The on-call subscription is $100 per SQL Server instance per month, with a minimum of four instances, and support calls are billed at $150 per hour. Both prices are GST exclusive. In a month with no incidents you pay the subscription only.' },
       { question: 'What is the difference between on-call DBA support and a monthly DBA plan?', answer: 'On-call is reactive cover: you run the databases and call a certified DBA when something breaks. A monthly 24/7 DBA plan is proactive management — continuous monitoring, health-check reporting and included service hours — starting at $1,500 per month. Many clients start on-call and move up as their estate grows.' },
-      { question: 'How quickly will someone respond to an on-call incident?', answer: 'Within two hours, guaranteed, at any hour of the day or night including weekends and public holidays. You get a dedicated phone support line and service desk access, and an incident report with root cause once the issue is resolved.' },
-      { question: 'Is there a minimum number of instances?', answer: 'Yes. The on-call subscription requires a minimum of four SQL Server instances. If you run fewer than four, hourly consultancy at $150 per hour with a four-hour minimum is usually the better fit.' },
+      { question: 'How quickly will someone respond to an on-call incident?', answer: 'Within two hours, at any hour of the day or night including weekends and public holidays. You get a dedicated phone support line and service desk access, and an incident report with root cause once the issue is resolved.' },
+      { question: 'Is there a minimum number of instances?', answer: 'Yes. The on-call subscription starts at four SQL Server instances. If you run fewer, tell us how many on the form above and we will come back with the option that costs you least — usually hourly consultancy at $150 per hour with a four-hour minimum.' },
       { question: 'How long does it take to set up on-call support?', answer: 'Onboarding completes within 24 hours. After a short scoping call to confirm instance count, versions and platform, we establish secure remote access, agree escalation paths and issue your dedicated support number — then cover goes live.' },
       { question: 'Which SQL Server versions and platforms are covered?', answer: 'SQL Server 2022, 2019, 2017, 2016 and 2014 or below, plus Azure SQL Database, Azure SQL Managed Instance and SQL Server on Azure VM. Hosting can be on-premises, VMware, Hyper-V, AWS, Azure, Oracle Cloud or physical hosts, on Windows Server or Linux.' },
       { question: 'Does on-call support cover databases other than SQL Server?', answer: 'The on-call subscription covers SQL Server estates. Oracle, PostgreSQL, EDB, MySQL and MongoDB are covered by the monthly 24/7 DBA plans, or by hourly remote consultancy at $150 per hour across every platform.' },
