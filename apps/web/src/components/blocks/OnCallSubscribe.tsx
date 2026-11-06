@@ -55,6 +55,8 @@ export function OnCallSubscribe({
   monthlyPlanHref,
   monthlyPlanLabel,
   priceNote,
+  fitsTitle,
+  fits,
   note,
 }: {
   anchor?: string;
@@ -72,6 +74,8 @@ export function OnCallSubscribe({
   monthlyPlanHref: string;
   monthlyPlanLabel: string;
   priceNote?: string;
+  fitsTitle?: string;
+  fits: string[];
   note?: string;
 }) {
   const choices = ONCALL_INSTANCE_CHOICES.filter(
@@ -226,6 +230,21 @@ export function OnCallSubscribe({
 
             {note && <p className="oncall-caveat">{note}</p>}
             {priceNote && <p className="oncall-note">{priceNote}</p>}
+
+            {/* Why people buy it, kept beside the form rather than in a
+                section below it: the reasons are what make the form worth
+                filling in, and they are no use to a reader who has already
+                scrolled past it. */}
+            {fits.length > 0 && (
+              <div className="oncall-fits">
+                <h3 className="oncall-sub-heading">{fitsTitle ?? 'When on-call fits'}</h3>
+                <ul className="oncall-list oncall-list-tight">
+                  {fits.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
 
           {/* Choosing, and starting. */}

@@ -1528,32 +1528,15 @@ const onCallBlocks: Block[] = [
     monthlyPlanHref: '/pricing-and-plans#database-plans',
     monthlyPlanLabel: 'Compare the monthly plans',
     priceNote: 'All prices are GST exclusive. The subscription starts at four SQL Server instances. Above ten, a monthly 24/7 DBA plan costs less per instance and adds continuous monitoring, included service hours and health-check reporting — those start at $1,500 per month.',
-    note: 'This is reactive support. The subscription does not include continuous monitoring, routine database administration or proactive health checks.',
-  },
-  {
-    type: 'checkList',
-    anchor: 'when-to-use',
-    eyebrow: 'When on-call fits',
-    heading: 'Cover for the hours you cannot staff',
-    body: 'On-call suits teams that run their own databases day to day but have no answer for nights, weekends and leave. Common reasons clients call:',
-    items: [
+    fitsTitle: 'When on-call fits',
+    fits: [
       'After-business-hours support when something breaks overnight',
       'Weekend scheduled work — patching, migrations, cutovers',
       'Full 24/7 cover for a short period while a DBA is on leave',
       'A second opinion from a senior DBA during an incident',
       'Overflow capacity when your team is committed to a project',
     ],
-    sidebar: {
-      title: 'At a glance',
-      rows: [
-        { label: 'Subscription', value: '$100 / instance / month' },
-        { label: 'Minimum estate', value: '4 SQL Server instances' },
-        { label: 'Support calls', value: '$150 / hour' },
-        { label: 'Response SLA', value: 'Two hours, 24/7' },
-        { label: 'Onboarding', value: 'Within 24 hours' },
-        { label: 'Prices shown', value: 'GST exclusive' },
-      ],
-    },
+    note: 'This is reactive support. The subscription does not include continuous monitoring, routine database administration or proactive health checks.',
   },
   {
     /*
@@ -1563,14 +1546,40 @@ const onCallBlocks: Block[] = [
      * fee holds the cover and the work is billed separately, which is the
      * unusual part of the deal and the reason a quiet month is cheap.
      */
-    type: 'steps',
+    /*
+     * Three cards rather than three steps.
+     *
+     * As a steps block these ran the width of the page in a thin row, which
+     * made three short, equally important facts look like a procedure with a
+     * beginning and an end. They are not a sequence — the middle one may
+     * never happen, which is the whole point of the product — so they are
+     * laid out the way "Choosing between them" lays out its three options,
+     * and the tags carry the order for anyone who wants it.
+     */
+    type: 'cardGrid',
     eyebrow: 'How the subscription works',
     heading: 'Hold the cover, pay for the work',
     body: 'Three things happen, and only the middle one is up to you.',
-    steps: [
-      { title: 'Subscribe for cover', body: 'The monthly subscription keeps the support arrangement in place for your covered SQL Server instances. Choose your instance count above and create your account.' },
-      { title: 'Contact us when you need help', body: 'Raise a ticket through the service desk or call your dedicated support number. Support is available 24/7, including weekends and public holidays.' },
-      { title: 'Pay for work performed', body: 'If you ask us to investigate or resolve an issue, work is billed at $150 per hour. In a month when no support work is requested, you pay the subscription fee only.' },
+    centered: true,
+    altBackground: true,
+    columns: 3,
+    cards: [
+      {
+        title: 'Subscribe for cover',
+        tag: 'Every month',
+        body: 'The monthly subscription keeps the support arrangement in place for your covered SQL Server instances. Choose your instance count above and enrol — it takes a couple of minutes.',
+        link: { label: 'Choose your cover', href: '#start-on-call' },
+      },
+      {
+        title: 'Contact us when you need help',
+        tag: 'Only if you need it',
+        body: 'Raise a ticket through the service desk or call your dedicated support number. Support is available 24/7, including weekends and public holidays.',
+      },
+      {
+        title: 'Pay for work performed',
+        tag: 'Only for the hours worked',
+        body: 'If you ask us to investigate or resolve an issue, work is billed at $150 per hour. In a month when no support work is requested, you pay the subscription fee only.',
+      },
     ],
   },
   {

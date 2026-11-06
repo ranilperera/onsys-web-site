@@ -1357,6 +1357,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 /* A tick drawn in CSS rather than an icon font: one rule, no request. */
 .oncall-list li::before{content:''; position:absolute; left:2px; top:6px; width:6px; height:11px;
   border:solid var(--green, #11A294); border-width:0 2px 2px 0; transform:rotate(45deg);}
+/* Why people buy it, under the price. Two columns on a wide screen so the
+   left column keeps pace with the form beside it instead of running long. */
+.oncall-fits{margin-top:26px; padding-top:22px; border-top:1px solid var(--gray-light);}
+.oncall-list-tight{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px 20px;}
+@media (max-width:1180px){ .oncall-list-tight{grid-template-columns:1fr;} }
 .oncall-caveat{margin:18px 0 0; padding:12px 14px; background:#FFF8EC; border-left:3px solid var(--orange);
   font-size:13.5px; line-height:1.6; color:#3B3A39;}
 .oncall-note{margin:12px 0 0; font-size:12.5px; line-height:1.6; color:var(--gray);}

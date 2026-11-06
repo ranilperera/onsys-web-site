@@ -704,6 +704,8 @@ function BlockSwitch({ block, index }: { block: Block; index: number }) {
           monthlyPlanHref={block.monthlyPlanHref}
           monthlyPlanLabel={block.monthlyPlanLabel}
           priceNote={block.priceNote}
+          fitsTitle={block.fitsTitle}
+          fits={block.fits}
           note={block.note}
         />
       );

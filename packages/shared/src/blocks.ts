@@ -409,6 +409,17 @@ export const blockSchema = z.discriminatedUnion('type', [
     monthlyPlanLabel: z.string().default('Compare the monthly plans'),
     /** GST and minimum-estate wording, under the figures. */
     priceNote: z.string().optional(),
+    /**
+     * Why somebody buys this, under the price and beside the form.
+     *
+     * Was a section of its own further down the page, which put the reasons
+     * to buy after the thing that asks you to. Reading "cover for the hours
+     * you cannot staff" is what makes the form worth filling in, so it sits
+     * where it can still do that — and it fills the column the form would
+     * otherwise tower over.
+     */
+    fitsTitle: z.string().optional(),
+    fits: z.array(z.string()).default([]),
     /** The honest caveat. Shown under the price, not buried in a footnote. */
     note: z.string().optional(),
   }),
