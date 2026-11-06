@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Plus_Jakarta_Sans, DM_Sans } from 'next/font/google';
+import localFont from 'next/font/local';
 import './globals.css';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
@@ -12,26 +12,40 @@ import { organizationSchema, localBusinessSchema, websiteSchema } from '@/lib/se
 
 /**
  * Plus Jakarta Sans (headings) and DM Sans (body), both SIL Open Font License
- * 1.1 — free to use and redistribute commercially, so there is no font
- * licensing exposure in shipping them.
+ * 1.1 — free to use and redistribute commercially, so shipping the files in
+ * this repository is exactly what the licence is for.
  *
- * next/font self-hosts the woff2 files at build time. That matters here beyond
- * performance: our CSP is `font-src 'self' data:`, so a request to Google's CDN
- * would be blocked outright. Self-hosting also means no third-party request per
- * visitor, which keeps the privacy policy honest.
+ * Served from ./fonts rather than fetched from Google during the build.
+ * Visitors saw no difference either way — next/font self-hosts, which our CSP
+ * (`font-src 'self' data:`) requires — but the build did: `next/font/google`
+ * asks fonts.googleapis.com for CSS and parses it with regexes, and Google
+ * varies that CSS by User-Agent. A recognised Chrome is sent woff2 with
+ * per-subset blocks; anything else is sent legacy TTF with no subset comments
+ * at all, which the parser reads as null and reports as
+ * "Cannot read properties of null (reading '1')". That is what failed the
+ * production build on the VM, where something in the egress path does not
+ * present the loader's User-Agent unchanged. The same request from two
+ * slightly different agents here returned two different formats, so the fetch
+ * was never a dependable step in a deploy.
+ *
+ * Both files are the variable versions: one file per family covering every
+ * weight, 64KB for the pair, which is why the `weight` below is a range rather
+ * than a list.
  */
-const headingFont = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  weight: ['500', '600', '700', '800'],
+const headingFont = localFont({
+  src: [{ path: './fonts/plus-jakarta-sans-variable.woff2', weight: '500 800', style: 'normal' }],
   variable: '--font-heading',
   display: 'swap',
+  // The stack a browser uses for the moment before the file lands, and for
+  // ever if it fails to.
+  fallback: ['system-ui', 'Segoe UI', 'Helvetica Neue', 'Arial', 'sans-serif'],
 });
 
-const bodyFont = DM_Sans({
-  subsets: ['latin'],
-  weight: ['400', '500', '700'],
+const bodyFont = localFont({
+  src: [{ path: './fonts/dm-sans-variable.woff2', weight: '400 700', style: 'normal' }],
   variable: '--font-body',
   display: 'swap',
+  fallback: ['system-ui', 'Segoe UI', 'Helvetica Neue', 'Arial', 'sans-serif'],
 });
 
 export const metadata: Metadata = {
