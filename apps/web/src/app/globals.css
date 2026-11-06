@@ -1344,6 +1344,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
    for a price they have not read. */
 .oncall-grid{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.05fr); gap:34px; align-items:start;}
 .oncall-what{min-width:0;}
+/* The heading only. Its paragraph moved into the column below so that the
+   column and the form panel start on the same line. */
+.oncall-head{margin-bottom:24px;}
+.oncall-lede{font-size:16px; line-height:1.7; color:var(--gray); margin:0 0 28px;}
 
 /* The figure, then the unit, so the eye lands on the number. */
 .oncall-price-head{display:flex; align-items:baseline; flex-wrap:wrap; gap:10px; margin:0 0 14px;}
@@ -1360,8 +1364,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 /* Why people buy it, under the price. Two columns on a wide screen so the
    left column keeps pace with the form beside it instead of running long. */
 .oncall-fits{margin-top:26px; padding-top:22px; border-top:1px solid var(--gray-light);}
-.oncall-list-tight{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px 20px;}
-@media (max-width:1180px){ .oncall-list-tight{grid-template-columns:1fr;} }
+/* One per line. Two columns split "Weekend scheduled work — patching,
+   migrations, cutovers" across two lines of its own while the item beside it
+   ran one, which read as four ragged half-sentences rather than five
+   reasons. */
+.oncall-list-tight{gap:9px;}
 .oncall-caveat{margin:18px 0 0; padding:12px 14px; background:#FFF8EC; border-left:3px solid var(--orange);
   font-size:13.5px; line-height:1.6; color:#3B3A39;}
 .oncall-note{margin:12px 0 0; font-size:12.5px; line-height:1.6; color:var(--gray);}

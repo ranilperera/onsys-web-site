@@ -197,16 +197,21 @@ export function OnCallSubscribe({
   return (
     <section id={anchor ?? 'on-call-pricing'} className="section">
       <div className="wrap">
-        <div className="section-head">
+        <div className="section-head oncall-head">
           {eyebrow && <div className="eyebrow">{eyebrow}</div>}
           <h2>{heading}</h2>
-          {body && <p>{body}</p>}
         </div>
 
         <div className="oncall-grid">
           {/* What you are buying. Two lists, because they are two different
-              charges and a buyer has to be able to tell them apart. */}
+              charges and a buyer has to be able to tell them apart.
+
+              The lede belongs to this column rather than to the section head:
+              in the head it ran the width of the page and started a paragraph
+              above the panel beside it, so the two columns began at different
+              heights. */}
           <div className="oncall-what">
+            {body && <p className="oncall-lede">{body}</p>}
             <div className="oncall-price-head">
               <span className="oncall-price">{formatMoneyCents(pricePerInstanceCents)}</span>
               <span className="oncall-price-unit">per SQL Server instance, per month</span>
