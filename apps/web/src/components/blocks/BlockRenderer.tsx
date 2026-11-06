@@ -689,6 +689,7 @@ function BlockSwitch({ block, index }: { block: Block; index: number }) {
     case 'onCallSubscribe':
       return (
         <OnCallSubscribe
+          anchor={block.anchor}
           eyebrow={block.eyebrow}
           heading={block.heading}
           body={block.body}
@@ -698,6 +699,11 @@ function BlockSwitch({ block, index }: { block: Block; index: number }) {
           maxInstances={block.maxInstances}
           signupUrl={block.signupUrl}
           includes={block.includes}
+          callsTitle={block.callsTitle}
+          callsIncludes={block.callsIncludes}
+          monthlyPlanHref={block.monthlyPlanHref}
+          monthlyPlanLabel={block.monthlyPlanLabel}
+          priceNote={block.priceNote}
           note={block.note}
         />
       );

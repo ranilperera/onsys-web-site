@@ -311,6 +311,98 @@ export function renderApplicationAcknowledgement(data: {
   );
 }
 
+export interface OnCallEnrolmentEmailData {
+  id: string;
+  companyName: string;
+  website: string | null;
+  contactName: string;
+  workEmail: string;
+  phone: string;
+  address: string;
+  instanceCount: number;
+  unitPriceCents: number;
+  monthlyTotalCents: number;
+  hourlyRateCents: number;
+  currency: string;
+  notes: string | null;
+}
+
+/** "$800" — every figure on the on-call page is a round number. */
+function dollars(cents: number, currency = 'AUD'): string {
+  return (cents / 100).toLocaleString('en-AU', {
+    style: 'currency',
+    currency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+}
+
+/**
+ * "A company has enrolled" — to the on-call inbox.
+ *
+ * Everything needed to act on it without opening anything else, because the
+ * action it asks for has a deadline: cover is promised live within one
+ * business day, and a mail that sends somebody looking for the address is a
+ * mail that costs part of that day.
+ */
+export function renderOnCallEnrolmentNotification(data: OnCallEnrolmentEmailData): string {
+  return wrapEmail(
+    `On-call enrolment — ${data.companyName}`,
+    `<p style="margin:0 0 18px;font-size:15px;"><strong>${escapeHtml(data.companyName)}</strong> has enrolled in on-call cover for <strong>${data.instanceCount} SQL Server instances</strong>.</p>
+     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+       ${row('Monthly subscription', `${dollars(data.monthlyTotalCents, data.currency)} ex GST (${data.instanceCount} × ${dollars(data.unitPriceCents, data.currency)})`)}
+       ${row('Call-out rate', `${dollars(data.hourlyRateCents, data.currency)} per hour`)}
+       ${row('Contact', data.contactName)}
+       ${row('Email', data.workEmail)}
+       ${row('Phone', data.phone)}
+       ${row('Company', data.companyName)}
+       ${row('Website', data.website)}
+       ${row('Invoice address', data.address)}
+     </table>
+     ${
+       data.notes
+         ? `<div style="margin-top:20px;">
+              <div style="font-size:13px;color:#605E5C;margin-bottom:6px;">What they told us</div>
+              <div style="background:#F8FAFC;border-left:3px solid ${BRAND_ORANGE};padding:14px 16px;font-size:14px;line-height:1.6;white-space:pre-wrap;">${escapeHtml(data.notes)}</div>
+            </div>`
+         : ''
+     }
+     <p style="margin:24px 0 0;font-size:14px;line-height:1.6;">Next: confirm the estate and versions, set up secure access, issue the support number, and raise the subscription in Onsys Support against the ONCALL-SQL product. The customer has been told cover goes live within one business day.</p>
+     <p style="margin:18px 0 0;font-size:13px;color:#605E5C;">Replying to this email goes straight to ${escapeHtml(data.contactName)}.</p>`,
+  );
+}
+
+/**
+ * "We have your enrolment" — to the customer.
+ *
+ * States what they have agreed to in figures, so the first invoice is never a
+ * surprise, and says what happens next without promising anything the team
+ * cannot do by tomorrow. The account link is offered, not demanded: cover
+ * starts regardless of whether they ever create a login.
+ */
+export function renderOnCallEnrolmentAcknowledgement(data: OnCallEnrolmentEmailData): string {
+  const firstName = data.contactName.split(' ')[0] || data.contactName;
+  return wrapEmail(
+    'We have your on-call enrolment',
+    `<p style="margin:0 0 16px;font-size:15px;">Hi ${escapeHtml(firstName)},</p>
+     <p style="margin:0 0 16px;font-size:15px;line-height:1.6;">Thanks for starting on-call cover for <strong>${escapeHtml(data.companyName)}</strong>. Here is what you have enrolled in:</p>
+     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+       ${row('Instances covered', String(data.instanceCount))}
+       ${row('Monthly subscription', `${dollars(data.monthlyTotalCents, data.currency)} ex GST`)}
+       ${row('Support calls', `${dollars(data.hourlyRateCents, data.currency)} per hour, only when you call`)}
+       ${row('Invoiced to', data.address)}
+     </table>
+     <p style="margin:20px 0 16px;font-size:15px;line-height:1.6;">A consultant will be in touch to confirm your versions and platforms, agree escalation paths and set up secure access. Cover goes live within one business day of that call, and you will get a dedicated support number to ring.</p>
+     <p style="margin:0 0 16px;font-size:15px;line-height:1.6;">Nothing is invoiced until cover is live. If anything above is wrong, reply to this email and we will correct it.</p>
+     <p style="margin:0 0 8px;font-size:15px;line-height:1.6;">You can set up your login for Onsys Support now, where you will raise tickets and see your invoices:</p>
+     <p style="margin:0 0 20px;">
+       <a href="${env.ONCALL_SIGNUP_URL}?plan=oncall&amp;instances=${data.instanceCount}" style="display:inline-block;background:${BRAND_ORANGE};color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:4px;font-weight:600;font-size:14px;">Create your Onsys Support login</a>
+     </p>
+     <p style="margin:0;font-size:13.5px;line-height:1.6;color:#605E5C;">On-call is reactive cover: we are on standby for your instances and respond when you raise a call. It does not include continuous monitoring or routine administration — if you want those, ask us about the monthly plans.</p>
+     <p style="margin:24px 0 0;font-size:14px;color:#605E5C;">— The Onsys team</p>`,
+  );
+}
+
 /**
  * One-time code that unlocks the chat widget.
  *

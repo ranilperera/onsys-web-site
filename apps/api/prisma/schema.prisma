@@ -649,6 +649,82 @@ model User {
   @@map("users")
 }
 
+/// Where an on-call enrolment is up to.
+enum OnCallEnrolmentStatus {
+  /// Submitted on the site, nobody has acted yet.
+  NEW
+  /// Someone has been in touch to confirm the estate and arrange access.
+  CONTACTED
+  /// Cover is live.
+  ACTIVE
+  /// Did not proceed. Kept, because "they enquired and went elsewhere" is a
+  /// thing worth being able to see.
+  DECLINED
+}
+
+/// A company enrolling in on-call SQL Server cover from /on-call-dba-services.
+///
+/// The form that creates this is the point where somebody commits to a monthly
+/// fee, so it collects what an invoice needs rather than what an enquiry needs.
+/// Separate from Lead for exactly that reason: a lead is a question, this is an
+/// instruction to start billing, and merging the two would mean every contact
+/// form carried address fields it has no use for.
+///
+/// The row is the record of what was agreed at the moment of enrolling, so the
+/// price is stored with it. Reading today's price back against a subscription
+/// taken out last year would be a different number from the one the customer
+/// accepted.
+model OnCallEnrolment {
+  id String @id @default(cuid())
+
+  companyName String
+  website     String?
+
+  /// The country's own name, not its code — including when the customer
+  /// typed one the list did not offer. An invoice wants the word.
+  country  String
+  street   String
+  street2  String?
+  locality String
+  region   String?
+  postcode String?
+
+  contactName String
+  workEmail   String
+  phone       String
+
+  instanceCount     Int
+  /// Per instance, per month, in cents and excluding GST, as quoted.
+  unitPriceCents    Int
+  /// instanceCount * unitPriceCents, stored rather than derived: it is what
+  /// the customer saw and agreed to.
+  monthlyTotalCents Int
+  /// Hourly rate quoted for call-out work at the same moment.
+  hourlyRateCents   Int
+  currency          String @default("AUD")
+
+  notes String? @db.Text
+
+  status OnCallEnrolmentStatus @default(NEW)
+
+  /// Set once each email goes out, so a Graph outage is visible as a gap
+  /// rather than something nobody finds out about.
+  customerEmailedAt DateTime?
+  onsysEmailedAt    DateTime?
+
+  /// Provenance, as leads carry it.
+  referrer    String?
+  landingPath String?
+  ip          String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@index([workEmail])
+  @@map("on_call_enrolments")
+}
+
 enum EmergencyStatus {
   /// Details captured, checkout not completed
   PENDING

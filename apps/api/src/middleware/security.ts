@@ -140,7 +140,30 @@ export const verifyCaptcha: RequestHandler = async (req, res, next) => {
   }
 };
 
-/** Honeypot: bots fill hidden fields, humans never see them. */
+/**
+ * Honeypot: bots fill hidden fields, humans never see them.
+ *
+ * The trap's field name is a parameter because a trap named after a real
+ * field is a trap for the customer. The on-call enrolment form asks a company
+ * for its website, and with the default name every enrolment that filled that
+ * in was answered with a cheerful "ok" and thrown away — invisibly, since a
+ * discarded submission looks exactly like a successful one by design. Routes
+ * whose form has no `website` field keep the default, because it is the name
+ * bots fill most often.
+ */
+export function honeypotField(field: string): RequestHandler {
+  return (req, res, next) => {
+    if (req.body?.[field]) {
+      logger.info({ ip: req.ip, field }, 'Honeypot triggered — silently discarding');
+      // Pretend it worked so the bot does not adapt.
+      res.status(201).json({ ok: true });
+      return;
+    }
+    next();
+  };
+}
+
+/** The default trap, for every form without a field of its own called website. */
 export const honeypot: RequestHandler = (req, res, next) => {
   if (req.body?.website) {
     logger.info({ ip: req.ip }, 'Honeypot triggered — silently discarding');

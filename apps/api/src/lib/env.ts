@@ -83,6 +83,27 @@ const envSchema = z.object({
    * with one audit trail instead of being forwarded around a mail system.
    */
   APPLICATION_NOTIFY_TO: z.string().default('jobs@onsys.com.au'),
+  /**
+   * Where on-call enrolments go.
+   *
+   * Its own address rather than the sales inbox: an enrolment is somebody
+   * agreeing to be billed monthly, and it needs acting on within a day — not
+   * sitting in a queue with enquiries that can wait.
+   */
+  ONCALL_NOTIFY_TO: z.string().default('onsys@onsys.com.au'),
+  /**
+   * The on-call prices, in cents, excluding GST.
+   *
+   * The authority for what a customer is charged is the ONCALL-SQL product in
+   * Onsys Support. These are what the website quotes and what gets written
+   * onto an enrolment as the figure that customer accepted, so they live in
+   * configuration rather than in a component: a price change must not need a
+   * code change in two repositories on the same afternoon.
+   */
+  ONCALL_PRICE_CENTS: z.coerce.number().int().positive().default(10_000),
+  ONCALL_HOURLY_CENTS: z.coerce.number().int().positive().default(15_000),
+  /** Onsys Support's signup, offered after enrolling. Not where billing starts. */
+  ONCALL_SIGNUP_URL: z.string().default('https://support.onsys.com.au/signup'),
 
   // --- Microsoft Teams (chat escalation) ---
   /// Simplest path: an Incoming Webhook URL on the target channel.

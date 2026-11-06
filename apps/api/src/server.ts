@@ -19,6 +19,7 @@ import { healthCheckRouter } from './routes/healthcheck.routes';
 import { authRouter } from './routes/auth.routes';
 import { adminRouter } from './routes/admin.routes';
 import { applicationRouter } from './routes/application.routes';
+import { onCallRouter } from './routes/oncall.routes';
 import { ensureCvStorage } from './services/cvStorage.service';
 
 const app = express();
@@ -120,6 +121,7 @@ app.use('/api/leads', leadRouter);
 // Multipart, and the only route on the site that takes a file. It parses its
 // own body with multer, so express.json above never sees it.
 app.use('/api/applications', applicationRouter);
+app.use('/api/on-call', onCallRouter);
 app.use('/api/bookings', bookingRouter);
 app.use('/api/chat', chatRouter);
 app.use('/api/emergency', emergencyRouter);

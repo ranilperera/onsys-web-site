@@ -1484,87 +1484,51 @@ const onCallBlocks: Block[] = [
   },
   {
     /*
-     * Step one of the signup, and the only step this site is in a position
-     * to take: how many instances the cover is for. The account itself is
-     * created in Onsys Support, which already owns company details, the
-     * emailed code and the address rules, so the count travels in the link
-     * and nothing else does.
+     * The whole commercial section: what the subscription is, what calls
+     * cost, how many instances you want, and the form that starts it.
      *
-     * The figures below are marketing copy and must be kept in step with
-     * the ONCALL-SQL product in Support. Nobody is charged from them — the
-     * signup page re-reads the catalogue and shows the authoritative price
-     * before anyone commits.
+     * It was three separate blocks — two pricing cards and a selector
+     * further up the page — which meant somebody working out whether this
+     * suited them scrolled between the price, what it included and the way
+     * in. One section answers the question and takes the order in the same
+     * place, which is the only arrangement that lets a reader finish.
+     *
+     * The figures are marketing copy and must be kept in step with the
+     * ONCALL-SQL product in Onsys Support. Nobody is charged from them: an
+     * enrolment records the price it quoted, and billing is raised against
+     * the catalogue.
      */
     type: 'onCallSubscribe',
-    eyebrow: 'Start your cover',
-    heading: 'Choose how many instances to cover',
-    body: 'The monthly fee holds the cover. Support work is billed only when you ask for it, so a month without a call costs you the subscription and nothing else.',
+    anchor: 'on-call-pricing',
+    eyebrow: 'On-call subscription',
+    heading: 'Hold the cover, pay per call',
+    body: 'Two components: a monthly subscription that keeps a certified DBA on standby for your instances, and an hourly rate charged only when you actually raise a call. A month without an incident costs you the subscription and nothing else.',
     pricePerInstanceCents: 10000,
     hourlyRateCents: 15000,
     minInstances: 4,
-    maxInstances: 12,
+    maxInstances: 10,
     signupUrl: 'https://support.onsys.com.au/signup',
     includes: [
-      '24/7 access to Australian-based SQL Server DBAs',
-      'Service desk access for raising support tickets',
-      'A dedicated support number',
-      'A two-hour response SLA',
-      'On-premises, AWS and Azure SQL Server environments',
-      'Support work billed at $150 per hour when requested',
+      'Australian-based SQL Server DBAs, available 24/7',
+      'Two-hour response, day or night, including weekends and public holidays',
+      'A dedicated support number plus service desk access',
+      'Certified, experienced DBAs — no first-line triage layer',
+      'Secure remote access for issue resolution',
+      'SQL Server, Azure SQL and Managed Instance, on-premises, AWS or Azure',
+      'Cover live within one business day of the scoping call',
     ],
+    callsTitle: 'How calls are billed',
+    callsIncludes: [
+      'Billed only for hours actually worked on your incident',
+      'Available 24/7, including after hours, weekends and public holidays',
+      'Incident report issued after resolution, with root cause',
+      'Scheduled after-hours or weekend work can be booked in advance',
+      'No charge in a month where you raise no calls',
+    ],
+    monthlyPlanHref: '/pricing-and-plans#database-plans',
+    monthlyPlanLabel: 'Compare the monthly plans',
+    priceNote: 'All prices are GST exclusive. The subscription starts at four SQL Server instances. Above ten, a monthly 24/7 DBA plan costs less per instance and adds continuous monitoring, included service hours and health-check reporting — those start at $1,500 per month.',
     note: 'This is reactive support. The subscription does not include continuous monitoring, routine database administration or proactive health checks.',
-  },
-  {
-    type: 'pricing',
-    anchor: 'on-call-pricing',
-    altBackground: false,
-    eyebrow: 'On-call subscription',
-    heading: 'Hold the cover, pay per call',
-    body: 'Two components: a small monthly subscription that keeps a certified DBA on standby for your instances, and an hourly rate charged only when you actually raise a call.',
-    columns: 2,
-    note: 'All prices are GST exclusive. A minimum of 4 SQL Server instances applies to the subscription. If your estate needs continuous proactive monitoring rather than reactive call-out, the monthly 24/7 DBA plans start at $1,500 — see the full comparison on the pricing page.',
-    plans: [
-      {
-        name: 'Remote On-Call DBA',
-        price: '$100',
-        unit: 'per SQL Server instance, per month',
-        featured: false,
-        description: 'Standby cover for teams running SQL Server without an in-house DBA. Minimum of 4 instances.',
-        featuresTitle: 'What the subscription includes',
-        features: [
-          { label: 'Coverage:', text: 'Australian-based consultants available 24/7' },
-          { label: 'Response SLA:', text: '2 hours, guaranteed' },
-          { label: 'Contact:', text: 'dedicated phone support line plus service desk access' },
-          { label: 'Onboarding:', text: 'live within 24 hours' },
-          { label: 'Platforms:', text: 'SQL Server, Azure SQL and Managed Instance' },
-          { label: 'Environments:', text: 'on-premises, AWS and Azure' },
-          'Secure remote access for issue resolution',
-          'Certified, experienced DBAs — no first-line triage layer',
-        ],
-        // B2: a two-field enquiry on the card. "Get Started" went to the
-        // generic contact form, which asked for six fields before anyone could
-        // find out what a plan cost them, and recorded nothing about which
-        // plan they were looking at.
-        enquiry: true,
-        cta: { label: 'Compare the monthly plans', href: '/pricing-and-plans#database-plans' },
-      },
-      {
-        name: 'Support calls',
-        price: '$150',
-        unit: 'per hour, only when you call',
-        featured: false,
-        description: 'Charged against actual time worked on an incident, so a quiet month costs you the subscription alone.',
-        featuresTitle: 'How calls are billed',
-        features: [
-          'Billed only for hours actually worked on your incident',
-          'Available 24/7, including after hours, weekends and public holidays',
-          'Incident report issued after resolution, with root cause',
-          'Scheduled after-hours or weekend work can be booked in advance',
-          'No charge for months in which you raise no calls',
-        ],
-        cta: { label: 'Talk to a consultant', href: '/contact' },
-      },
-    ],
   },
   {
     type: 'checkList',

@@ -1335,29 +1335,75 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   .cs-body .article-wrap h2{font-size:22px;}
 }
 
-/* ---- On-call: choose the cover, then go and buy it ---------------------
-   Two columns so the decision and what it buys are read together; one on a
-   phone, with the selector first because that is the thing to act on. */
-.oncall-buy{display:grid; grid-template-columns:3fr 2fr; gap:32px; align-items:start;}
-.oncall-buy-main{min-width:0;}
-.oncall-count-label{display:block; margin:22px 0 8px; font-size:13px; font-weight:700; color:var(--navy); letter-spacing:.02em;}
-.oncall-count{display:flex; align-items:center; gap:18px;}
-.oncall-count input[type="range"]{flex:1; min-width:0; accent-color:var(--blue, #0E336A);}
-.oncall-count-value{display:flex; flex-direction:column; align-items:center; min-width:84px; padding:8px 10px; border:1px solid var(--gray-light); border-radius:10px; background:#fff; font-size:26px; font-weight:700; color:var(--navy); line-height:1.1;}
-.oncall-count-value span{font-size:11px; font-weight:600; color:var(--gray); letter-spacing:.03em; text-transform:uppercase;}
-.oncall-price{margin:20px 0 6px; min-height:84px;}
-.oncall-price b{font-size:38px; font-weight:700; color:var(--navy); letter-spacing:-0.02em; line-height:1.05;}
-.oncall-price .unit{margin-left:8px; font-size:13px; color:var(--gray);}
-.oncall-price-sub{margin-top:8px; font-size:14px; color:var(--gray); max-width:52ch;}
-.oncall-buy-note{margin-top:12px; font-size:13px; color:var(--gray); max-width:56ch;}
-.oncall-buy-enquiry{max-width:360px; margin-top:4px;}
-.oncall-buy-side{border:1px solid var(--gray-light); border-radius:12px; padding:24px; background:#fff;}
-.oncall-buy-side h3{font-size:16px; margin-bottom:12px;}
-.oncall-buy-side ul{list-style:none; display:flex; flex-direction:column; gap:10px;}
-.oncall-buy-side li{display:flex; gap:10px; font-size:14px; color:var(--navy); line-height:1.5;}
-.oncall-buy-side li svg{width:16px; height:16px; flex:0 0 16px; margin-top:3px; fill:var(--teal, #11A294);}
-.oncall-buy-caveat{margin-top:16px; padding-top:14px; border-top:1px solid var(--gray-light); font-size:13px; color:var(--gray);}
-@media (max-width:860px){
-  .oncall-buy{grid-template-columns:1fr; gap:24px;}
-  .oncall-price b{font-size:32px;}
+/* ---- On-call: what it costs, and starting it, in one section ----------
+   Left is the offer -- the two charges and what each one buys. Right is the
+   decision and the form that acts on it. They are side by side because a
+   buyer checks the price against what is included while filling the form in,
+   and a layout that makes them scroll between the two is the layout this
+   replaced. One column on a phone, offer first: nobody fills in an address
+   for a price they have not read. */
+.oncall-grid{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.05fr); gap:34px; align-items:start;}
+.oncall-what{min-width:0;}
+
+/* The figure, then the unit, so the eye lands on the number. */
+.oncall-price-head{display:flex; align-items:baseline; flex-wrap:wrap; gap:10px; margin:0 0 14px;}
+.oncall-price-head-sub{margin-top:30px; padding-top:24px; border-top:1px solid var(--gray-light);}
+.oncall-price{font-size:38px; font-weight:700; color:var(--navy); letter-spacing:-0.02em; line-height:1.05;}
+.oncall-price-unit{font-size:13.5px; color:var(--gray);}
+.oncall-sub-heading{font-size:14px; color:var(--navy); margin:0 0 10px;}
+
+.oncall-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:9px;}
+.oncall-list li{position:relative; padding-left:22px; font-size:14.5px; line-height:1.55; color:#3B3A39;}
+/* A tick drawn in CSS rather than an icon font: one rule, no request. */
+.oncall-list li::before{content:''; position:absolute; left:2px; top:6px; width:6px; height:11px;
+  border:solid var(--green, #11A294); border-width:0 2px 2px 0; transform:rotate(45deg);}
+.oncall-caveat{margin:18px 0 0; padding:12px 14px; background:#FFF8EC; border-left:3px solid var(--orange);
+  font-size:13.5px; line-height:1.6; color:#3B3A39;}
+.oncall-note{margin:12px 0 0; font-size:12.5px; line-height:1.6; color:var(--gray);}
+
+/* The buying panel. Raised off the page so it reads as the thing to act on. */
+.oncall-buy{border:1px solid var(--gray-light); border-radius:12px; padding:26px 26px 22px; background:#fff;
+  box-shadow:0 1px 3px rgba(16,24,40,.04);}
+.oncall-buy h3{font-size:18px; color:var(--navy); margin:0 0 16px;}
+
+.oncall-count{border:0; padding:0; margin:0 0 16px;}
+.oncall-count legend{padding:0; margin-bottom:10px; font-size:13px; font-weight:700; color:var(--navy);}
+.oncall-count-options{display:flex; flex-wrap:wrap; gap:8px;}
+/* Buttons, not a slider: nine discrete choices are easier to hit exactly,
+   on a touch screen especially, and each one shows its own price instantly. */
+.oncall-chip{min-width:46px; padding:9px 13px; border:1px solid var(--gray-light); border-radius:8px;
+  background:#fff; font-size:14.5px; font-weight:600; color:var(--navy); cursor:pointer;
+  transition:border-color .12s, background .12s;}
+.oncall-chip:hover{border-color:var(--navy);}
+.oncall-chip.active{background:var(--navy); border-color:var(--navy); color:#fff;}
+.oncall-chip:focus-visible{outline:2px solid var(--orange); outline-offset:2px;}
+
+.oncall-total{display:flex; align-items:baseline; flex-wrap:wrap; gap:10px; margin:0 0 18px;
+  padding:14px 16px; background:#F8FAFC; border-radius:10px;}
+.oncall-total-amount{font-size:30px; font-weight:700; color:var(--navy); letter-spacing:-0.02em; line-height:1.1;}
+.oncall-total-unit{font-size:13px; color:var(--gray);}
+
+.oncall-form-legend{margin:18px 0 10px; font-size:11.5px; font-weight:700; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--gray);}
+.oncall-form-legend:first-of-type{margin-top:4px;}
+.oncall-buy .optional{font-weight:400; color:var(--gray); font-size:12.5px; margin-left:6px;}
+
+/* Above the band. Styled as an answer, never as an error. */
+.oncall-upsell{padding:18px 20px; background:#F8FAFC; border-radius:10px;}
+.oncall-upsell p{font-size:14.5px; line-height:1.65; color:#3B3A39; margin:0 0 16px;}
+.oncall-actions{display:flex; flex-wrap:wrap; gap:10px;}
+
+/* After enrolling. */
+.oncall-done h3{margin-bottom:14px;}
+.oncall-done p{font-size:14px; line-height:1.65; color:#3B3A39; margin:16px 0;}
+.oncall-summary{margin:18px 0 0; display:flex; flex-direction:column; gap:10px;}
+.oncall-summary > div{display:flex; justify-content:space-between; gap:16px; padding-bottom:10px;
+  border-bottom:1px solid var(--gray-light);}
+.oncall-summary dt{font-size:13px; color:var(--gray);}
+.oncall-summary dd{margin:0; font-size:14.5px; font-weight:600; color:var(--navy); text-align:right;}
+
+@media (max-width:980px){
+  .oncall-grid{grid-template-columns:1fr; gap:26px;}
+  .oncall-price{font-size:32px;}
+  .oncall-buy{padding:22px 20px 18px;}
 }

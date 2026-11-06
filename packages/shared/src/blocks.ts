@@ -373,6 +373,8 @@ export const blockSchema = z.discriminatedUnion('type', [
    */
   z.object({
     type: z.literal('onCallSubscribe'),
+    /// Kept as on-call-pricing: cards elsewhere on the page link to it.
+    anchor: z.string().optional(),
     eyebrow: z.string().optional(),
     heading: z.string(),
     body: z.string().optional(),
@@ -381,11 +383,32 @@ export const blockSchema = z.discriminatedUnion('type', [
     /** Support work when requested, in cents per hour. */
     hourlyRateCents: z.number().int().positive(),
     minInstances: z.number().int().positive().default(4),
-    maxInstances: z.number().int().positive().default(12),
-    /** Where the account is actually created. */
+    maxInstances: z.number().int().positive().default(10),
+    /**
+     * Where the customer creates their own login, offered after enrolling.
+     *
+     * No longer the enrolment itself: the form below collects what an invoice
+     * needs and records it here. The link is what turns that into an account
+     * the customer can sign in to, and it carries the instance count so the
+     * question is not asked twice.
+     */
     signupUrl: z.string().default('https://support.onsys.com.au/signup'),
-    /** What the cover buys, beside the selector. */
+    /** What the subscription buys. Was its own pricing card. */
     includes: z.array(z.string()).default([]),
+    /** How call-out work is billed. Was the second pricing card. */
+    callsTitle: z.string().optional(),
+    callsIncludes: z.array(z.string()).default([]),
+    /**
+     * Where an estate too large for reactive cover should go instead.
+     *
+     * Above the band this is the answer, not an error: continuous monitoring,
+     * included hours and a reporting cycle are a different product, and the
+     * customer is better served by it than by a bigger version of this one.
+     */
+    monthlyPlanHref: z.string().default('/pricing-and-plans#database-plans'),
+    monthlyPlanLabel: z.string().default('Compare the monthly plans'),
+    /** GST and minimum-estate wording, under the figures. */
+    priceNote: z.string().optional(),
     /** The honest caveat. Shown under the price, not buried in a footnote. */
     note: z.string().optional(),
   }),
