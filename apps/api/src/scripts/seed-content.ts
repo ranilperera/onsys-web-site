@@ -1501,7 +1501,13 @@ const onCallBlocks: Block[] = [
     type: 'onCallSubscribe',
     anchor: 'on-call-pricing',
     eyebrow: 'On-call subscription',
-    heading: 'Hold the cover, pay per call',
+    /*
+     * The benefit first, the billing second — and no longer a near-copy of
+     * the cards section below it, which is still called "Hold the cover, pay
+     * for the work". Two headings a screen apart saying almost the same
+     * thing made the page look like it was selling two products.
+     */
+    heading: 'Cover 24/7. Pay only when you call.',
     body: 'Two components: a monthly subscription that keeps a certified DBA on standby for your instances, and an hourly rate charged only when you actually raise a call. A month without an incident costs you the subscription and nothing else.',
     pricePerInstanceCents: 10000,
     hourlyRateCents: 15000,
