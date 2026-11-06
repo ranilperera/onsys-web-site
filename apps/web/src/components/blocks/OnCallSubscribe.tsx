@@ -9,6 +9,7 @@ import {
   formatMoneyCents,
   onCallEnrolmentSchema,
   onCallMonthlyCents,
+  onCallSignupHref,
 } from '@onsys/shared';
 import { siteConfig } from '@/lib/config';
 import { getAttribution } from '@/lib/attribution';
@@ -279,7 +280,7 @@ export function OnCallSubscribe({
                   agree escalation paths and set up secure access — nothing is invoiced until cover
                   is live.
                 </p>
-                <a className="btn btn-primary" href={`${signupUrl}?plan=oncall&instances=${confirmed.instances}`}>
+                <a className="btn btn-primary" href={onCallSignupHref(signupUrl, confirmed.instances)}>
                   Create your Onsys Support login
                 </a>
                 <p className="oncall-note">

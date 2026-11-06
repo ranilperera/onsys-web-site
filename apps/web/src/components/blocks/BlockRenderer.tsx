@@ -716,7 +716,17 @@ function BlockSwitch({ block, index }: { block: Block; index: number }) {
           hourlyRateCents={block.hourlyRateCents}
           minInstances={block.minInstances}
           maxInstances={block.maxInstances}
-          signupUrl={block.signupUrl}
+          /*
+           * Deployment configuration beats content here.
+           *
+           * The address lived only in the seeded block, so ONCALL_SIGNUP_URL
+           * in .env governed the confirmation email and silently did nothing
+           * to the button beside it — one setting, two sources, and the one
+           * an operator edits was the one being ignored. This is a server
+           * component, so the value is read per request: changing .env and
+           * recreating the web container is enough, with no rebuild.
+           */
+          signupUrl={process.env.ONCALL_SIGNUP_URL || block.signupUrl}
           includes={block.includes}
           callsTitle={block.callsTitle}
           callsIncludes={block.callsIncludes}

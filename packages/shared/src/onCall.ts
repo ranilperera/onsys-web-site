@@ -255,6 +255,34 @@ export function resolveCountryName(country: string, countryOther: string): strin
   return ONCALL_COUNTRIES.find((c) => c.code === country)?.name ?? country;
 }
 
+/**
+ * The link to Onsys Support's signup, carrying what the customer already told
+ * us.
+ *
+ * The plan and the instance count travel in the query string because the
+ * signup page reads them: with them it shows the on-call offer priced for that
+ * estate, and without them it falls back to an ordinary account signup. So the
+ * parameters are not decoration — dropping them means somebody who just
+ * enrolled in cover for five instances creates a plain account instead.
+ *
+ * Built through URL rather than string concatenation so a configured address
+ * that already carries a query (a tracking parameter, say) keeps it instead of
+ * being broken by a second "?".
+ */
+export function onCallSignupHref(base: string, instances: number): string {
+  try {
+    const url = new URL(base);
+    url.searchParams.set('plan', 'oncall');
+    url.searchParams.set('instances', String(instances));
+    return url.toString();
+  } catch {
+    // A relative or malformed value configured by hand. Better a link that
+    // goes somewhere than a crash on a confirmation screen.
+    const separator = base.includes('?') ? '&' : '?';
+    return `${base}${separator}plan=oncall&instances=${instances}`;
+  }
+}
+
 /** One line, for an email or a list: "12 Example St, Carlton VIC 3053, Australia". */
 export function formatPostalAddress(parts: {
   street: string;

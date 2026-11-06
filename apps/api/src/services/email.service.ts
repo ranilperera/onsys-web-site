@@ -1,5 +1,6 @@
 import { ClientSecretCredential } from '@azure/identity';
 import { Client } from '@microsoft/microsoft-graph-client';
+import { onCallSignupHref } from '@onsys/shared';
 import { env, graphConfigured, org } from '../lib/env';
 import { logger } from '../lib/logger';
 
@@ -396,7 +397,7 @@ export function renderOnCallEnrolmentAcknowledgement(data: OnCallEnrolmentEmailD
      <p style="margin:0 0 16px;font-size:15px;line-height:1.6;">Nothing is invoiced until cover is live. If anything above is wrong, reply to this email and we will correct it.</p>
      <p style="margin:0 0 8px;font-size:15px;line-height:1.6;">You can set up your login for Onsys Support now, where you will raise tickets and see your invoices:</p>
      <p style="margin:0 0 20px;">
-       <a href="${env.ONCALL_SIGNUP_URL}?plan=oncall&amp;instances=${data.instanceCount}" style="display:inline-block;background:${BRAND_ORANGE};color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:4px;font-weight:600;font-size:14px;">Create your Onsys Support login</a>
+       <a href="${escapeHtml(onCallSignupHref(env.ONCALL_SIGNUP_URL, data.instanceCount))}" style="display:inline-block;background:${BRAND_ORANGE};color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:4px;font-weight:600;font-size:14px;">Create your Onsys Support login</a>
      </p>
      <p style="margin:0;font-size:13.5px;line-height:1.6;color:#605E5C;">On-call is reactive cover: we are on standby for your instances and respond when you raise a call. It does not include continuous monitoring or routine administration — if you want those, ask us about the monthly plans.</p>
      <p style="margin:24px 0 0;font-size:14px;color:#605E5C;">— The Onsys team</p>`,

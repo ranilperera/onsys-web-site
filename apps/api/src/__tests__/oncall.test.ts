@@ -10,6 +10,7 @@ import {
   isWithinOnCallBand,
   onCallEnrolmentSchema,
   onCallMonthlyCents,
+  onCallSignupHref,
   resolveCountryName,
 } from '@onsys/shared';
 import {
@@ -180,6 +181,32 @@ describe('the rest of the form', () => {
     const parsed = onCallEnrolmentSchema.parse(valid);
     expect(parsed.website).toBe('examplelogistics.com.au');
     expect(Object.keys(parsed)).not.toContain('website_url');
+  });
+});
+
+describe('the link to Onsys Support', () => {
+  it('carries the plan and the count the customer chose', () => {
+    expect(onCallSignupHref('https://support.onsys.com.au/signup', 5)).toBe(
+      'https://support.onsys.com.au/signup?plan=oncall&instances=5',
+    );
+  });
+
+  it('keeps a query the configured address already had', () => {
+    // An operator who points ONCALL_SIGNUP_URL at a tracked link should not
+    // have it broken by a second "?".
+    expect(onCallSignupHref('https://support.onsys.com.au/signup?utm_source=site', 8)).toBe(
+      'https://support.onsys.com.au/signup?utm_source=site&plan=oncall&instances=8',
+    );
+  });
+
+  it('does not duplicate parameters when the base already names them', () => {
+    expect(onCallSignupHref('https://support.onsys.com.au/signup?plan=oncall&instances=4', 9)).toBe(
+      'https://support.onsys.com.au/signup?plan=oncall&instances=9',
+    );
+  });
+
+  it('still produces a usable link from a hand-edited relative value', () => {
+    expect(onCallSignupHref('/signup', 6)).toBe('/signup?plan=oncall&instances=6');
   });
 });
 
