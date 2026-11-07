@@ -9,7 +9,6 @@ import {
   formatMoneyCents,
   onCallEnrolmentSchema,
   onCallMonthlyCents,
-  onCallSignupHref,
 } from '@onsys/shared';
 import { siteConfig } from '@/lib/config';
 import { getAttribution } from '@/lib/attribution';
@@ -280,7 +279,16 @@ export function OnCallSubscribe({
                   agree escalation paths and set up secure access — nothing is invoiced until cover
                   is live.
                 </p>
-                <a className="btn btn-primary" href={onCallSignupHref(signupUrl, confirmed.instances)}>
+                {/*
+                  The address exactly as configured, with nothing appended.
+                  It used to carry ?plan=oncall&instances=N, which Onsys
+                  Support reads to show the on-call offer priced for that
+                  estate; without it the customer lands on the ordinary
+                  account signup and tells it their instance count again.
+                  Removing the parameters was asked for deliberately, so the
+                  trade is recorded here rather than rediscovered later.
+                */}
+                <a className="btn btn-primary" href={signupUrl}>
                   Create your Onsys Support login
                 </a>
                 <p className="oncall-note">

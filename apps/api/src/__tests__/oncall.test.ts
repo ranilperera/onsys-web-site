@@ -10,7 +10,6 @@ import {
   isWithinOnCallBand,
   onCallEnrolmentSchema,
   onCallMonthlyCents,
-  onCallSignupHref,
   resolveCountryName,
 } from '@onsys/shared';
 import {
@@ -185,28 +184,36 @@ describe('the rest of the form', () => {
 });
 
 describe('the link to Onsys Support', () => {
-  it('carries the plan and the count the customer chose', () => {
-    expect(onCallSignupHref('https://support.onsys.com.au/signup', 5)).toBe(
-      'https://support.onsys.com.au/signup?plan=oncall&instances=5',
-    );
-  });
+  /*
+   * The link is whatever ONCALL_SIGNUP_URL says, with nothing appended.
+   *
+   * It carried ?plan=oncall&instances=N until a customer-visible copy of the
+   * URL made that unwanted. Onsys Support reads both parameters to show the
+   * on-call offer priced for the estate; without them the signup falls back
+   * to an ordinary account and asks for the instance count again. That is the
+   * accepted cost of a clean link, and these tests exist so it is not undone
+   * by accident in either direction.
+   */
+  it('sends the configured address and nothing else', () => {
+    const html = renderOnCallEnrolmentAcknowledgement({
+      id: 'enr_1',
+      companyName: 'Example Pty Ltd',
+      website: null,
+      contactName: 'Dana Example',
+      workEmail: 'dana@example.com',
+      phone: '+61 400 000 000',
+      address: '1 Example St, Carlton VIC 3053, Australia',
+      instanceCount: 4,
+      unitPriceCents: 10_000,
+      monthlyTotalCents: 40_000,
+      hourlyRateCents: 15_000,
+      currency: 'AUD',
+      notes: null,
+    });
 
-  it('keeps a query the configured address already had', () => {
-    // An operator who points ONCALL_SIGNUP_URL at a tracked link should not
-    // have it broken by a second "?".
-    expect(onCallSignupHref('https://support.onsys.com.au/signup?utm_source=site', 8)).toBe(
-      'https://support.onsys.com.au/signup?utm_source=site&plan=oncall&instances=8',
-    );
-  });
-
-  it('does not duplicate parameters when the base already names them', () => {
-    expect(onCallSignupHref('https://support.onsys.com.au/signup?plan=oncall&instances=4', 9)).toBe(
-      'https://support.onsys.com.au/signup?plan=oncall&instances=9',
-    );
-  });
-
-  it('still produces a usable link from a hand-edited relative value', () => {
-    expect(onCallSignupHref('/signup', 6)).toBe('/signup?plan=oncall&instances=6');
+    expect(html).toMatch(/href="https:\/\/support\.onsys\.com\.au\/signup"/);
+    expect(html).not.toMatch(/plan=oncall/);
+    expect(html).not.toMatch(/instances=/);
   });
 });
 
@@ -245,8 +252,8 @@ describe('the enrolment emails', () => {
     // The commitment is stated, and so is the thing it is not.
     expect(html).toMatch(/Nothing is invoiced until cover is live/);
     expect(html).toMatch(/does not include continuous monitoring/i);
-    // The login is offered with the count already in it.
-    expect(html).toMatch(/instances=8/);
+    // The login is offered, as a plain link to the configured address.
+    expect(html).toMatch(/support\.onsys\.com\.au\/signup/);
   });
 
   it('escapes a company name rather than rendering it as markup', () => {
