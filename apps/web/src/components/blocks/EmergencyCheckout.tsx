@@ -208,13 +208,31 @@ export function EmergencyCheckout({
   }
 
   return (
-    <section className="section" id="get-help-now">
+    <section className="section em-sec" id="get-help-now">
       <div className="wrap">
         <div className="section-head">
           {eyebrow && <div className="eyebrow">{eyebrow}</div>}
           <h2>{heading}</h2>
           {body && <p className="section-lede">{body}</p>}
         </div>
+
+        {/* The sequence reads across the top, before the form, so nobody has
+            to finish the form to find out what happens after it. */}
+        {steps.length > 0 && (
+          <ol className="em-steps">
+            {steps.map((s, i) => (
+              <li key={s.title}>
+                <span className="em-step-num" aria-hidden="true">
+                  {i + 1}
+                </span>
+                <div>
+                  <strong>{s.title}</strong>
+                  <span>{s.body}</span>
+                </div>
+              </li>
+            ))}
+          </ol>
+        )}
 
         {phase === 'cancelled' && (
           <div className="form-status error" role="alert">
@@ -225,7 +243,22 @@ export function EmergencyCheckout({
 
         <div className="emergency-grid">
           <form className="emergency-form" onSubmit={submit}>
-            <h3>1. Your details</h3>
+            <div className="em-callbar">
+              <span className="em-callbar-ic" aria-hidden="true">
+                <svg>
+                  <use href="#i-phone" />
+                </svg>
+              </span>
+              <div>
+                <strong>Down this second? Call instead.</strong>
+                <span>The line is answered 24/7 and triage starts on the phone.</span>
+              </div>
+              <a className="btn btn-primary btn-sm" href={`tel:${siteConfig.phoneE164}`}>
+                {siteConfig.phone}
+              </a>
+            </div>
+
+            <h3>Tell us what is happening</h3>
 
             <div className="form-row">
               <div className="form-field">
@@ -334,8 +367,14 @@ export function EmergencyCheckout({
             {summary && (
               <div className={`emergency-summary${mode === 'payment' ? ' with-total' : ''}`}>
                 <h3>{summary.title}</h3>
+                {summary.rows[0] && (
+                  <p className="em-price">
+                    <b>{summary.rows[0].value}</b>
+                    <span>{summary.rows[0].label}</span>
+                  </p>
+                )}
                 <dl>
-                  {summary.rows.map((r) => (
+                  {summary.rows.slice(1).map((r) => (
                     <div key={r.label}>
                       <dt>{r.label}</dt>
                       <dd>{r.value}</dd>
@@ -346,22 +385,6 @@ export function EmergencyCheckout({
               </div>
             )}
 
-            {steps.length > 0 && (
-              <ol className="emergency-steps">
-                {steps.map((s) => (
-                  <li key={s.title}>
-                    {/* Title and body share one grid cell. As separate children
-                        they are separate grid items, and the body drops into
-                        the next row's first column — the 32px counter track —
-                        which wraps it to one word per line. */}
-                    <div className="emergency-step-text">
-                      <strong>{s.title}</strong>
-                      <span>{s.body}</span>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            )}
           </aside>
         </div>
       </div>

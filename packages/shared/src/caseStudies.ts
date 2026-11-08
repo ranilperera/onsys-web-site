@@ -60,6 +60,8 @@ export interface CaseStudySummary {
   region: string;
   deliveredYear: number;
   platforms: string[];
+  /** Also used as the card photo wherever the engagement is listed. */
+  heroImage: string | null;
   publishedAt: string | null;
   updatedAt: string;
   contentUpdatedAt: string | null;
@@ -67,7 +69,6 @@ export interface CaseStudySummary {
 
 export interface CaseStudyRecord extends CaseStudySummary {
   blocks: unknown;
-  heroImage: string | null;
   seoTitle: string | null;
   seoDescription: string | null;
 }

@@ -1,10 +1,10 @@
+import Link from 'next/link';
 import type { Metadata } from 'next';
 import Image from 'next/image';
-import Link from 'next/link';
-import { Breadcrumb } from '@/components/Breadcrumb';
 import { JsonLd } from '@/components/JsonLd';
 import { siteConfig } from '@/lib/config';
 import { breadcrumbSchema, buildMetadata } from '@/lib/seo';
+import { PageHero } from '@/components/PageHero';
 
 export const metadata: Metadata = buildMetadata({
   title: 'Client Portal Login | Onsys DBPulse',
@@ -44,11 +44,7 @@ export default function ClientPortalPage() {
         data={[breadcrumbSchema([{ name: 'Home', url: '/' }, { name: 'Client portal' }])]}
       />
 
-      <section className="page-hero">
-        <div className="wrap">
-          <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Client portal' }]} />
-        </div>
-      </section>
+      <PageHero size="slim" crumbs={[{ label: 'Home', href: '/' }, { label: 'Client portal' }]} />
 
       <section className="portal-section">
         <div className="wrap portal-grid">

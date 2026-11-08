@@ -11,6 +11,7 @@ export interface HeroSlide {
   body?: string;
   platforms?: string;
   backgroundImage?: string;
+  imagePosition?: string;
   ctas: Array<{ label: string; href: string }>;
 }
 
@@ -118,7 +119,7 @@ export function HeroRotator({
   return (
     <section
       ref={rootRef}
-      className={`hero hero-dark hero-single hero-rotator${paused ? ' is-paused' : ''}`}
+      className={`hero hero--home hero-rotator${paused ? ' is-paused' : ''}`}
       // Drives the fill animation under the active dot, so the bar and the
       // timer cannot drift apart when the interval is changed by env var.
       style={{ '--hero-interval': `${intervalSeconds}s` } as React.CSSProperties}
@@ -130,29 +131,72 @@ export function HeroRotator({
       aria-roledescription="carousel"
       aria-label="Onsys Technologies"
     >
-      {slides.map((slide, i) => (
-        <div key={slide.heading} className={`hero-slide${i === active ? ' is-active' : ''}`}>
-          {slide.backgroundImage && (
-            <>
-              <Image
-                className="hero-bg"
-                src={slide.backgroundImage}
-                alt=""
-                fill
-                // Only the first slide is the LCP candidate; eager-loading the
-                // rest would compete with it for bandwidth on first paint.
-                priority={i === 0}
-                loading={i === 0 ? undefined : 'lazy'}
-                sizes="100vw"
-                quality={80}
-              />
-              <div className="hero-scrim" aria-hidden="true" />
-            </>
-          )}
-        </div>
-      ))}
+      <div className="wrap hero-grid">
+        {/*
+         * The photo panel. On desktop it sits beside the copy as a framed
+         * picture, so the photograph is actually seen instead of buried under
+         * a scrim; on tablets and phones the same element drops behind the copy
+         * as a full-bleed background. Decorative either way, so hidden from
+         * assistive tech.
+         */}
+        <div className="hero-visual" aria-hidden="true">
+          <div className="hero-frame">
+            {slides.map((slide, i) => (
+              <div key={slide.heading} className={`hero-slide${i === active ? ' is-active' : ''}`}>
+                {slide.backgroundImage && (
+                  <Image
+                    className="hero-bg"
+                    src={slide.backgroundImage}
+                    alt=""
+                    fill
+                    // Only the first slide is the LCP candidate; eager-loading
+                    // the rest would compete with it on first paint.
+                    priority={i === 0}
+                    loading={i === 0 ? undefined : 'lazy'}
+                    sizes="(min-width: 961px) 760px, 100vw"
+                    quality={80}
+                    style={slide.imagePosition ? { objectPosition: slide.imagePosition } : undefined}
+                  />
+                )}
+              </div>
+            ))}
+            <div className="hero-scrim" />
+          </div>
 
-      <div className="wrap hero-grid single">
+          {/* Every figure here is published elsewhere (plans, SLA); keep them
+              in step with TrustStrip if either changes. */}
+          <div className="hero-float hero-float--status">
+            <span className="hero-live" />
+            <span>
+              <b>Senior DBAs on call</b>
+              <small>Monitoring 24/7/365</small>
+            </span>
+          </div>
+          <div className="hero-float hero-float--sla">
+            <span className="hero-float-ic">
+              <svg>
+                <use href="#t-gauge" />
+              </svg>
+            </span>
+            <span>
+              <b>1–2 hr</b>
+              <small>Guaranteed response SLA</small>
+            </span>
+          </div>
+          <div className="hero-float hero-float--stack">
+            <span className="hero-float-ic">
+              <svg>
+                <use href="#t-database" />
+              </svg>
+            </span>
+            <span className="hero-stack">
+              {['SQL Server', 'Oracle', 'PostgreSQL', 'MySQL', 'MongoDB'].map((name) => (
+                <i key={name}>{name}</i>
+              ))}
+            </span>
+          </div>
+        </div>
+
         {slides.map((slide, i) => (
           <div
             key={slide.heading}
@@ -183,7 +227,7 @@ export function HeroRotator({
                 {slide.heading} {slide.highlight && <span>{slide.highlight}</span>}
               </p>
             )}
-            {slide.body && <p>{slide.body}</p>}
+            {slide.body && <p className="lede">{slide.body}</p>}
             {slide.platforms && <p className="hero-platforms">{slide.platforms}</p>}
             {slide.ctas.length > 0 && (
               <div className="hero-cta">

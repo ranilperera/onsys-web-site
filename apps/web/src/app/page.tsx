@@ -1,11 +1,14 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getPage } from '@/lib/api';
+import { getCaseStudies, getPage } from '@/lib/api';
+import type { Block } from '@onsys/shared';
 import { buildMetadata, faqSchema, webPageSchema, offerCatalogSchema } from '@/lib/seo';
 import { siteConfig } from '@/lib/config';
 import { BlockRenderer } from '@/components/blocks/BlockRenderer';
 import { FaqAccordion } from '@/components/blocks/FaqAccordion';
 import { JsonLd } from '@/components/JsonLd';
+import { TrustStrip } from '@/components/TrustStrip';
+import { ScrollReveal } from '@/components/ScrollReveal';
 
 // Content for this route lives in the database, which does not exist during
 // `next build` — the Docker image is built before any database is running. Left
@@ -34,8 +37,35 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function HomePage() {
   // The offer catalog is built from the pricing page's own blocks so the
   // structured data cannot drift from the prices we actually publish.
-  const [page, pricingPage] = await Promise.all([getPage('home'), getPage('pricing-and-plans')]);
+  const [page, pricingPage, studies] = await Promise.all([
+    getPage('home'),
+    getPage('pricing-and-plans'),
+    getCaseStudies(),
+  ]);
   if (!page) notFound();
+
+  // Cards that link to a case study borrow that engagement's own photo, so the
+  // grid shows the work rather than six blocks of text. A card given its own
+  // image in the CMS keeps it.
+  const studyImage = new Map(
+    studies.filter((s) => s.heroImage).map((s) => [`/case-studies/${s.slug}`, s.heroImage as string]),
+  );
+  const blocks: Block[] = page.blocks.map((block) =>
+    block.type === 'cardGrid'
+      ? {
+          ...block,
+          cards: block.cards.map((card) => {
+            const image = card.link && studyImage.get(card.link.href.split(/[?#]/)[0]);
+            return card.image || !image ? card : { ...card, image };
+          }),
+        }
+      : block,
+  );
+
+  // The trust strip sits straight under the quick links (or the hero, if the
+  // page has no quick links), so the blocks render in two runs around it.
+  const anchorIndex = blocks.findIndex((b) => b.type === 'quicklinks');
+  const splitAt = (anchorIndex >= 0 ? anchorIndex : blocks.findIndex((b) => b.type === 'hero')) + 1;
 
   const schemas: Array<Record<string, unknown>> = [
     webPageSchema({
@@ -43,7 +73,7 @@ export default async function HomePage() {
       description: page.seoDescription ?? page.lede ?? '',
       path: '/',
       modified: page.updatedAt,
-      speakableSelectors: ['.hero h1', '.hero p', '.faq-a'],
+      speakableSelectors: ['.hero h1', '.hero .lede', '.faq-a'],
     }),
   ];
 
@@ -56,7 +86,10 @@ export default async function HomePage() {
   return (
     <>
       <JsonLd data={schemas} />
-      <BlockRenderer blocks={page.blocks} />
+      <BlockRenderer blocks={blocks.slice(0, splitAt)} />
+      <TrustStrip />
+      <BlockRenderer blocks={blocks.slice(splitAt)} startIndex={splitAt} />
+      <ScrollReveal />
 
       {page.faqs.length > 0 && (
         <section className="alt-bg">

@@ -1,8 +1,8 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { getCaseStudies } from '@/lib/api';
 import { buildMetadata } from '@/lib/seo';
-import { Breadcrumb } from '@/components/Breadcrumb';
-import { PageHeroImage } from '@/components/PageHeroImage';
+import { PageHero } from '@/components/PageHero';
 
 /**
  * /case-studies — anonymised accounts of delivered work.
@@ -32,30 +32,19 @@ export default async function CaseStudiesIndex() {
       {/* The same hero every other landing page has. The heading and the first
           paragraph of the supplied intro move up into it; the rest stays in
           the section below, in the order it was written. */}
-      <section className="page-hero page-hero-dark cs-hero">
-        <PageHeroImage src="/images/hero-case-studies.jpg" />
-        <div className="wrap">
-          <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Case studies' }]} />
-          <span className="eyebrow-pill">
-            <span className="dot" aria-hidden="true" />
-            Delivered work · Fixed price · Australia, New Zealand &amp; the Pacific
-          </span>
-          <h1>Projects We’ve Delivered — Proven Outcomes, Fixed-Price Certainty</h1>
-          <p className="lede">
-            These are real projects delivered for organisations across Australia, New Zealand and
-            the Pacific. Each engagement was completed to an agreed scope, fixed price and delivery
-            timeline — without unexpected cost variations.
-          </p>
-          <div className="page-hero-cta">
-            <Link className="btn btn-primary" href="/contact">
-              Discuss a project
-            </Link>
-            <Link className="btn btn-outline" href="/book">
-              Book a consultation
-            </Link>
-          </div>
-        </div>
-      </section>
+      <PageHero
+        image="/images/hero-case-studies.jpg"
+        size="long"
+        darkPhoto
+        crumbs={[{ label: 'Home', href: '/' }, { label: 'Case studies' }]}
+        eyebrow="Delivered work · Fixed price · Australia, New Zealand & the Pacific"
+        title="Projects We’ve Delivered — Proven Outcomes, Fixed-Price Certainty"
+        lede="These are real projects delivered for organisations across Australia, New Zealand and the Pacific. Each engagement was completed to an agreed scope, fixed price and delivery timeline — without unexpected cost variations."
+        ctas={[
+          { label: 'Discuss a project', href: '/contact' },
+          { label: 'Book a consultation', href: '/book' },
+        ]}
+      />
 
       <section className="section">
         <div className="wrap">
@@ -99,22 +88,33 @@ export default async function CaseStudiesIndex() {
           ) : (
             <div className="card-grid">
               {studies.map((cs) => (
-                <article className="mcard" key={cs.id}>
-                  <div className="body notag">
-                    <h2>
-                      <Link href={`/case-studies/${cs.slug}`}>{cs.title}</Link>
-                    </h2>
-                    <p className="lead-source">
-                      {cs.sector} · {cs.region} · {cs.deliveredYear}
-                    </p>
-                    <p>{cs.summary}</p>
-                    {cs.platforms.length > 0 && (
-                      <p className="lead-source">{cs.platforms.join(' · ')}</p>
-                    )}
-                    <Link className="lnk" href={`/case-studies/${cs.slug}`}>
-                      Read the engagement ›
-                    </Link>
-                  </div>
+                <article
+                  className={`mcard mcard--link${cs.heroImage ? ' mcard--media' : ''}`}
+                  key={cs.id}
+                >
+                  {cs.heroImage && (
+                    <div className="mcard-media">
+                      <Image
+                        src={cs.heroImage}
+                        alt=""
+                        fill
+                        sizes="(max-width: 700px) 100vw, (max-width: 1024px) 50vw, 400px"
+                      />
+                    </div>
+                  )}
+                  <h2>{cs.title}</h2>
+                  <p className="lead-source">
+                    {cs.sector} · {cs.region} · {cs.deliveredYear}
+                  </p>
+                  <p>{cs.summary}</p>
+                  {cs.platforms.length > 0 && (
+                    <p className="lead-source">{cs.platforms.join(' · ')}</p>
+                  )}
+                  {/* Stretches over the whole card, so the title needs no
+                      second link to the same page. */}
+                  <Link className="lnk" href={`/case-studies/${cs.slug}`}>
+                    Read the engagement ›
+                  </Link>
                 </article>
               ))}
             </div>

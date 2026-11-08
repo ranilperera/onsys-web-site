@@ -212,26 +212,52 @@ export function OnCallSubscribe({
               heights. */}
           <div className="oncall-what">
             {body && <p className="oncall-lede">{body}</p>}
-            <div className="oncall-price-head">
-              <span className="oncall-price">{formatMoneyCents(pricePerInstanceCents)}</span>
-              <span className="oncall-price-unit">per SQL Server instance, per month</span>
-            </div>
-            <ul className="oncall-list">
-              {includes.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
 
-            <div className="oncall-price-head oncall-price-head-sub">
-              <span className="oncall-price">{formatMoneyCents(hourlyRateCents)}</span>
-              <span className="oncall-price-unit">per hour, only when you call</span>
+            {/* The two charges side by side, so the difference between them
+                is the first thing read. */}
+            <div className="oncall-prices">
+              <div className="oncall-price-tile">
+                <span className="oncall-price-label">Subscription</span>
+                <span className="oncall-price">{formatMoneyCents(pricePerInstanceCents)}</span>
+                <span className="oncall-price-unit">per SQL Server instance, per month</span>
+              </div>
+              <span className="oncall-plus" aria-hidden="true">
+                +
+              </span>
+              <div className="oncall-price-tile oncall-price-tile--calls">
+                <span className="oncall-price-label">Support calls</span>
+                <span className="oncall-price">{formatMoneyCents(hourlyRateCents)}</span>
+                <span className="oncall-price-unit">per hour, only when you call</span>
+              </div>
             </div>
-            <h3 className="oncall-sub-heading">{callsTitle ?? 'How calls are billed'}</h3>
-            <ul className="oncall-list">
-              {callsIncludes.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
+
+            <div className="oncall-block">
+              <h3 className="oncall-sub-heading">The subscription includes</h3>
+              <ul className="oncall-list">
+                {includes.map((item) => (
+                  <li key={item}>
+                    <svg aria-hidden="true">
+                      <use href="#s-check" />
+                    </svg>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="oncall-block">
+              <h3 className="oncall-sub-heading">{callsTitle ?? 'How calls are billed'}</h3>
+              <ul className="oncall-list">
+                {callsIncludes.map((item) => (
+                  <li key={item}>
+                    <svg aria-hidden="true">
+                      <use href="#s-check" />
+                    </svg>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
 
             {note && <p className="oncall-caveat">{note}</p>}
             {priceNote && <p className="oncall-note">{priceNote}</p>}
@@ -243,7 +269,7 @@ export function OnCallSubscribe({
             {fits.length > 0 && (
               <div className="oncall-fits">
                 <h3 className="oncall-sub-heading">{fitsTitle ?? 'When on-call fits'}</h3>
-                <ul className="oncall-list oncall-list-tight">
+                <ul className="oncall-fit-list">
                   {fits.map((item) => (
                     <li key={item}>{item}</li>
                   ))}
@@ -297,272 +323,293 @@ export function OnCallSubscribe({
               </div>
             ) : (
               <>
-                <h3>Start your cover</h3>
+                <div className="oncall-buy-head">
+                  <h3>Start your cover</h3>
 
-                <fieldset className="oncall-count">
-                  <legend>How many SQL Server instances?</legend>
-                  <div className="oncall-count-options">
-                    {choices.map((n) => (
+                  <fieldset className="oncall-count">
+                    <legend>How many SQL Server instances?</legend>
+                    <div className="oncall-count-options">
+                      {choices.map((n) => (
+                        <button
+                          key={n}
+                          type="button"
+                          className={
+                            !tooMany && n === instances ? 'oncall-chip active' : 'oncall-chip'
+                          }
+                          aria-pressed={!tooMany && n === instances}
+                          onClick={() => {
+                            setInstances(n);
+                            setTooMany(false);
+                          }}
+                        >
+                          {n}
+                        </button>
+                      ))}
                       <button
-                        key={n}
                         type="button"
-                        className={!tooMany && n === instances ? 'oncall-chip active' : 'oncall-chip'}
-                        aria-pressed={!tooMany && n === instances}
-                        onClick={() => {
-                          setInstances(n);
-                          setTooMany(false);
-                        }}
+                        className={tooMany ? 'oncall-chip active' : 'oncall-chip'}
+                        aria-pressed={tooMany}
+                        onClick={() => setTooMany(true)}
                       >
-                        {n}
+                        More than {maxInstances}
                       </button>
-                    ))}
-                    <button
-                      type="button"
-                      className={tooMany ? 'oncall-chip active' : 'oncall-chip'}
-                      aria-pressed={tooMany}
-                      onClick={() => setTooMany(true)}
-                    >
-                      More than {maxInstances}
-                    </button>
-                  </div>
-                </fieldset>
-
-                {tooMany ? (
-                  /* Not an error. Above the band a monthly plan costs less per
-                     instance and covers more, so the honest answer is to send
-                     them there rather than sell them the wrong product. */
-                  <div className="oncall-upsell">
-                    <p>
-                      Above {maxInstances} instances, a monthly 24/7 DBA plan works out cheaper per
-                      instance and adds continuous monitoring, included service hours and
-                      health-check reporting — rather than cover that waits for you to call.
-                    </p>
-                    <div className="oncall-actions">
-                      <a className="btn btn-primary" href={monthlyPlanHref}>
-                        {monthlyPlanLabel}
-                      </a>
-                      <a className="btn btn-outline" href="/contact">
-                        Talk to a consultant
-                      </a>
                     </div>
-                  </div>
-                ) : (
-                  <>
+                  </fieldset>
+
+                  {!tooMany && (
                     <div className="oncall-total" aria-live="polite">
                       <span className="oncall-total-amount">{formatMoneyCents(monthly)}</span>
                       <span className="oncall-total-unit">
                         per month ex GST — {instances} × {formatMoneyCents(pricePerInstanceCents)}
                       </span>
                     </div>
+                  )}
+                </div>
 
-                    {state === 'error' && message && (
-                      <div className="form-status error" role="alert">
-                        {message}
+                <div className="oncall-buy-body">
+                  {tooMany ? (
+                    /* Not an error. Above the band a monthly plan costs less per
+                     instance and covers more, so the honest answer is to send
+                     them there rather than sell them the wrong product. */
+                    <div className="oncall-upsell">
+                      <p>
+                        Above {maxInstances} instances, a monthly 24/7 DBA plan works out cheaper
+                        per instance and adds continuous monitoring, included service hours and
+                        health-check reporting — rather than cover that waits for you to call.
+                      </p>
+                      <div className="oncall-actions">
+                        <a className="btn btn-primary" href={monthlyPlanHref}>
+                          {monthlyPlanLabel}
+                        </a>
+                        <a className="btn btn-outline" href="/contact">
+                          Talk to a consultant
+                        </a>
                       </div>
-                    )}
-
-                    <form onSubmit={onSubmit} noValidate>
-                      <p className="oncall-form-legend">Company</p>
-
-                      <div className="form-row">
-                        <div className="form-field full">
-                          <label htmlFor="companyName">Company name *</label>
-                          <input
-                            id="companyName"
-                            name="companyName"
-                            required
-                            aria-invalid={Boolean(errors.companyName)}
-                            aria-describedby={errors.companyName ? 'companyName-error' : undefined}
-                          />
-                          {err('companyName')}
+                    </div>
+                  ) : (
+                    <>
+                      {state === 'error' && message && (
+                        <div className="form-status error" role="alert">
+                          {message}
                         </div>
+                      )}
 
-                        <div className="form-field full">
-                          <label htmlFor="website">
-                            Website <span className="optional">Optional</span>
-                          </label>
-                          <input id="website" name="website" placeholder="example.com.au" />
-                          {err('website')}
-                        </div>
+                      <form onSubmit={onSubmit} noValidate>
+                        <p className="oncall-form-legend">Company</p>
 
-                        <div className="form-field full">
-                          <label htmlFor="country">Country *</label>
-                          <select
-                            id="country"
-                            name="country"
-                            value={country}
-                            onChange={(e) => setCountry(e.target.value)}
-                          >
-                            {ONCALL_COUNTRIES.map((c) => (
-                              <option key={c.code} value={c.code}>
-                                {c.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-
-                        {country === 'OTHER' && (
+                        <div className="form-row">
                           <div className="form-field full">
-                            <label htmlFor="countryOther">Which country? *</label>
+                            <label htmlFor="companyName">Company name *</label>
                             <input
-                              id="countryOther"
-                              name="countryOther"
-                              aria-invalid={Boolean(errors.countryOther)}
+                              id="companyName"
+                              name="companyName"
+                              required
+                              aria-invalid={Boolean(errors.companyName)}
+                              aria-describedby={
+                                errors.companyName ? 'companyName-error' : undefined
+                              }
                             />
-                            {err('countryOther')}
+                            {err('companyName')}
                           </div>
-                        )}
 
-                        <div className="form-field full">
-                          <label htmlFor="street">Street address *</label>
-                          <input
-                            id="street"
-                            name="street"
-                            autoComplete="address-line1"
-                            required
-                            aria-invalid={Boolean(errors.street)}
-                          />
-                          {err('street')}
-                        </div>
+                          <div className="form-field full">
+                            <label htmlFor="website">
+                              Website <span className="optional">Optional</span>
+                            </label>
+                            <input id="website" name="website" placeholder="example.com.au" />
+                            {err('website')}
+                          </div>
 
-                        <div className="form-field full">
-                          <label htmlFor="street2">
-                            Address line 2 <span className="optional">Optional</span>
-                          </label>
-                          <input id="street2" name="street2" autoComplete="address-line2" />
-                        </div>
-
-                        <div className="form-field">
-                          <label htmlFor="locality">{labels.locality} *</label>
-                          <input
-                            id="locality"
-                            name="locality"
-                            autoComplete="address-level2"
-                            required
-                            aria-invalid={Boolean(errors.locality)}
-                          />
-                          {err('locality')}
-                        </div>
-
-                        <div className="form-field">
-                          <label htmlFor="region">
-                            {labels.region}
-                            {isAU ? ' *' : ''}
-                          </label>
-                          {isAU ? (
-                            <select id="region" name="region" defaultValue="" aria-invalid={Boolean(errors.region)}>
-                              <option value="" disabled>
-                                Select…
-                              </option>
-                              {AU_STATES.map((s) => (
-                                <option key={s} value={s}>
-                                  {s}
+                          <div className="form-field full">
+                            <label htmlFor="country">Country *</label>
+                            <select
+                              id="country"
+                              name="country"
+                              value={country}
+                              onChange={(e) => setCountry(e.target.value)}
+                            >
+                              {ONCALL_COUNTRIES.map((c) => (
+                                <option key={c.code} value={c.code}>
+                                  {c.name}
                                 </option>
                               ))}
                             </select>
-                          ) : (
-                            <input id="region" name="region" autoComplete="address-level1" />
+                          </div>
+
+                          {country === 'OTHER' && (
+                            <div className="form-field full">
+                              <label htmlFor="countryOther">Which country? *</label>
+                              <input
+                                id="countryOther"
+                                name="countryOther"
+                                aria-invalid={Boolean(errors.countryOther)}
+                              />
+                              {err('countryOther')}
+                            </div>
                           )}
-                          {err('region')}
+
+                          <div className="form-field full">
+                            <label htmlFor="street">Street address *</label>
+                            <input
+                              id="street"
+                              name="street"
+                              autoComplete="address-line1"
+                              required
+                              aria-invalid={Boolean(errors.street)}
+                            />
+                            {err('street')}
+                          </div>
+
+                          <div className="form-field full">
+                            <label htmlFor="street2">
+                              Address line 2 <span className="optional">Optional</span>
+                            </label>
+                            <input id="street2" name="street2" autoComplete="address-line2" />
+                          </div>
+
+                          <div className="form-field">
+                            <label htmlFor="locality">{labels.locality} *</label>
+                            <input
+                              id="locality"
+                              name="locality"
+                              autoComplete="address-level2"
+                              required
+                              aria-invalid={Boolean(errors.locality)}
+                            />
+                            {err('locality')}
+                          </div>
+
+                          <div className="form-field">
+                            <label htmlFor="region">
+                              {labels.region}
+                              {isAU ? ' *' : ''}
+                            </label>
+                            {isAU ? (
+                              <select
+                                id="region"
+                                name="region"
+                                defaultValue=""
+                                aria-invalid={Boolean(errors.region)}
+                              >
+                                <option value="" disabled>
+                                  Select…
+                                </option>
+                                {AU_STATES.map((s) => (
+                                  <option key={s} value={s}>
+                                    {s}
+                                  </option>
+                                ))}
+                              </select>
+                            ) : (
+                              <input id="region" name="region" autoComplete="address-level1" />
+                            )}
+                            {err('region')}
+                          </div>
+
+                          <div className="form-field">
+                            <label htmlFor="postcode">
+                              {labels.postcode}
+                              {isAU ? ' *' : ''}
+                            </label>
+                            <input
+                              id="postcode"
+                              name="postcode"
+                              inputMode={isAU ? 'numeric' : 'text'}
+                              autoComplete="postal-code"
+                              aria-invalid={Boolean(errors.postcode)}
+                            />
+                            {err('postcode')}
+                          </div>
                         </div>
 
-                        <div className="form-field">
-                          <label htmlFor="postcode">
-                            {labels.postcode}
-                            {isAU ? ' *' : ''}
-                          </label>
-                          <input
-                            id="postcode"
-                            name="postcode"
-                            inputMode={isAU ? 'numeric' : 'text'}
-                            autoComplete="postal-code"
-                            aria-invalid={Boolean(errors.postcode)}
-                          />
-                          {err('postcode')}
-                        </div>
-                      </div>
+                        <p className="oncall-form-legend">You</p>
 
-                      <p className="oncall-form-legend">You</p>
+                        <div className="form-row">
+                          <div className="form-field full">
+                            <label htmlFor="contactName">Your name *</label>
+                            <input
+                              id="contactName"
+                              name="contactName"
+                              autoComplete="name"
+                              required
+                              aria-invalid={Boolean(errors.contactName)}
+                            />
+                            {err('contactName')}
+                          </div>
 
-                      <div className="form-row">
-                        <div className="form-field full">
-                          <label htmlFor="contactName">Your name *</label>
-                          <input
-                            id="contactName"
-                            name="contactName"
-                            autoComplete="name"
-                            required
-                            aria-invalid={Boolean(errors.contactName)}
-                          />
-                          {err('contactName')}
-                        </div>
+                          <div className="form-field full">
+                            <label htmlFor="workEmail">
+                              Work email *{' '}
+                              <span className="optional">We will send your confirmation here</span>
+                            </label>
+                            <input
+                              id="workEmail"
+                              name="workEmail"
+                              type="email"
+                              autoComplete="email"
+                              required
+                              aria-invalid={Boolean(errors.workEmail)}
+                            />
+                            {err('workEmail')}
+                          </div>
 
-                        <div className="form-field full">
-                          <label htmlFor="workEmail">
-                            Work email * <span className="optional">We will send your confirmation here</span>
-                          </label>
-                          <input
-                            id="workEmail"
-                            name="workEmail"
-                            type="email"
-                            autoComplete="email"
-                            required
-                            aria-invalid={Boolean(errors.workEmail)}
-                          />
-                          {err('workEmail')}
-                        </div>
+                          <div className="form-field full">
+                            <label htmlFor="phone">Phone *</label>
+                            <input
+                              id="phone"
+                              name="phone"
+                              type="tel"
+                              autoComplete="tel"
+                              required
+                              aria-invalid={Boolean(errors.phone)}
+                            />
+                            {err('phone')}
+                          </div>
 
-                        <div className="form-field full">
-                          <label htmlFor="phone">Phone *</label>
-                          <input
-                            id="phone"
-                            name="phone"
-                            type="tel"
-                            autoComplete="tel"
-                            required
-                            aria-invalid={Boolean(errors.phone)}
-                          />
-                          {err('phone')}
+                          <div className="form-field full">
+                            <label htmlFor="notes">
+                              Anything we should know <span className="optional">Optional</span>
+                            </label>
+                            <textarea
+                              id="notes"
+                              name="notes"
+                              rows={3}
+                              placeholder="Versions, hosting, or when you need cover to start"
+                            />
+                          </div>
                         </div>
 
-                        <div className="form-field full">
-                          <label htmlFor="notes">
-                            Anything we should know <span className="optional">Optional</span>
-                          </label>
-                          <textarea
-                            id="notes"
-                            name="notes"
-                            rows={3}
-                            placeholder="Versions, hosting, or when you need cover to start"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Honeypot — hidden from humans and assistive tech. Not
+                        {/* Honeypot — hidden from humans and assistive tech. Not
                           named "website": this form has a real website field. */}
-                      <div style={{ position: 'absolute', left: '-9999px' }} aria-hidden="true">
-                        <label htmlFor="website_url">Leave this field empty</label>
-                        <input id="website_url" name="website_url" tabIndex={-1} autoComplete="off" />
-                      </div>
+                        <div style={{ position: 'absolute', left: '-9999px' }} aria-hidden="true">
+                          <label htmlFor="website_url">Leave this field empty</label>
+                          <input
+                            id="website_url"
+                            name="website_url"
+                            tabIndex={-1}
+                            autoComplete="off"
+                          />
+                        </div>
 
-                      <Turnstile onToken={setCaptchaToken} resetKey={captchaNonce} />
+                        <Turnstile onToken={setCaptchaToken} resetKey={captchaNonce} />
 
-                      <button
-                        className="btn btn-primary btn-block"
-                        type="submit"
-                        disabled={state === 'submitting'}
-                      >
-                        {state === 'submitting'
-                          ? 'Starting your cover…'
-                          : `Enrol — ${formatMoneyCents(monthly)} per month`}
-                      </button>
+                        <button
+                          className="btn btn-primary btn-block"
+                          type="submit"
+                          disabled={state === 'submitting'}
+                        >
+                          {state === 'submitting'
+                            ? 'Starting your cover…'
+                            : `Enrol — ${formatMoneyCents(monthly)} per month`}
+                        </button>
 
-                      <p className="oncall-note">
-                        Nothing is invoiced until cover is live. We confirm your estate first.
-                      </p>
-                    </form>
-                  </>
-                )}
+                        <p className="oncall-note">
+                          Nothing is invoiced until cover is live. We confirm your estate first.
+                        </p>
+                      </form>
+                    </>
+                  )}
+                </div>
               </>
             )}
           </div>

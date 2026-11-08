@@ -143,7 +143,7 @@ export function HealthCheckBooking({ eyebrow, heading, body, note }: HealthCheck
           <a className="btn btn-outline btn-lg" href="/onsys-sql-server-health-check.html">
             Read the queries first
           </a>
-          <p style={{ fontSize: 13, color: 'var(--gray)', marginTop: 12 }}>
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--gray)', marginTop: 12 }}>
             This download link is yours and stays live for {done.collectorExpiryDays} days. We have
             emailed it to you as well, so you do not have to keep this page open.
           </p>

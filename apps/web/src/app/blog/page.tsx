@@ -1,12 +1,11 @@
-import type { Metadata } from 'next';
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { getPosts, getCategories } from '@/lib/api';
 import { BlogCard } from '@/components/BlogCard';
 import { buildMetadata, breadcrumbSchema } from '@/lib/seo';
 import { siteConfig } from '@/lib/config';
-import { Breadcrumb } from '@/components/Breadcrumb';
-import { PageHeroImage } from '@/components/PageHeroImage';
 import { JsonLd } from '@/components/JsonLd';
+import { PageHero } from '@/components/PageHero';
 
 // Content for this route lives in the database, which does not exist during
 // `next build` — the Docker image is built before any database is running. Left
@@ -93,21 +92,13 @@ export default async function BlogIndex({ searchParams }: Props) {
     <>
       <JsonLd data={[breadcrumbSchema([{ name: 'Home', url: '/' }, { name: 'Blog' }]), listSchema]} />
 
-      <section className="page-hero page-hero-dark">
-        <PageHeroImage src="/images/hero-blog.jpg" />
-        <div className="wrap">
-          <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Blog' }]} />
-          <span className="eyebrow-pill">
-            <span className="dot" aria-hidden="true" />
-            Insights &amp; how-tos
-          </span>
-          <h1>Blog</h1>
-          <p className="lede">
-            Practical, hands-on guides from our database, cloud and software teams — the same kind of
-            write-ups we lean on internally, shared for anyone running these platforms themselves.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        image="/images/hero-blog.jpg"
+        crumbs={[{ label: 'Home', href: '/' }, { label: 'Blog' }]}
+        eyebrow="Insights & how-tos"
+        title="Blog"
+        lede="Practical, hands-on guides from our database, cloud and software teams — the same kind of write-ups we lean on internally, shared for anyone running these platforms themselves."
+      />
 
       <section>
         <div className="wrap">
@@ -158,7 +149,7 @@ export default async function BlogIndex({ searchParams }: Props) {
                   ← Previous
                 </Link>
               )}
-              <span style={{ alignSelf: 'center', fontSize: 14, color: 'var(--gray)' }}>
+              <span style={{ alignSelf: 'center', fontSize: 'var(--text-sm)', color: 'var(--gray)' }}>
                 Page {currentPage} of {pagination.totalPages}
               </span>
               {currentPage < pagination.totalPages && (

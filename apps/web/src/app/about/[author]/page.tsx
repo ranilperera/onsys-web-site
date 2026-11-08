@@ -1,12 +1,11 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { getAuthor } from '@/lib/api';
 import { buildMetadata, personSchema, breadcrumbSchema } from '@/lib/seo';
-import { Breadcrumb } from '@/components/Breadcrumb';
 import { JsonLd } from '@/components/JsonLd';
 import { BlogCard } from '@/components/BlogCard';
+import { PageHero } from '@/components/PageHero';
 
 /**
  * Author profile.
@@ -52,13 +51,12 @@ export default async function AuthorPage({ params }: Props) {
         ]}
       />
 
-      <section className="page-hero">
-        <div className="wrap">
-          <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: author.name }]} />
-          <h1>{author.name}</h1>
-          {author.role && <p className="lede">{author.role}</p>}
-        </div>
-      </section>
+      <PageHero
+        image="/images/hero-about.jpg"
+        crumbs={[{ label: 'Home', href: '/' }, { label: author.name }]}
+        title={author.name}
+        lede={author.role}
+      />
 
       <section className="section">
         <div className="wrap author-profile">

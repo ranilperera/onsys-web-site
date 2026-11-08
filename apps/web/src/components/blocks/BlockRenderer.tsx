@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import Image from 'next/image';
 import type { Block } from '@onsys/shared';
 import { siteConfig } from '@/lib/config';
@@ -10,6 +10,8 @@ import { PlanEnquiry } from './PlanEnquiry';
 import { OnCallSubscribe } from './OnCallSubscribe';
 import { ContactForm } from '../ContactForm';
 import { HeroRotator } from '../HeroRotator';
+import { TechGroups, type TechGroupView } from './TechGroups';
+import { HealthChecks } from './HealthChecks';
 
 /**
  * Maps CMS block JSON onto the markup/classes from the approved mockups.
@@ -173,25 +175,486 @@ function techGlyph(label: string, explicit?: string): string {
 }
 
 /**
- * Tint a technology glyph with its own accent colour, over a faint wash of the
- * same hue. The wash is an 8-digit hex, so it is only applied when the stored
- * colour is a plain 6-digit hex — anything else falls back to a neutral chip
- * rather than emitting an invalid colour.
+ * Service page for a platform entry, read from its label like the glyph is,
+ * so new entries pick up a link without anyone tagging them. First match wins;
+ * an entry with no match simply isn't a link. A chip's own `href` overrides it.
  */
-function glyphStyle(color: string): React.CSSProperties {
-  const isHex6 = /^#[0-9a-f]{6}$/i.test(color);
-  return isHex6
-    ? { color, backgroundColor: `${color}14`, borderColor: `${color}33` }
-    : { color: 'var(--navy)' };
+const LINK_RULES: Array<[RegExp, string]> = [
+  [
+    /replicat|always ?on|data guard|rac|cluster|log shipping|failover|backup|rman|recovery|dr/i,
+    '/database-upgrades-migrations-dr',
+  ],
+  [/migrat/i, '/cloud-migrations'],
+  [/encrypt|tde|data protection/i, '/data-and-application-security'],
+  [/firewall|network/i, '/network-and-firewalls'],
+  [/vmware|hyper-v|virtualis|virtualiz|storage|san/i, '/virtualization-and-storage'],
+  [/complian|governance|essential eight|iso\//i, '/grc-and-compliance'],
+  [/secur|threat|siem|soc/i, '/managed-security-services'],
+  [/ssis|ssrs|ssas|etl|integration|reporting/i, '/integration-services'],
+  [/azure sql|managed instance/i, '/managed-database-services'],
+  [/cloud|azure|aws|amazon web|oci/i, '/cloud-consultancy'],
+  [/windows server|linux|solaris|aix|hp-ux/i, '/system-administration'],
+  [/sql server/i, '/sql-server-dba-services'],
+  [/postgres|edb/i, '/postgresql-consulting-services'],
+  [/mysql|mariadb/i, '/mysql-consulting-services'],
+  [/oracle|mongo|database/i, '/managed-database-services'],
+];
+
+function techHref(label: string, explicit?: string): string | undefined {
+  if (explicit !== undefined) return explicit || undefined;
+  for (const [pattern, href] of LINK_RULES) if (pattern.test(label)) return href;
+  return undefined;
 }
 
-export function BlockRenderer({ blocks }: { blocks: Block[] }) {
+/** Icon for a whole group, read from its title. */
+function groupGlyph(title: string): string {
+  if (/availab|resilien|continuity|recovery/i.test(title)) return 't-replicate';
+  if (/cloud|infrastructure/i.test(title)) return 't-cloud';
+  if (/secur|complian/i.test(title)) return 't-lock';
+  if (/database|platform/i.test(title)) return 't-database';
+  return techGlyph(title);
+}
+
+/**
+ * Icon for a relatedService callout, read from its eyebrow and heading. Two
+ * cases the technology rules would get wrong come first: access and
+ * sovereignty copy mentions "database" but is about who holds the keys, and
+ * proof/case-study callouts are about evidence, not a technology.
+ */
+function calloutGlyph(text: string): string {
+  if (/sovereign|access|credential|who touches|privacy/i.test(text)) return 't-lock';
+  if (/proof|case stud|what we (actually )?built|engagement/i.test(text)) return 't-chart';
+  return techGlyph(text);
+}
+
+export function BlockRenderer({
+  blocks,
+  startIndex = 0,
+}: {
+  blocks: Block[];
+  startIndex?: number;
+}) {
+  // startIndex lets a page render its blocks in two runs (with its own
+  // section in between) without upsetting the alternating backgrounds.
   return (
     <>
       {blocks.map((block, i) => (
-        <BlockSwitch key={`${block.type}-${i}`} block={block} index={i} />
+        <BlockSwitch key={`${block.type}-${startIndex + i}`} block={block} index={startIndex + i} />
       ))}
     </>
+  );
+}
+
+type LogoGridBlock = Extract<Block, { type: 'logoGrid' }>;
+type CardGridBlock = Extract<Block, { type: 'cardGrid' }>;
+
+/** "$1,500/mo" → ["$1,500", "per month"]; anything else is shown as given. */
+function splitPrice(tag?: string): [string, string | null] {
+  if (!tag) return ['', null];
+  const m = tag.match(/^(.+?)\s*\/\s*(mo|month|hr|hour|yr|year)$/i);
+  if (!m) return [tag, null];
+  const unit = m[2].toLowerCase();
+  const word = unit.startsWith('mo') ? 'month' : unit.startsWith('h') ? 'hour' : 'year';
+  return [m[1], `per ${word}`];
+}
+
+/** Price cards: the figure leads, inclusions are ticked, the link is a button. */
+function PlanGrid({ block }: { block: CardGridBlock }) {
+  return (
+    <section className={block.altBackground ? 'alt-bg' : undefined} id={block.anchor}>
+      <div className="wrap">
+        <SectionHead
+          eyebrow={block.eyebrow}
+          heading={block.heading}
+          body={block.body}
+          centered={block.centered}
+        />
+        <div className="plan-grid" style={{ '--plan-count': block.cards.length } as CSSProperties}>
+          {block.cards.map((card) => {
+            const [price, unit] = splitPrice(card.tag);
+            return (
+              <article className="plan-card" key={card.title}>
+                <h3>{card.title}</h3>
+                {price && (
+                  <p className="plan-price">
+                    <b>{price}</b>
+                    {unit && <span>{unit}</span>}
+                  </p>
+                )}
+                {card.body && <p className="plan-sum">{card.body}</p>}
+                {card.points && card.points.length > 0 && (
+                  <ul className="plan-points">
+                    {card.points.map((point) => (
+                      <li key={point}>
+                        <svg aria-hidden="true">
+                          <use href="#s-check" />
+                        </svg>
+                        {point}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {card.link && (
+                  <Link className="btn btn-outline plan-btn" href={card.link.href}>
+                    {card.link.label}
+                  </Link>
+                )}
+              </article>
+            );
+          })}
+        </div>
+        <p className="plan-note">All prices exclude GST. Monthly, rolling — no lock-in contract.</p>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * Choices a visitor picks between, e.g. "on a plan / on-call / no agreement".
+ * The card whose link stays on this page is the main action and is drawn as
+ * one; the others lead elsewhere and get a quieter button.
+ */
+function RouteGrid({ block }: { block: CardGridBlock }) {
+  return (
+    <section className={`routes${block.altBackground ? ' alt-bg' : ''}`} id={block.anchor}>
+      <div className="wrap">
+        <SectionHead
+          eyebrow={block.eyebrow}
+          heading={block.heading}
+          body={block.body}
+          centered={block.centered}
+        />
+        <div className="route-grid" style={{ '--route-count': block.cards.length } as CSSProperties}>
+          {block.cards.map((card, i) => {
+            const here = card.link?.href.startsWith('#');
+            return (
+              <article className={`route-card${here ? ' route-card--go' : ''}`} key={card.title}>
+                <div className="route-top">
+                  <span className="route-num" aria-hidden="true">
+                    {i + 1}
+                  </span>
+                  {card.tag && <span className="route-tag">{card.tag}</span>}
+                </div>
+                <h3>{card.title}</h3>
+                <p>{card.body}</p>
+                {card.link && (
+                  <Link
+                    className={`btn ${here ? 'btn-primary' : 'btn-outline'} route-btn`}
+                    href={card.link.href}
+                  >
+                    {card.link.label}
+                  </Link>
+                )}
+              </article>
+            );
+          })}
+        </div>
+        {block.note && (
+          <p className="route-note">
+            <svg aria-hidden="true">
+              <use href="#i-phone" />
+            </svg>
+            <span>
+              {block.note}{' '}
+              <a href={`tel:${siteConfig.phoneE164}`}>Call {siteConfig.phone}</a>
+            </span>
+          </p>
+        )}
+      </div>
+    </section>
+  );
+}
+
+/** Two places or teams side by side, and the rule that applies to both. */
+function SplitGrid({ block }: { block: CardGridBlock }) {
+  return (
+    <section className={`offices${block.altBackground ? ' alt-bg' : ''}`} id={block.anchor}>
+      <div className="wrap">
+        <SectionHead
+          eyebrow={block.eyebrow}
+          heading={block.heading}
+          body={block.body}
+          centered={block.centered}
+        />
+        <div className="split-grid">
+          {block.cards.map((card) => (
+            <article className="split-card" key={card.title}>
+              {card.tag && (
+                <p className="split-place">
+                  <svg aria-hidden="true">
+                    <use href="#i-pin" />
+                  </svg>
+                  {card.tag}
+                </p>
+              )}
+              <h3>{card.title}</h3>
+              <p className="split-body">{card.body}</p>
+              {card.points && card.points.length > 0 && (
+                <ul className="split-points">
+                  {card.points.map((point) => (
+                    <li key={point}>
+                      <svg aria-hidden="true">
+                        <use href="#s-check" />
+                      </svg>
+                      {point}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {card.link && (
+                <Link className="split-link" href={card.link.href}>
+                  {card.link.label} ›
+                </Link>
+              )}
+            </article>
+          ))}
+        </div>
+        {block.note && (
+          <p className="split-rule">
+            <svg aria-hidden="true">
+              <use href="#s-shield" />
+            </svg>
+            <span>{block.note}</span>
+          </p>
+        )}
+      </div>
+    </section>
+  );
+}
+
+/** Short statements on a dark band; the card title is the label above each. */
+function StatementBand({ block }: { block: CardGridBlock }) {
+  return (
+    <section className="statement-band" id={block.anchor}>
+      <div className="wrap">
+        <SectionHead
+          eyebrow={block.eyebrow}
+          heading={block.heading}
+          body={block.body}
+          centered={block.centered}
+        />
+        <div className="statement-grid">
+          {block.cards.map((card) => (
+            <figure className="statement" key={card.title}>
+              <figcaption>{card.title}</figcaption>
+              <blockquote>{card.body}</blockquote>
+            </figure>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** A light, numbered list of principles — not another row of boxes. */
+function NumberedList({ block }: { block: CardGridBlock }) {
+  return (
+    <section className={block.altBackground ? 'alt-bg' : undefined} id={block.anchor}>
+      <div className="wrap">
+        <SectionHead
+          eyebrow={block.eyebrow}
+          heading={block.heading}
+          body={block.body}
+          centered={block.centered}
+        />
+        <ol className="numbered-grid">
+          {block.cards.map((card, i) => (
+            <li className="numbered-item" key={card.title}>
+              <span className="numbered-n" aria-hidden="true">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <h3>{card.title}</h3>
+              <p>{card.body}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+  );
+}
+
+/*
+ * Credential level, read from the badge artwork and the name. The badge files
+ * are already level-specific (see the note on certificationLogos in the seed),
+ * so this never claims a higher level than the badge shown.
+ */
+const CERT_LEVELS = [
+  {
+    key: 'expert',
+    label: 'Expert',
+    test: (s: string, n: string) => /expert/i.test(s) && !/^MCSE/.test(n),
+  },
+  {
+    key: 'solutions',
+    label: 'Solutions Expert',
+    test: (_s: string, n: string) => /^MCSE/.test(n),
+  },
+  {
+    key: 'associate',
+    label: 'Associate',
+    test: (s: string) => /associate/i.test(s),
+  },
+  {
+    key: 'professional',
+    label: 'Professional',
+    test: (s: string) => /professional/i.test(s),
+  },
+  {
+    key: 'fundamentals',
+    label: 'Fundamentals',
+    test: (s: string) => /fundamentals/i.test(s),
+  },
+] as const;
+
+function certLevel(logo: LogoGridBlock['logos'][number]) {
+  const s = `${logo.image ?? ''} ${logo.name}`;
+  return (
+    CERT_LEVELS.find((l) => l.test(s, logo.name)) ?? {
+      key: 'certified',
+      label: 'Certified',
+    }
+  );
+}
+
+/**
+ * Home-page credentials band. A dark section so it reads as proof rather than
+ * another light card wall: the heading and a count by level on the left, the
+ * badges on the right. On phones the badges become one swipeable row, so
+ * twelve credentials no longer cost six screens of scrolling.
+ */
+function CertShowcase({ block }: { block: LogoGridBlock }) {
+  const items = block.logos.map((logo) => ({
+    ...logo,
+    level: certLevel(logo),
+  }));
+  const counts = CERT_LEVELS.map((l) => ({
+    ...l,
+    n: items.filter((i) => i.level.key === l.key).length,
+  })).filter((l) => l.n > 0);
+  const issuers = [
+    ...new Set(items.map((i) => (i.issuer ?? '').split('·')[0].trim()).filter(Boolean)),
+  ];
+
+  return (
+    <section className="cert-band" id={block.anchor}>
+      <div className="wrap cert-layout">
+        <div className="cert-intro">
+          {block.eyebrow && <div className="eyebrow">{block.eyebrow}</div>}
+          {block.heading && <h2>{block.heading}</h2>}
+          {block.body && <p className="cert-body">{block.body}</p>}
+          <div className="cert-total">
+            <b>{items.length}</b>
+            <span>
+              certifications across
+              <br />
+              {issuers.join(' and ')}
+            </span>
+          </div>
+          <ul className="cert-levels" aria-label="Certifications by level">
+            {counts.map((l) => (
+              <li key={l.key} className={`lvl-${l.key}`}>
+                <i aria-hidden="true" />
+                {l.label}
+                <b>{l.n}</b>
+              </li>
+            ))}
+          </ul>
+          <Link className="cert-link" href="/certifications">
+            See every certification
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M3 8h9m0 0L8.5 4.5M12 8l-3.5 3.5" />
+            </svg>
+          </Link>
+        </div>
+
+        <div className="cert-rail">
+          <ul className="cert-grid">
+            {items.map((logo) => (
+              <li className={`cert-card lvl-${logo.level.key}`} key={logo.name}>
+                <span className="cert-badge">
+                  {logo.image ? (
+                    // Plain <img>: the set mixes SVG and raster, and next/image
+                    // refuses SVG without dangerouslyAllowSVG.
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={logo.image} alt={logo.alt ?? `${logo.name} badge`} loading="lazy" />
+                  ) : (
+                    <svg aria-hidden="true">
+                      <use href="#s-check" />
+                    </svg>
+                  )}
+                </span>
+                <span className="cert-level">{logo.level.label}</span>
+                <span className="cert-name">{logo.name}</span>
+                {logo.issuer && <span className="cert-issuer">{logo.issuer}</span>}
+              </li>
+            ))}
+          </ul>
+          <p className="cert-swipe" aria-hidden="true">
+            Swipe to see all {items.length}
+            <svg viewBox="0 0 16 16">
+              <path d="M3 8h9m0 0L8.5 4.5M12 8l-3.5 3.5" />
+            </svg>
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * Vendor partner logos in one panel. Each mark gets the same visual area
+ * rather than the same height: a fixed height makes a near-square mark look
+ * twice the weight of a long wordmark. Captions are left off because every
+ * mark already says its own name; the alt text carries it for screen readers.
+ */
+const PARTNER_AREA = 6600; // px² of drawn logo per cell
+
+function PartnerPanel({ block }: { block: LogoGridBlock }) {
+  return (
+    <section className={block.altBackground ? 'alt-bg partners' : 'partners'} id={block.anchor}>
+      <div className="wrap">
+        <SectionHead eyebrow={block.eyebrow} heading={block.heading} body={block.body} centered />
+        <ul
+          className="partner-panel"
+          style={{ '--partner-count': block.logos.length } as CSSProperties}
+        >
+          {block.logos.map((logo) => {
+            const ratio = logo.aspect ?? 3;
+            const h = Math.round(Math.sqrt(PARTNER_AREA / ratio));
+            return (
+              <li className="partner-cell" key={logo.name}>
+                {logo.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={logo.image}
+                    alt={logo.alt ?? logo.name}
+                    loading="lazy"
+                    style={{ '--h': `${h}px` } as CSSProperties}
+                  />
+                ) : (
+                  <span className="partner-name">{logo.name}</span>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+        {block.points && block.points.length > 0 && (
+          <ul className="partner-points">
+            {block.points.map((point) => (
+              <li key={point}>
+                <span className="partner-tick" aria-hidden="true">
+                  <svg viewBox="0 0 16 16">
+                    <path d="M3.5 8.5l3 3 6-7" />
+                  </svg>
+                </span>
+                {point}
+              </li>
+            ))}
+          </ul>
+        )}
+        {block.note && <div className="price-note">{block.note}</div>}
+      </div>
+    </section>
   );
 }
 
@@ -212,6 +675,7 @@ function BlockSwitch({ block, index }: { block: Block; index: number }) {
                 body: block.body,
                 platforms: block.platforms,
                 backgroundImage: block.backgroundImage,
+                imagePosition: block.imagePosition,
                 ctas: block.ctas,
               },
               ...block.slides,
@@ -220,7 +684,9 @@ function BlockSwitch({ block, index }: { block: Block; index: number }) {
         );
       }
       return (
-        <section className={`hero${block.backgroundImage ? ' hero-dark' : ''}${block.videoUrl ? '' : ' hero-single'}`}>
+        // Same hero as every other page, at home size. Without a photo it falls
+        // back to the navy gradient; with a video the copy sits beside it.
+        <section className={`hero hero--home${block.videoUrl ? ' hero--video' : ''}`}>
           {block.backgroundImage && (
             <>
               {/* next/image gives responsive AVIF/WebP variants of the photo;
@@ -237,7 +703,7 @@ function BlockSwitch({ block, index }: { block: Block; index: number }) {
               <div className="hero-scrim" aria-hidden="true" />
             </>
           )}
-          <div className={`wrap hero-grid${block.videoUrl ? '' : ' single'}`}>
+          <div className="wrap hero-grid">
             <div>
               {block.eyebrow && (
                 <span className="eyebrow-pill">
@@ -248,7 +714,7 @@ function BlockSwitch({ block, index }: { block: Block; index: number }) {
               <h1>
                 {block.heading} {block.highlight && <span>{block.highlight}</span>}
               </h1>
-              {block.body && <p>{block.body}</p>}
+              {block.body && <p className="lede">{block.body}</p>}
               {block.ctas.length > 0 && (
                 <div className="hero-cta">
                   {block.ctas.map((cta, i) => (
@@ -285,7 +751,7 @@ function BlockSwitch({ block, index }: { block: Block; index: number }) {
       return (
         <section className="quicklinks">
           <div className="wrap">
-            <div className="ql-grid">
+            <div className="ql-grid" style={{ '--ql-count': block.items.length } as CSSProperties}>
               {block.items.map((item) => (
                 <Link className="ql-item" href={item.href} key={item.label}>
                   <div className="ql-ic" style={{ background: item.color }}>
@@ -293,7 +759,13 @@ function BlockSwitch({ block, index }: { block: Block; index: number }) {
                       <use href={item.icon} />
                     </svg>
                   </div>
-                  <span>{item.label}</span>
+                  <span className="ql-text">
+                    <span>{item.label}</span>
+                    {item.sub && <small className="ql-sub">{item.sub}</small>}
+                  </span>
+                  <svg className="ql-arrow" viewBox="0 0 16 16" aria-hidden="true">
+                    <path d="M3 8h9m0 0L8.5 4.5M12 8l-3.5 3.5" />
+                  </svg>
                 </Link>
               ))}
             </div>
@@ -302,6 +774,11 @@ function BlockSwitch({ block, index }: { block: Block; index: number }) {
       );
 
     case 'cardGrid':
+      if (block.variant === 'plans') return <PlanGrid block={block} />;
+      if (block.variant === 'routes') return <RouteGrid block={block} />;
+      if (block.variant === 'split') return <SplitGrid block={block} />;
+      if (block.variant === 'statement') return <StatementBand block={block} />;
+      if (block.variant === 'numbered') return <NumberedList block={block} />;
       return (
         <section className={block.altBackground ? 'alt-bg' : undefined} id={block.anchor}>
           <div className="wrap">
@@ -316,27 +793,39 @@ function BlockSwitch({ block, index }: { block: Block; index: number }) {
                 would keep 4 columns on a phone. */}
             <div className={`card-grid${block.columns !== 3 ? ` cols-${block.columns}` : ''}`}>
               {block.cards.map((card) => (
-                <article className="mcard" key={card.title}>
-                  {/* Artwork wins over the icon when a card has both. The
-                      image fills the cover, so no tint shows behind it. */}
-                  {card.coverImage ? (
-                    <div className="cover cover-image">
-                      {/* eslint-disable-next-line @next/next/no-img-element --
-                          these are fixed-size decorative covers served from
-                          /public; next/image buys nothing here and costs a
-                          layout shift while it measures. */}
-                      <img
+                <article
+                  className={`mcard${card.link ? ' mcard--link' : ''}${card.image || card.coverImage ? ' mcard--media' : ''}`}
+                  key={card.title}
+                >
+                  {/* A photo (image) or supplied artwork (coverImage) runs
+                      across the top and replaces the icon tile. Artwork keeps
+                      its own proportions and alt text, and gets no shading. */}
+                  {card.image ? (
+                    <div className="mcard-media">
+                      <Image
+                        src={card.image}
+                        alt=""
+                        fill
+                        sizes="(max-width: 700px) 100vw, (max-width: 1024px) 50vw, 400px"
+                      />
+                    </div>
+                  ) : card.coverImage ? (
+                    <div className="mcard-media mcard-media--art">
+                      <Image
                         src={card.coverImage}
                         alt={card.coverImageAlt ?? ''}
-                        width={680}
-                        height={260}
-                        loading="lazy"
-                        decoding="async"
+                        fill
+                        sizes="(max-width: 700px) 100vw, (max-width: 1024px) 50vw, 400px"
                       />
                     </div>
                   ) : (
                     card.icon && (
-                      <div className="cover" style={{ background: card.coverColor ?? '#EAF1FB' }}>
+                      <div
+                        className="mcard-icon"
+                        style={{
+                          background: card.coverColor ?? 'var(--surface-blue)',
+                        }}
+                      >
                         <svg aria-hidden="true">
                           <use href={card.icon} />
                         </svg>
@@ -344,23 +833,22 @@ function BlockSwitch({ block, index }: { block: Block; index: number }) {
                     )
                   )}
                   {card.tag && <div className="tag">{card.tag}</div>}
-                  <div className={`body${card.tag ? '' : ' notag'}`}>
-                    <h3>{card.title}</h3>
-                    {/* Same element and class the /case-studies index uses for
-                        its attribution and platform lines, so a grid that
-                        mirrors those cards is styled by one rule rather than
-                        two that drift. */}
-                    {card.meta && <p className="lead-source">{card.meta}</p>}
-                    <p>{card.body}</p>
-                    {card.chips && card.chips.length > 0 && (
-                      <p className="lead-source">{card.chips.join(' · ')}</p>
-                    )}
-                    {card.link && (
-                      <Link className="lnk" href={card.link.href}>
-                        {card.link.label} ›
-                      </Link>
-                    )}
-                  </div>
+                  <h3>{card.title}</h3>
+                  {/* Same element and class the /case-studies index uses for
+                      its attribution and platform lines, so a grid that
+                      mirrors those cards is styled by one rule rather than
+                      two that drift. */}
+                  {card.meta && <p className="lead-source">{card.meta}</p>}
+                  <p>{card.body}</p>
+                  {card.chips && card.chips.length > 0 && (
+                    <p className="lead-source">{card.chips.join(' · ')}</p>
+                  )}
+                  {/* On a linked card this link stretches over the whole card. */}
+                  {card.link && (
+                    <Link className="lnk" href={card.link.href}>
+                      {card.link.label} ›
+                    </Link>
+                  )}
                 </article>
               ))}
             </div>
@@ -408,11 +896,21 @@ function BlockSwitch({ block, index }: { block: Block; index: number }) {
       );
 
     case 'steps':
+      if (block.variant === 'checks') {
+        return (
+          <HealthChecks
+            anchor={block.anchor}
+            items={block.steps}
+            highlights={block.highlights}
+            head={<SectionHead eyebrow={block.eyebrow} heading={block.heading} body={block.body} centered />}
+          />
+        );
+      }
       return (
         <section id={block.anchor}>
           <div className="wrap">
             <SectionHead eyebrow={block.eyebrow} heading={block.heading} body={block.body} centered />
-            <div className="steps">
+            <div className={`steps steps--${block.steps.length}`}>
               {block.steps.map((step) => (
                 <div className="step" key={step.title}>
                   <h4>{step.title}</h4>
@@ -424,20 +922,42 @@ function BlockSwitch({ block, index }: { block: Block; index: number }) {
         </section>
       );
 
-    case 'pricing':
+    case 'pricing': {
+      // One shared rate is stated once, not repeated on every card.
+      const sharedRate =
+        block.variant === 'rates' &&
+        block.plans.length > 0 &&
+        block.plans.every((p) => p.price === block.plans[0].price && p.unit === block.plans[0].unit)
+          ? block.plans[0]
+          : null;
       return (
         <section className={block.altBackground ? 'alt-bg' : undefined} id={block.anchor ?? 'pricing'}>
           <div className="wrap">
             <SectionHead eyebrow={block.eyebrow} heading={block.heading} body={block.body} centered />
-            <div className={block.columns === 3 ? 'price-grid-3' : 'price-grid'}>
+            {sharedRate && (
+              <div className="rate-banner">
+                <p className="rate-banner-price">
+                  <b>{sharedRate.price}</b>
+                  {sharedRate.unit && <span>{sharedRate.unit}</span>}
+                </p>
+                {block.note && <p className="rate-banner-note">{block.note}</p>}
+              </div>
+            )}
+            <div
+              className={`${block.columns === 3 ? 'price-grid-3' : 'price-grid'}${
+                sharedRate ? ' price-grid--rates' : ''
+              }`}
+            >
               {block.plans.map((plan) => (
                 <div className={`price-card${plan.featured ? ' featured' : ''}`} key={plan.name}>
                   {plan.badge && <span className="badge">{plan.badge}</span>}
                   <h3>{plan.name}</h3>
-                  <div className="price">
-                    <b>{plan.price}</b>
-                    {plan.unit && <span className="unit">{plan.unit}</span>}
-                  </div>
+                  {!sharedRate && (
+                    <div className="price">
+                      <b>{plan.price}</b>
+                      {plan.unit && <span className="unit">{plan.unit}</span>}
+                    </div>
+                  )}
                   {plan.description && <p className="plan-desc">{plan.description}</p>}
                   {plan.featuresTitle && <h4 className="plan-feat-title">{plan.featuresTitle}</h4>}
                   <ul>
@@ -472,10 +992,11 @@ function BlockSwitch({ block, index }: { block: Block; index: number }) {
                 </div>
               ))}
             </div>
-            {block.note && <div className="price-note">{block.note}</div>}
+            {block.note && !sharedRate && <div className="price-note">{block.note}</div>}
           </div>
         </section>
       );
+    }
 
     case 'productGrid':
       return (
@@ -526,6 +1047,8 @@ function BlockSwitch({ block, index }: { block: Block; index: number }) {
       );
 
     case 'logoGrid':
+      if (block.variant === 'showcase') return <CertShowcase block={block} />;
+      if (block.variant === 'partners') return <PartnerPanel block={block} />;
       return (
         <section className={block.altBackground ? 'alt-bg' : undefined} id={block.anchor}>
           <div className="wrap">
@@ -613,25 +1136,27 @@ function BlockSwitch({ block, index }: { block: Block; index: number }) {
         <section className="alt-bg" id={block.anchor}>
           <div className="wrap">
             <SectionHead eyebrow={block.eyebrow} heading={block.heading} body={block.body} centered />
-            <div className="tech-groups">
-              {block.groups.map((group) => (
-                <div className="tech-card" key={group.title}>
-                  <h3 className="tech-card-title">{group.title}</h3>
-                  <ul className="tech-list">
-                    {group.chips.map((chip) => (
-                      <li key={chip.label}>
-                        <span className="tech-glyph" style={glyphStyle(chip.color)} aria-hidden="true">
-                          <svg>
-                            <use href={`#${techGlyph(chip.label, chip.icon)}`} />
-                          </svg>
-                        </span>
-                        <span className="tech-label">{chip.label}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
+            <TechGroups
+              groups={block.groups.map((group): TechGroupView => ({
+                title: group.title,
+                icon: groupGlyph(group.title),
+                chips: group.chips.map((chip) => {
+                  // "Linux — Red Hat, Ubuntu" reads as a name and its detail.
+                  const [name, ...rest] = chip.label.split(/\s+—\s+/);
+                  return {
+                    key: chip.label,
+                    name,
+                    detail: rest.join(' — ') || undefined,
+                    icon: techGlyph(chip.label, chip.icon),
+                    href: techHref(chip.label, chip.href),
+                  };
+                }),
+              }))}
+            />
+
+            <p className="tg-more">
+              Running something not listed? <Link href="/contact">Ask us about it ›</Link>
+            </p>
 
             {/* Previously a narrow aside beside a tall column of pills, which
                 left most of the row empty. As a full-width band it balances the
@@ -651,6 +1176,20 @@ function BlockSwitch({ block, index }: { block: Block; index: number }) {
       );
 
     case 'richText':
+      // An untitled paragraph straight under the hero is the page's one-line
+      // answer, so it is set as a summary rather than as body copy.
+      if (index === 0 && !block.heading) {
+        return (
+          <section className="rt-lead">
+            <div className="wrap">
+              <div className="rt-lead-box">
+                <span className="rt-lead-label">In short</span>
+                <div className="article-body" dangerouslySetInnerHTML={{ __html: block.html }} />
+              </div>
+            </div>
+          </section>
+        );
+      }
       return (
         <section>
           <div className="wrap article-wrap">
@@ -667,14 +1206,22 @@ function BlockSwitch({ block, index }: { block: Block; index: number }) {
           <div className="wrap">
             <h2>{block.heading}</h2>
             {block.body && <p>{block.body}</p>}
-            <Cta {...block.cta} variant="btn-white" />
+            <div className="cta-band-actions">
+              <Cta {...block.cta} variant="btn-white" />
+              <a className="cta-band-phone" href={`tel:${siteConfig.phoneE164}`}>
+                <svg aria-hidden="true">
+                  <use href="#i-phone" />
+                </svg>
+                or call {siteConfig.phone}
+              </a>
+            </div>
           </div>
         </div>
       );
 
     case 'contactForm':
       return (
-        <section>
+        <section className="contact-sec">
           <div className="wrap">
             <ContactForm heading={block.heading} body={block.body} />
           </div>
@@ -696,9 +1243,16 @@ function BlockSwitch({ block, index }: { block: Block; index: number }) {
         <section className="section">
           <div className="wrap">
             <aside className="related-service">
-              {block.eyebrow && <span className="eyebrow">{block.eyebrow}</span>}
-              <h2>{block.heading}</h2>
-              <p>{block.body}</p>
+              <span className="rs-icon" aria-hidden="true">
+                <svg>
+                  <use href={`#${calloutGlyph(`${block.eyebrow ?? ''} ${block.heading}`)}`} />
+                </svg>
+              </span>
+              <div className="rs-copy">
+                {block.eyebrow && <span className="eyebrow">{block.eyebrow}</span>}
+                <h2>{block.heading}</h2>
+                <p>{block.body}</p>
+              </div>
               <Cta label={block.cta.label} href={block.cta.href} variant="btn-primary" />
             </aside>
           </div>

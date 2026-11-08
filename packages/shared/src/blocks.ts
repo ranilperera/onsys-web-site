@@ -23,6 +23,9 @@ const cardSchema = z.object({
   /** What the artwork shows. Required alongside coverImage, for a reason. */
   coverImageAlt: z.string().optional(),
   coverColor: z.string().optional(),
+  /// Optional photo shown across the top of the card, e.g. /images/x.jpg.
+  /// Takes the place of the icon tile when both are set.
+  image: z.string().optional(),
   link: linkSchema.optional(),
   tag: z.string().optional(),
   /// A line of attribution under the title, e.g. "Manufacturing · Sri Lanka
@@ -33,6 +36,8 @@ const cardSchema = z.object({
   /// platforms an engagement used. An array rather than a joined string so the
   /// separator is the renderer's decision and stays consistent site-wide.
   chips: z.array(z.string()).optional(),
+  /// Ticked inclusions, used by the 'plans' card grid.
+  points: z.array(z.string()).optional(),
 });
 
 export const blockSchema = z.discriminatedUnion('type', [
@@ -46,6 +51,9 @@ export const blockSchema = z.discriminatedUnion('type', [
     /// hero switches to its dark treatment: a navy scrim over the image and
     /// white type, because navy-on-photo is unreadable.
     backgroundImage: z.string().optional(),
+    /// CSS object-position for the photo, e.g. "70% 35%", so a cropped frame
+    /// keeps the person in view. Defaults to centre.
+    imagePosition: z.string().optional(),
     videoUrl: z.string().optional(),
     ctas: z.array(linkSchema).default([]),
     /// Short platform list rendered under the body, e.g.
@@ -64,6 +72,7 @@ export const blockSchema = z.discriminatedUnion('type', [
           body: z.string().optional(),
           platforms: z.string().optional(),
           backgroundImage: z.string().optional(),
+          imagePosition: z.string().optional(),
           ctas: z.array(linkSchema).default([]),
         }),
       )
@@ -71,7 +80,16 @@ export const blockSchema = z.discriminatedUnion('type', [
   }),
   z.object({
     type: z.literal('quicklinks'),
-    items: z.array(z.object({ label: z.string(), href: z.string(), icon: z.string(), color: z.string() })),
+    items: z.array(
+      z.object({
+        label: z.string(),
+        href: z.string(),
+        icon: z.string(),
+        color: z.string(),
+        /// Short second line under the label, e.g. "From $1,500 / month".
+        sub: z.string().optional(),
+      }),
+    ),
   }),
   z.object({
     type: z.literal('cardGrid'),
@@ -83,6 +101,18 @@ export const blockSchema = z.discriminatedUnion('type', [
     centered: z.boolean().default(false),
     altBackground: z.boolean().default(false),
     columns: z.number().int().min(1).max(4).default(3),
+    /// 'plans' renders each card as a price card: the tag ("$1,500/mo") as
+    /// the headline figure and `points` as a ticked list.
+    /// 'routes' renders the cards as the choices a visitor picks between:
+    /// the tag as a badge, and a card whose link stays on the page (#...)
+    /// marked as the main action.
+    /// 'split' sets two cards side by side as places or teams: the tag as a
+    /// location line, `points` ticked, and `note` as the rule that binds them.
+    /// 'statement' is a dark band of short statements (vision, mission).
+    /// 'numbered' is a light numbered list, for values and principles.
+    variant: z.enum(['plans', 'routes', 'split', 'statement', 'numbered']).optional(),
+    /// A line under the cards. The 'routes' variant ends it with the phone number.
+    note: z.string().optional(),
     cards: z.array(cardSchema),
   }),
   z.object({
@@ -104,7 +134,21 @@ export const blockSchema = z.discriminatedUnion('type', [
     body: z.string().optional(),
     /// Optional id so menu items can deep-link to this section.
     anchor: z.string().optional(),
-    steps: z.array(z.object({ title: z.string(), body: z.string() })),
+    /// 'checks': a grouped checklist rather than a numbered sequence — the
+    /// steps are bucketed by `group`, with a navigation rail and `highlights`.
+    variant: z.enum(['checks']).optional(),
+    /// Key figures for the rail beside a 'checks' list, e.g. { value: '20', label: 'checkpoints' }.
+    highlights: z.array(z.object({ value: z.string(), label: z.string() })).optional(),
+    steps: z.array(
+      z.object({
+        title: z.string(),
+        body: z.string(),
+        /// Section the item belongs to, for the 'checks' variant.
+        group: z.string().optional(),
+        /// Short label shown on the item, e.g. how it is collected ("T-SQL").
+        tag: z.string().optional(),
+      }),
+    ),
   }),
   z.object({
     type: z.literal('pricing'),
@@ -117,6 +161,9 @@ export const blockSchema = z.discriminatedUnion('type', [
     anchor: z.string().optional(),
     altBackground: z.boolean().default(true),
     columns: z.number().int().min(2).max(3).default(2),
+    /// 'rates': every plan carries the same price, so it is shown once in a
+    /// banner (with the note) and left off the individual cards.
+    variant: z.enum(['rates']).optional(),
     plans: z.array(
       z.object({
         name: z.string(),
@@ -231,6 +278,14 @@ export const blockSchema = z.discriminatedUnion('type', [
    */
   z.object({
     type: z.literal('logoGrid'),
+    /// "showcase" is the dark credentials band used on the home page: level
+    /// tags, a count by level, and a swipeable row on phones. Default is the
+    /// plain tile wall.
+    /// "partners" is a single logo panel with the logos balanced by visual
+    /// weight and optional benefit points beneath.
+    variant: z.enum(['grid', 'showcase', 'partners']).optional(),
+    /// Short benefit lines shown under the logos in the "partners" variant.
+    points: z.array(z.string()).optional(),
     eyebrow: z.string().optional(),
     heading: z.string().optional(),
     body: z.string().optional(),
@@ -244,6 +299,9 @@ export const blockSchema = z.discriminatedUnion('type', [
         image: z.string().optional(),
         alt: z.string().optional(),
         issuer: z.string().optional(),
+        /// Width ÷ height of the artwork. Lets the "partners" panel give a
+        /// square mark and a long wordmark the same visual weight.
+        aspect: z.number().optional(),
       }),
     ),
   }),
@@ -277,6 +335,8 @@ export const blockSchema = z.discriminatedUnion('type', [
             /// Sprite id describing what kind of technology this is
             /// (t-cluster, t-migrate, …). Falls back to a neutral mark.
             icon: z.string().optional(),
+            /// Page this entry links to. Falls back to the matching service page.
+            href: z.string().optional(),
           }),
         ),
       }),
@@ -433,6 +493,11 @@ export const blockSchema = z.discriminatedUnion('type', [
     fits: z.array(z.string()).default([]),
     /** The honest caveat. Shown under the price, not buried in a footnote. */
     note: z.string().optional(),
+    /**
+     * The "At a glance" card in the page hero. A row labelled "Prices shown"
+     * becomes the line under the card rather than a row in it.
+     */
+    glance: z.array(z.object({ label: z.string(), value: z.string() })).optional(),
   }),
 ]);
 

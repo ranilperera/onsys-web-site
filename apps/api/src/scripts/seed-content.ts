@@ -103,7 +103,8 @@ const homeBlocks: Block[] = [
     highlight: 'From $150 per hour.',
     body: 'Get the database expertise you need without hiring another full-time DBA. Our Australian team monitors, troubleshoots and supports SQL Server, Oracle, PostgreSQL, MySQL and MongoDB around the clock — across on-premises, cloud and hybrid environments.',
     platforms: 'Plans from $1,500/month · Published pricing · No lock-in',
-    backgroundImage: '/images/hero-home-1.jpg',
+    backgroundImage: '/images/hero-photo-datacentre.jpg',
+    imagePosition: '72% 35%',
     ctas: [
       // Straight to the embedded form rather than to the landing page: the
       // offer is already made in the headline, so another page that re-sells it
@@ -119,7 +120,8 @@ const homeBlocks: Block[] = [
         highlight: 'Your databases still need one at 2am.',
         body: 'Get a senior Australian DBA team watching your critical databases around the clock. We monitor, troubleshoot, tune and support SQL Server, Oracle, PostgreSQL, MySQL and MongoDB — so your IT team gets expert database capability without hiring another full-time specialist.',
         platforms: 'Plans from $1,500/month · Published pricing · No lock-in',
-        backgroundImage: '/images/hero-dba-oncall.jpg',
+        backgroundImage: '/images/hero-photo-noc.jpg',
+        imagePosition: '50% 45%',
         ctas: [
           { label: 'Explore 24/7 DBA support', href: '/remote-database-support' },
           { label: 'Check my database for free', href: '#request-health-check' },
@@ -131,7 +133,8 @@ const homeBlocks: Block[] = [
         highlight: 'before you call a DBA.',
         body: 'Performance problems, failed backups, replication issues and unexpected outages rarely arrive at a convenient time. Get senior Australian DBAs monitoring and supporting your environment 24/7, with defined response SLAs and expertise across SQL Server, Oracle, PostgreSQL, MySQL and MongoDB.',
         platforms: 'Know the risk before it becomes downtime.',
-        backgroundImage: '/images/hero-db-emergency.jpg',
+        backgroundImage: '/images/hero-photo-rack.jpg',
+        imagePosition: '66% 40%',
         ctas: [
           { label: 'Get the free 20-point health check', href: '#request-health-check' },
           { label: 'Talk to a DBA', href: `tel:${org.phoneE164}` },
@@ -143,7 +146,8 @@ const homeBlocks: Block[] = [
         highlight: 'for less than the cost of hiring one.',
         body: 'Access senior Australian database specialists 24/7 without recruitment, leave coverage or dependence on a single employee. From routine monitoring and performance tuning through to outages, upgrades, migrations and high availability, one team supports your environment when you need it.',
         platforms: 'Plans from $1,500/month · No lock-in · Pricing published upfront',
-        backgroundImage: '/images/hero-home-2.jpg',
+        backgroundImage: '/images/hero-photo-team.jpg',
+        imagePosition: '38% 62%',
         ctas: [
           { label: 'Compare DBA plans', href: '/pricing-and-plans' },
           { label: 'Book a consultation', href: org.bookingUrl },
@@ -155,7 +159,8 @@ const homeBlocks: Block[] = [
         highlight: 'your business depends on.',
         body: 'SQL Server. Oracle. PostgreSQL. MySQL. MongoDB. Azure SQL. Whether your databases run on-premises, in Azure, AWS, OCI or across a hybrid environment, our Australian specialists help you monitor, optimise, secure, migrate and keep them available 24/7.',
         platforms: 'One support team · Multiple platforms · No lock-in',
-        backgroundImage: '/images/hero-home-3.jpg',
+        backgroundImage: '/images/hero-photo-expert.jpg',
+        imagePosition: '96% 35%',
         ctas: [
           { label: 'Explore our database expertise', href: '/expertise' },
           { label: 'Speak with a DBA', href: `tel:${org.phoneE164}` },
@@ -480,37 +485,29 @@ const homeBlocks: Block[] = [
      * named competency would be a stronger claim than the artwork supports.
      */
     type: 'logoGrid',
+    variant: 'partners',
     anchor: 'partners',
     eyebrow: 'Vendor partnerships',
     heading: 'Recognised by the vendors whose platforms we run',
-    body: 'Partnerships matter for two practical reasons: they are how we reach vendor support escalation paths when a problem turns out to be a product defect, and they are how we stay current on roadmaps before they affect your estate.',
+    body: 'Partnerships matter for two practical reasons.',
+    points: [
+      'A direct vendor escalation path when a problem turns out to be a product defect',
+      'Early sight of vendor roadmaps, before changes affect your estate',
+    ],
     altBackground: false,
+    // The -trim files are the supplied artwork with the empty margins removed,
+    // so each mark can be sized by what is actually drawn. Originals are kept.
     logos: [
-      {
-        name: 'Microsoft Partner',
-        image: '/partners/microsoft-partner.png',
-        alt: 'Microsoft Partner',
-      },
-      {
-        name: 'Oracle Partner',
-        image: '/partners/oracle-partner.png',
-        alt: 'Oracle Partner',
-      },
+      { name: 'Microsoft Partner', image: '/partners/microsoft-partner-trim.png', alt: 'Microsoft Partner', aspect: 8.54 },
+      { name: 'Oracle Partner', image: '/partners/oracle-partner-trim.png', alt: 'Oracle Partner', aspect: 4.13 },
       {
         name: 'Dell Technologies Authorized Partner',
-        image: '/partners/dell-technologies-authorized-partner.png',
+        image: '/partners/dell-technologies-authorized-partner-trim.png',
         alt: 'Dell Technologies Authorized Partner',
+        aspect: 3.36,
       },
-      {
-        name: 'N-able Partner',
-        image: '/partners/n-able.png',
-        alt: 'N-able',
-      },
-      {
-        name: 'Dbvisit Partner',
-        image: '/partners/dbvisit.png',
-        alt: 'Dbvisit',
-      },
+      { name: 'N-able Partner', image: '/partners/n-able-trim.png', alt: 'N-able Partner', aspect: 5.35 },
+      { name: 'Dbvisit Partner', image: '/partners/dbvisit-trim.png', alt: 'Dbvisit Partner', aspect: 2.32 },
     ],
   },
   {
@@ -527,6 +524,7 @@ const homeBlocks: Block[] = [
      * to lapse is changed in one place rather than three.
      */
     type: 'logoGrid',
+    variant: 'showcase',
     anchor: 'certifications',
     eyebrow: 'Credentials',
     heading: 'Certifications held by our engineers and consultants',
@@ -939,7 +937,6 @@ const aboutBlocks: Block[] = [
     body: 'Onsys Technologies helps businesses in Australia and worldwide innovate, digitalise and save money through tailored IT solutions. Our team combines onshore and offshore specialists — global expertise with local insight — to deliver secure, scalable solutions for organisations of any size.',
     items: [
       'Melbourne head office with a delivery centre in Colombo, Sri Lanka',
-      'Onshore presence in Australia backed by an offshore expert team',
       'Enterprise-grade engineering at a cost-effective price point',
       'Experience across industries and regions, on complex problems',
       'Certified specialists rather than generalist first-line support',
@@ -957,13 +954,51 @@ const aboutBlocks: Block[] = [
     },
   },
   {
+    /*
+     * Who does what, and where. Restates the split the FAQ and the
+     * data-sovereignty block already commit to — database work in Australia,
+     * Colombo for the services around it — so a reader meets it here rather
+     * than in the last question on the page. Nothing new is claimed.
+     */
+    type: 'cardGrid',
+    anchor: 'where-we-work',
+    variant: 'split',
+    eyebrow: 'Two offices, one rule',
+    heading: 'Who does what, and where',
+    body: 'The split is a fixed rule, not a preference — with Australian accountability on every engagement.',
+    centered: true,
+    altBackground: true,
+    columns: 2,
+    note: 'No offshore engineer holds credentials to a client database — on every plan, by default, not as an upgrade.',
+    cards: [
+      {
+        title: 'Database consultancy and support',
+        tag: `Head office · ${org.address.locality}, ${org.address.region}`,
+        body: 'Every login to a client database is made by an Onsys consultant based in Australia.',
+        points: [
+          'Database consultancy and project work',
+          'Managed database services and 24/7 remote DBA support',
+          'On-call cover and emergency outage response',
+        ],
+        link: { label: 'Read the access policy', href: '/who-can-access-your-database' },
+      },
+      {
+        title: 'Managed IT, software and security',
+        tag: 'Delivery centre · Colombo, Sri Lanka',
+        body: 'Our Colombo team delivers the services around the database, under the same Australian company and the same accountability.',
+        points: ['Managed IT support', 'Software development', 'Security management'],
+        link: { label: 'See these services', href: '/other-services' },
+      },
+    ],
+  },
+  {
     type: 'cardGrid',
     anchor: 'what-we-do',
     eyebrow: 'What we do',
     heading: 'More than a service provider — a trusted technology partner',
     body: 'Six ways clients engage us on their database estate, each with a team and an SLA behind it.',
     centered: true,
-    altBackground: true,
+    altBackground: false,
     columns: 3,
     cards: [
       { title: 'Database support & consultancy', body: 'Expert advice to optimise performance, migrate platforms, strengthen disaster recovery and build modern infrastructure.', icon: '#s-consult', coverColor: '#EAF1FB', link: { label: 'Database consultancy', href: '/database-consultancy' } },
@@ -977,6 +1012,7 @@ const aboutBlocks: Block[] = [
   {
     type: 'cardGrid',
     anchor: 'vision-mission',
+    variant: 'statement',
     eyebrow: 'Where we are going',
     heading: 'Vision and mission',
     centered: true,
@@ -1002,10 +1038,11 @@ const aboutBlocks: Block[] = [
   {
     type: 'cardGrid',
     anchor: 'values',
+    variant: 'numbered',
     eyebrow: 'Our values',
     heading: 'What guides how we work',
     centered: true,
-    altBackground: true,
+    altBackground: false,
     columns: 3,
     cards: [
       { title: 'Customer-centric excellence', body: 'Putting client needs first to build long-term partnerships based on trust, not on lock-in.', icon: '#s-consult', coverColor: '#EAF1FB' },
@@ -1060,7 +1097,7 @@ const aboutBlocks: Block[] = [
     heading: 'Enterprise-grade cover, without the enterprise headcount',
     stats: [
       { value: '24/7', label: 'Monitoring, support and on-call cover, every day of the year' },
-      { value: '1 hour', label: 'P1 response SLA on Plan B and Plan C' },
+      { value: '1 hour', label: 'P1 response SLA on Plans B and C' },
       { value: 'Australia', label: 'Where every DBA who touches your database is based' },
       { value: 'None', label: 'Lock-in contracts, on any plan' },
     ],
@@ -1085,10 +1122,10 @@ const pricingBlocks: Block[] = [
   {
     type: 'quicklinks',
     items: [
-      { label: 'Database Plans', href: '#database-plans', icon: '#s-managed', color: '#EAF1FB' },
-      { label: 'Managed IT (SMB)', href: '#managed-it-plans', icon: '#s-cloud', color: '#FFF1E0' },
-      { label: 'Hourly Consultancy', href: '#consultancy-rates', icon: '#s-consult', color: '#E7F5EC' },
-      { label: 'Engagement Options', href: '#engagement-options', icon: '#s-etl', color: '#F3F2F1' },
+      { label: 'Database plans', sub: 'From $1,500 / month', href: '#database-plans', icon: '#s-managed', color: '#EAF1FB' },
+      { label: 'Managed IT (SMB)', sub: 'From $4,500 / month', href: '#managed-it-plans', icon: '#s-cloud', color: '#FFF1E0' },
+      { label: 'Hourly consultancy', sub: '$150 / hour', href: '#consultancy-rates', icon: '#s-consult', color: '#E7F5EC' },
+      { label: 'Engagement options', sub: 'Blocked hours or T&M', href: '#engagement-options', icon: '#s-etl', color: '#F3F2F1' },
     ],
   },
   {
@@ -1299,6 +1336,7 @@ const pricingBlocks: Block[] = [
     altBackground: false,
     eyebrow: 'Remote technical consultancy',
     heading: 'Hourly consultancy rates',
+    variant: 'rates',
     body: 'Senior consultants on demand for project work or one-off support. Every discipline is billed at the same rate, so you can move between them without renegotiating.',
     columns: 3,
     note: 'All rates are GST exclusive and billed hourly with a four-hour minimum engagement. Pre-booking guarantees consultant availability.',
@@ -1466,20 +1504,47 @@ const pricingBlocks: Block[] = [
  */
 const onCallBlocks: Block[] = [
   {
+    /*
+     * Rewritten around what the subscription *is* rather than how fast it
+     * can be set up. The old version sold a 24-hour onboarding promise;
+     * what a buyer actually needs to understand before paying is that the
+     * fee holds the cover and the work is billed separately, which is the
+     * unusual part of the deal and the reason a quiet month is cheap.
+     */
+    /*
+     * Three cards rather than three steps.
+     *
+     * As a steps block these ran the width of the page in a thin row, which
+     * made three short, equally important facts look like a procedure with a
+     * beginning and an end. They are not a sequence — the middle one may
+     * never happen, which is the whole point of the product — so they are
+     * laid out the way "Choosing between them" lays out its three options,
+     * and the tags carry the order for anyone who wants it.
+     */
     type: 'cardGrid',
-    eyebrow: 'Why on-call DBA support',
-    heading: 'Peace of mind without a DBA on payroll',
-    body: 'A guaranteed response time, a dedicated phone number and helpdesk access, so you can reach a certified DBA at any hour — and pay for the calls you actually make.',
+    eyebrow: 'How the subscription works',
+    heading: 'Hold the cover, pay for the work',
+    body: 'Three things happen, and only the middle one is up to you.',
     centered: true,
     altBackground: true,
     columns: 3,
     cards: [
-      { title: 'Reduce costs', body: 'With an on-call subscription you hold the cover for a low monthly fee and pay for support calls only when you need one.', coverImage: '/images/oncall-card-reduce-costs.png', coverImageAlt: 'A database stack beside a stack of coins', icon: '#s-managed', coverColor: '#EAF1FB' },
-      { title: 'Improve availability', body: '24×7 service coverage for critical database infrastructure, so an out-of-hours incident does not wait until Monday.', coverImage: '/images/oncall-card-availability.png', coverImageAlt: 'A stack of database servers beside a clock face', icon: '#s-ha', coverColor: '#FFF1E0' },
-      { title: 'Fast response', body: 'We attend to problems immediately, resolve the incident, investigate root cause and issue an incident report so it does not recur.', coverImage: '/images/oncall-card-fast-response.png', coverImageAlt: 'A database beside a running stopwatch', icon: '#s-emergency', coverColor: '#E7F5EC' },
-      { title: 'Increase efficiency', body: 'Our database experts work alongside your own team on an incident rather than taking over, so knowledge stays in-house.', coverImage: '/images/oncall-card-efficiency.png', coverImageAlt: 'Two teams at laptops linked to one database through a cog', icon: '#s-consult', coverColor: '#F3F2F1' },
-      { title: 'Experienced consultants', body: 'Certified professionals with years of production experience across current and legacy database technologies — no first-line triage layer.', coverImage: '/images/oncall-card-consultants.png', coverImageAlt: 'A consultant at a laptop beside a database and a certification rosette', icon: '#s-shield', coverColor: '#EAF1FB' },
-      { title: 'Increase your resource pool', body: 'No more exposure to sick days, annual leave, absences or employee turnover taking your only DBA off the board.', coverImage: '/images/oncall-card-resource-pool.png', coverImageAlt: 'Three people at laptops, one joining the team', icon: '#s-etl', coverColor: '#FFF1E0' },
+      {
+        title: 'Subscribe for cover',
+        tag: 'Every month',
+        body: 'The monthly subscription keeps the support arrangement in place for your covered SQL Server instances. Choose your instance count below and enrol — it takes a couple of minutes.',
+        link: { label: 'Choose your cover', href: '#start-on-call' },
+      },
+      {
+        title: 'Contact us when you need help',
+        tag: 'Only if you need it',
+        body: 'Raise a ticket through the service desk or call your dedicated support number. Support is available 24/7, including weekends and public holidays.',
+      },
+      {
+        title: 'Pay for work performed',
+        tag: 'Only for the hours worked',
+        body: 'If you ask us to investigate or resolve an issue, work is billed at $150 per hour. In a month when no support work is requested, you pay the subscription fee only.',
+      },
     ],
   },
   {
@@ -1503,7 +1568,7 @@ const onCallBlocks: Block[] = [
     eyebrow: 'On-call subscription',
     /*
      * The benefit first, the billing second — and no longer a near-copy of
-     * the cards section below it, which is still called "Hold the cover, pay
+     * the cards section just before it, which is still called "Hold the cover, pay
      * for the work". Two headings a screen apart saying almost the same
      * thing made the page look like it was selling two products.
      */
@@ -1543,49 +1608,29 @@ const onCallBlocks: Block[] = [
       'Overflow capacity when your team is committed to a project',
     ],
     note: 'This is reactive support. The subscription does not include continuous monitoring, routine database administration or proactive health checks.',
+    glance: [
+      { label: 'Cover, per month', value: '$100 / instance' },
+      { label: 'Support calls', value: '$150 / hour, when you call' },
+      { label: 'Response', value: 'Two hours, 24/7' },
+      { label: 'Minimum', value: 'Four SQL Server instances' },
+      { label: 'Prices shown', value: 'GST exclusive' },
+    ],
   },
   {
-    /*
-     * Rewritten around what the subscription *is* rather than how fast it
-     * can be set up. The old version sold a 24-hour onboarding promise;
-     * what a buyer actually needs to understand before paying is that the
-     * fee holds the cover and the work is billed separately, which is the
-     * unusual part of the deal and the reason a quiet month is cheap.
-     */
-    /*
-     * Three cards rather than three steps.
-     *
-     * As a steps block these ran the width of the page in a thin row, which
-     * made three short, equally important facts look like a procedure with a
-     * beginning and an end. They are not a sequence — the middle one may
-     * never happen, which is the whole point of the product — so they are
-     * laid out the way "Choosing between them" lays out its three options,
-     * and the tags carry the order for anyone who wants it.
-     */
     type: 'cardGrid',
-    eyebrow: 'How the subscription works',
-    heading: 'Hold the cover, pay for the work',
-    body: 'Three things happen, and only the middle one is up to you.',
+    eyebrow: 'Why on-call DBA support',
+    heading: 'Peace of mind without a DBA on payroll',
+    body: 'A guaranteed response time, a dedicated phone number and helpdesk access, so you can reach a certified DBA at any hour — and pay for the calls you actually make.',
     centered: true,
     altBackground: true,
     columns: 3,
     cards: [
-      {
-        title: 'Subscribe for cover',
-        tag: 'Every month',
-        body: 'The monthly subscription keeps the support arrangement in place for your covered SQL Server instances. Choose your instance count above and enrol — it takes a couple of minutes.',
-        link: { label: 'Choose your cover', href: '#start-on-call' },
-      },
-      {
-        title: 'Contact us when you need help',
-        tag: 'Only if you need it',
-        body: 'Raise a ticket through the service desk or call your dedicated support number. Support is available 24/7, including weekends and public holidays.',
-      },
-      {
-        title: 'Pay for work performed',
-        tag: 'Only for the hours worked',
-        body: 'If you ask us to investigate or resolve an issue, work is billed at $150 per hour. In a month when no support work is requested, you pay the subscription fee only.',
-      },
+      { title: 'Reduce costs', body: 'With an on-call subscription you hold the cover for a low monthly fee and pay for support calls only when you need one.', coverImage: '/images/oncall-card-reduce-costs.png', coverImageAlt: 'A database stack beside a stack of coins', icon: '#s-managed', coverColor: '#EAF1FB' },
+      { title: 'Improve availability', body: '24×7 service coverage for critical database infrastructure, so an out-of-hours incident does not wait until Monday.', coverImage: '/images/oncall-card-availability.png', coverImageAlt: 'A stack of database servers beside a clock face', icon: '#s-ha', coverColor: '#FFF1E0' },
+      { title: 'Fast response', body: 'We attend to problems immediately, resolve the incident, investigate root cause and issue an incident report so it does not recur.', coverImage: '/images/oncall-card-fast-response.png', coverImageAlt: 'A database beside a running stopwatch', icon: '#s-emergency', coverColor: '#E7F5EC' },
+      { title: 'Increase efficiency', body: 'Our database experts work alongside your own team on an incident rather than taking over, so knowledge stays in-house.', coverImage: '/images/oncall-card-efficiency.png', coverImageAlt: 'Two teams at laptops linked to one database through a cog', icon: '#s-consult', coverColor: '#F3F2F1' },
+      { title: 'Experienced consultants', body: 'Certified professionals with years of production experience across current and legacy database technologies — no first-line triage layer.', coverImage: '/images/oncall-card-consultants.png', coverImageAlt: 'A consultant at a laptop beside a database and a certification rosette', icon: '#s-shield', coverColor: '#EAF1FB' },
+      { title: 'Increase your resource pool', body: 'No more exposure to sick days, annual leave, absences or employee turnover taking your only DBA off the board.', coverImage: '/images/oncall-card-resource-pool.png', coverImageAlt: 'Three people at laptops, one joining the team', icon: '#s-etl', coverColor: '#FFF1E0' },
     ],
   },
   {
@@ -1653,11 +1698,13 @@ const onCallBlocks: Block[] = [
   },
   {
     type: 'cardGrid',
+    anchor: 'compare',
+    variant: 'routes',
     eyebrow: 'Choosing between them',
     heading: 'On-call, monthly plan or hourly consultancy?',
     body: 'Three ways to get a senior DBA. The right one depends on whether you need cover, continuous management, or a defined piece of work.',
     centered: true,
-    altBackground: true,
+    altBackground: false,
     columns: 3,
     cards: [
       {
@@ -1717,6 +1764,72 @@ const onCallBlocks: Block[] = [
 const emergencyBlocks: Block[] = [
   {
     type: 'cardGrid',
+    // First thing under the hero: agreement holders should call their line,
+    // not fill in the form, so the page asks which case applies before
+    // anything else. Replaces the "Already on a support agreement?" band.
+    anchor: 'which-applies',
+    variant: 'routes',
+    eyebrow: 'Start here',
+    heading: 'Which applies to you?',
+    body: 'A guaranteed response time is something you hold in advance, not something you can buy mid-outage.',
+    note: 'On a plan or subscription? Call your support line and your SLA applies — the form below is not needed. Not sure what you are covered for?',
+    centered: true,
+    altBackground: false,
+    columns: 3,
+    cards: [
+      {
+        title: 'On a monthly DBA plan',
+        body: 'Your contracted SLA applies — one hour on Plans B and C, two hours on Plan A. Incident work draws on your included service hours first.',
+        tag: 'Guaranteed SLA',
+        link: { label: 'See the plans', href: '/pricing-and-plans' },
+      },
+      {
+        title: 'On an on-call subscription',
+        body: 'A guaranteed two-hour response, 24/7, on your dedicated support line. Call time is billed at $150 per hour against actual work done.',
+        tag: '2-hour SLA',
+        link: { label: 'How on-call works', href: '/on-call-dba-services' },
+      },
+      {
+        title: 'No existing agreement',
+        body: '$180 per hour plus GST, four-hour minimum. We assign the next available senior consultant — no contracted response time, and agreement holders are served first.',
+        tag: 'Subject to availability',
+        link: { label: 'Request a consultant', href: '#get-help-now' },
+      },
+    ],
+  },
+  {
+    type: 'emergencyCheckout',
+    mode: 'contact',
+    eyebrow: 'No agreement? Get help now',
+    heading: 'Three steps to a consultant',
+    body: 'Tell us what is happening, book a Teams session, and we confirm a consultant. Nothing is charged through this form — we agree the scope and the cost with you before any work starts.',
+    summary: {
+      title: 'What it costs',
+      rows: [
+        { label: 'Rate', value: '$180 / hour + GST' },
+        { label: 'Minimum engagement', value: '4 hours' },
+        { label: 'Response', value: 'We aim to allocate a DBA within 4 hours' },
+        { label: 'Availability', value: 'Subject to a consultant being free' },
+      ],
+      note: 'The 4-hour target is what we aim for, not a contracted SLA — a support agreement is what makes a response time guaranteed. Work is billed against actual hours and invoiced afterwards; we confirm the likely cost before starting, and if we cannot help we say so first.',
+    },
+    steps: [
+      {
+        title: 'Tell us what is happening',
+        body: 'Name, company, phone and email, plus whatever detail you have. This alerts a senior consultant immediately.',
+      },
+      {
+        title: 'Book a Teams session',
+        body: 'Pick a time and you get a Teams link by email, with screen sharing for the diagnosis. Or just call us — the line is answered 24/7.',
+      },
+      {
+        title: 'We confirm and start',
+        body: `A consultant confirms availability and the likely cost, then works over secure remote access alongside your team.`,
+      },
+    ],
+  },
+  {
+    type: 'cardGrid',
     eyebrow: 'When to call',
     heading: 'The situations we get called for at 2am',
     body: 'If production is down, degraded or at risk of data loss, call rather than email. These are the failures our on-call DBAs handle most often.',
@@ -1772,37 +1885,6 @@ const emergencyBlocks: Block[] = [
     },
   },
   {
-    type: 'emergencyCheckout',
-    mode: 'contact',
-    eyebrow: 'Get help now',
-    heading: 'Three steps to a consultant',
-    body: 'Tell us what is happening, book a Teams session, and we confirm a consultant. Nothing is charged through this form — we agree the scope and the cost with you before any work starts.',
-    summary: {
-      title: 'What it costs',
-      rows: [
-        { label: 'Rate', value: '$180 / hour + GST' },
-        { label: 'Minimum engagement', value: '4 hours' },
-        { label: 'Response', value: 'We aim to allocate a DBA within 4 hours' },
-        { label: 'Availability', value: 'Subject to a consultant being free' },
-      ],
-      note: 'The 4-hour target is what we aim for, not a contracted SLA — a support agreement is what makes a response time guaranteed. Work is billed against actual hours and invoiced afterwards; we confirm the likely cost before starting, and if we cannot help we say so first.',
-    },
-    steps: [
-      {
-        title: 'Tell us what is happening',
-        body: 'Name, company, phone and email, plus whatever detail you have. This alerts a senior consultant immediately.',
-      },
-      {
-        title: 'Book a Teams session',
-        body: 'Pick a time and you get a Teams link by email, with screen sharing for the diagnosis. Or just call us — the line is answered 24/7.',
-      },
-      {
-        title: 'We confirm and start',
-        body: `A consultant confirms availability and the likely cost, then works over secure remote access alongside your team.`,
-      },
-    ],
-  },
-  {
     type: 'platformChips',
     eyebrow: 'What we can help with',
     heading: 'Platforms our on-call consultants cover',
@@ -1843,44 +1925,9 @@ const emergencyBlocks: Block[] = [
     ],
   },
   {
-    type: 'cardGrid',
-    eyebrow: 'Response times',
-    heading: 'What you can expect when you call',
-    body: 'A guaranteed response time is something you hold in advance, not something you can buy mid-outage. Here is exactly what applies to you.',
-    centered: true,
-    altBackground: true,
-    columns: 3,
-    cards: [
-      {
-        title: 'On a monthly DBA plan',
-        body: 'Your contracted SLA applies — one hour on Plans B and C, two hours on Plan A. Incident work draws on your included service hours first.',
-        tag: 'Guaranteed SLA',
-        link: { label: 'See the plans', href: '/pricing-and-plans' },
-      },
-      {
-        title: 'On an on-call subscription',
-        body: 'A guaranteed two-hour response, 24/7, on your dedicated support line. Call time is billed at $150 per hour against actual work done.',
-        tag: '2-hour SLA',
-        link: { label: 'How on-call works', href: '/on-call-dba-services' },
-      },
-      {
-        title: 'No existing agreement',
-        body: 'Work is charged at $180 per hour plus GST with a four-hour minimum, and we assign the next available senior consultant. There is no contracted response time, and assignment depends on a consultant being free — agreement holders are served first, because they have paid to reserve that capacity.',
-        tag: 'Subject to availability',
-        link: { label: 'Request a consultant', href: '#get-help-now' },
-      },
-    ],
-  },
-  {
-    type: 'ctaBand',
-    heading: 'Already on a support agreement?',
-    body: 'Your contracted SLA applies and none of the above is needed — call your support line and we respond within the time you hold. Not sure what you are covered for? Call and we will tell you.',
-    cta: { label: `Call ${org.phone}`, href: `tel:${org.phoneE164}` },
-  },
-  {
     type: 'contactForm',
     heading: 'Not an emergency?',
-    body: 'Describe what is happening and a senior consultant will come back to you within one business day — no block required. For anything affecting production right now, purchase a block above or call us.',
+    body: 'Describe what is happening and a senior consultant will come back to you within one business day — no block required. For anything affecting production right now, call us or request a consultant above.',
   },
 ];
 
@@ -4846,6 +4893,13 @@ const grcBlocks: Block[] = [
 ];
 
 const contactBlocks: Block[] = [
+  // The form comes first: most people who open a contact page came to use it.
+  // The side panel beside it covers calling, booking and the urgent case.
+  {
+    type: 'contactForm',
+    heading: 'Send us a message',
+    body: 'The more you can tell us about your environment — platforms, versions, what is going wrong — the more useful our first reply will be.',
+  },
   {
     // Three different people land here — someone comparing providers, an
     // existing client, and someone whose production is already down. Sending
@@ -4854,8 +4908,8 @@ const contactBlocks: Block[] = [
     centered: true,
     altBackground: false,
     columns: 3,
-    eyebrow: 'Pick the fastest route',
-    heading: 'How would you like to reach us?',
+    eyebrow: 'Not sure the form is right?',
+    heading: 'Pick the fastest route',
     body: 'Every enquiry reaches a consultant either way — but if something is already broken, do not use the form.',
     cards: [
       {
@@ -4903,11 +4957,6 @@ const contactBlocks: Block[] = [
         { label: 'Production down', value: 'Call — triage starts on the phone' },
       ],
     },
-  },
-  {
-    type: 'contactForm',
-    heading: 'Send us a message',
-    body: 'The more you can tell us about your environment — platforms, versions, what is going wrong — the more useful our first reply will be.',
   },
 ];
 
@@ -5146,30 +5195,36 @@ const healthCheckBlocks: Block[] = [
   {
     type: 'steps',
     anchor: 'the-20-points',
+    variant: 'checks',
+    highlights: [
+      { value: '20', label: 'Read-only checkpoints' },
+      { value: '~20 min', label: 'To collect' },
+      { value: '3 days', label: 'Business days to your report' },
+    ],
     eyebrow: 'What we check',
     heading: 'The 20 points, in full',
     body: 'Every point below is collected by a read-only script — nothing writes, nothing changes configuration, and nothing reads your business data. Points 1 and 2 use PowerShell on the host; the rest are T-SQL.',
     steps: [
-      { title: 'Host and operating system', body: 'OS version and build, CPU cores and model, physical RAM, uptime and the active power plan. A host left on the Balanced power plan throttles CPU frequency, which looks like a database problem and is not.' },
-      { title: 'Disk capacity and layout', body: 'Free space per volume, media type, and the NTFS allocation unit size. SQL Server data volumes should be formatted at 64 KB; the 4 KB default costs measurable throughput and stays invisible until somebody checks.' },
-      { title: 'Version, edition and patch level', body: 'Build number, edition and cumulative update, checked against the Microsoft lifecycle so you know whether the instance is still supported and what the edition limits you to.' },
-      { title: 'Instance configuration', body: 'Max server memory, MAXDOP and cost threshold for parallelism against the CPU and RAM actually present, including NUMA layout. Still at defaults on most estates we review.' },
-      { title: 'tempdb configuration', body: 'File count, equal sizing, autogrowth and current space use. Unequal tempdb files cause allocation contention that presents as a query problem.' },
-      { title: 'Database inventory and options', body: 'Every database with its size, recovery model and compatibility level, plus the options that quietly cause trouble: auto-close, auto-shrink, and any page verify setting other than CHECKSUM.' },
-      { title: 'Backup coverage', body: 'Last full, differential and log backup per database, with the age of each. Databases with no backup at all are the single most common finding in this check.' },
-      { title: 'Restore history', body: 'Restores actually performed on this instance, read from msdb. A script cannot prove a backup is restorable — but it can show whether anyone has ever tried, which is the question worth asking.' },
-      { title: 'Log backup cadence', body: 'How often log backups really run across the last seven days, and the average interval between them. That interval is your genuine worst-case data loss, whatever the recovery objective says on paper.' },
-      { title: 'Integrity checks', body: 'When DBCC CHECKDB last completed cleanly on each database. Corruption found late is often corruption already inside every backup you hold.' },
-      { title: 'High availability configuration', body: 'Always On, failover clustering, mirroring and log shipping — what exists, and whether replicas are synchronising right now, including the redo queue depth on each.' },
-      { title: 'File growth settings', body: 'Percentage-based autogrowth and unconstrained log files. A 10% growth increment on a 200 GB file is a 20 GB pause the first time it fires, usually at the worst possible moment.' },
-      { title: 'Storage latency', body: 'Average read and write stall per file since startup. This is what separates a slow query problem from a slow disk problem, and the two get confused constantly.' },
-      { title: 'Wait statistics', body: 'What the instance is actually waiting on, with idle and benign waits filtered out — so you see where the time goes rather than where you assume it goes.' },
-      { title: 'Index health', body: 'Fragmentation on indexes large enough to matter, plus indexes nobody reads that every insert still has to maintain. Collected in LIMITED mode, which is safe during business hours.' },
-      { title: 'Missing index pressure', body: 'What the optimiser has been asking for, weighted by impact. Evidence to review, never applied as written — it suggests one index per query with no regard for the ones already there.' },
-      { title: 'Statistics currency', body: 'How stale the statistics are and how many rows have changed since. Stale statistics produce bad plans that look exactly like a hardware problem.' },
-      { title: 'Expensive queries and blocking', body: 'The queries costing the most CPU and reads across the instance, anything blocking at the time of collection, and the deadlocks recorded by the always-on system health session.' },
-      { title: 'SQL Agent job health', body: 'Failed and long-running jobs, jobs with no failure notification configured at all, and jobs still owned by accounts belonging to people who have left.' },
-      { title: 'Security and encryption', body: 'Who holds sysadmin, the state of the sa account, which surface-area features are enabled, TDE status, and whether connections are actually encrypted in transit.' },
+      { title: 'Host and operating system', body: 'OS version and build, CPU cores and model, physical RAM, uptime and the active power plan. A host left on the Balanced power plan throttles CPU frequency, which looks like a database problem and is not.', group: 'Platform & configuration', tag: 'PowerShell' },
+      { title: 'Disk capacity and layout', body: 'Free space per volume, media type, and the NTFS allocation unit size. SQL Server data volumes should be formatted at 64 KB; the 4 KB default costs measurable throughput and stays invisible until somebody checks.', group: 'Platform & configuration', tag: 'PowerShell' },
+      { title: 'Version, edition and patch level', body: 'Build number, edition and cumulative update, checked against the Microsoft lifecycle so you know whether the instance is still supported and what the edition limits you to.', group: 'Platform & configuration', tag: 'T-SQL' },
+      { title: 'Instance configuration', body: 'Max server memory, MAXDOP and cost threshold for parallelism against the CPU and RAM actually present, including NUMA layout. Still at defaults on most estates we review.', group: 'Platform & configuration', tag: 'T-SQL' },
+      { title: 'tempdb configuration', body: 'File count, equal sizing, autogrowth and current space use. Unequal tempdb files cause allocation contention that presents as a query problem.', group: 'Platform & configuration', tag: 'T-SQL' },
+      { title: 'Database inventory and options', body: 'Every database with its size, recovery model and compatibility level, plus the options that quietly cause trouble: auto-close, auto-shrink, and any page verify setting other than CHECKSUM.', group: 'Platform & configuration', tag: 'T-SQL' },
+      { title: 'Backup coverage', body: 'Last full, differential and log backup per database, with the age of each. Databases with no backup at all are the single most common finding in this check.', group: 'Backup, recovery & availability', tag: 'T-SQL' },
+      { title: 'Restore history', body: 'Restores actually performed on this instance, read from msdb. A script cannot prove a backup is restorable — but it can show whether anyone has ever tried, which is the question worth asking.', group: 'Backup, recovery & availability', tag: 'T-SQL' },
+      { title: 'Log backup cadence', body: 'How often log backups really run across the last seven days, and the average interval between them. That interval is your genuine worst-case data loss, whatever the recovery objective says on paper.', group: 'Backup, recovery & availability', tag: 'T-SQL' },
+      { title: 'Integrity checks', body: 'When DBCC CHECKDB last completed cleanly on each database. Corruption found late is often corruption already inside every backup you hold.', group: 'Backup, recovery & availability', tag: 'T-SQL' },
+      { title: 'High availability configuration', body: 'Always On, failover clustering, mirroring and log shipping — what exists, and whether replicas are synchronising right now, including the redo queue depth on each.', group: 'Backup, recovery & availability', tag: 'T-SQL' },
+      { title: 'File growth settings', body: 'Percentage-based autogrowth and unconstrained log files. A 10% growth increment on a 200 GB file is a 20 GB pause the first time it fires, usually at the worst possible moment.', group: 'Performance', tag: 'T-SQL' },
+      { title: 'Storage latency', body: 'Average read and write stall per file since startup. This is what separates a slow query problem from a slow disk problem, and the two get confused constantly.', group: 'Performance', tag: 'T-SQL' },
+      { title: 'Wait statistics', body: 'What the instance is actually waiting on, with idle and benign waits filtered out — so you see where the time goes rather than where you assume it goes.', group: 'Performance', tag: 'T-SQL' },
+      { title: 'Index health', body: 'Fragmentation on indexes large enough to matter, plus indexes nobody reads that every insert still has to maintain. Collected in LIMITED mode, which is safe during business hours.', group: 'Performance', tag: 'T-SQL' },
+      { title: 'Missing index pressure', body: 'What the optimiser has been asking for, weighted by impact. Evidence to review, never applied as written — it suggests one index per query with no regard for the ones already there.', group: 'Performance', tag: 'T-SQL' },
+      { title: 'Statistics currency', body: 'How stale the statistics are and how many rows have changed since. Stale statistics produce bad plans that look exactly like a hardware problem.', group: 'Performance', tag: 'T-SQL' },
+      { title: 'Expensive queries and blocking', body: 'The queries costing the most CPU and reads across the instance, anything blocking at the time of collection, and the deadlocks recorded by the always-on system health session.', group: 'Performance', tag: 'T-SQL' },
+      { title: 'SQL Agent job health', body: 'Failed and long-running jobs, jobs with no failure notification configured at all, and jobs still owned by accounts belonging to people who have left.', group: 'Operations & security', tag: 'T-SQL' },
+      { title: 'Security and encryption', body: 'Who holds sysadmin, the state of the sa account, which surface-area features are enabled, TDE status, and whether connections are actually encrypted in transit.', group: 'Operations & security', tag: 'T-SQL' },
     ],
   },
   {
@@ -5361,10 +5416,29 @@ const sqlServerDbaBlocks: Block[] = [
     centered: true,
     altBackground: true,
     columns: 3,
+    variant: 'plans',
     cards: [
-      { title: '24/7 DBA Plan A', body: 'Up to 10 SQL Server instances and 5 TB. Two-hour response SLA, 10 service hours a month, monthly health check. $150 per instance per month.', tag: '$1,500/mo', link: { label: 'Full inclusions', href: '/pricing-and-plans#database-plans' } },
-      { title: '24/7 DBA Plan B', body: 'Adds 4 MySQL or PostgreSQL instances and 20 TB. One-hour SLA, 20 service hours, automated alerting configured.', tag: '$3,000/mo', link: { label: 'Full inclusions', href: '/pricing-and-plans#database-plans' } },
-      { title: '24/7 DBA Plan C', body: '20 SQL Server, 4 MySQL/PostgreSQL and 6 Oracle instances, 50 TB. One-hour SLA, 50 service hours, daily health checks.', tag: '$7,500/mo', link: { label: 'Full inclusions', href: '/pricing-and-plans#database-plans' } },
+      {
+        title: '24/7 DBA Plan A',
+        body: '$150 per instance per month.',
+        tag: '$1,500/mo',
+        points: ['Up to 10 SQL Server instances', 'Up to 5 TB of data', 'Two-hour response SLA', '10 service hours a month', 'Monthly health check'],
+        link: { label: 'Full inclusions', href: '/pricing-and-plans#database-plans' },
+      },
+      {
+        title: '24/7 DBA Plan B',
+        body: 'Builds on Plan A for larger, mixed estates.',
+        tag: '$3,000/mo',
+        points: ['Adds 4 MySQL or PostgreSQL instances', 'Up to 20 TB of data', 'One-hour response SLA', '20 service hours a month', 'Automated alerting configured'],
+        link: { label: 'Full inclusions', href: '/pricing-and-plans#database-plans' },
+      },
+      {
+        title: '24/7 DBA Plan C',
+        body: 'SQL Server, open source and Oracle under one plan.',
+        tag: '$7,500/mo',
+        points: ['20 SQL Server instances', '4 MySQL/PostgreSQL and 6 Oracle instances', 'Up to 50 TB of data', 'One-hour response SLA', '50 service hours a month', 'Daily health checks'],
+        link: { label: 'Full inclusions', href: '/pricing-and-plans#database-plans' },
+      },
     ],
   },
   {
@@ -5927,6 +6001,68 @@ const remoteSupportBlocks: Block[] = [
     },
   },
   {
+    // The same three plans as /pricing-and-plans#database-plans, in their
+    // multi-platform wording, because this page covers every platform.
+    type: 'cardGrid',
+    anchor: 'plans',
+    centered: true,
+    altBackground: false,
+    columns: 3,
+    variant: 'plans',
+    eyebrow: 'Plans and pricing',
+    heading: 'Three plans, priced in the open',
+    body: 'Every plan includes 24/7 remote support, a guaranteed response SLA and a block of professional service hours each month.',
+    cards: [
+      {
+        title: '24/7 DBA Plan A',
+        body: 'For SQL Server estates without an in-house DBA.',
+        tag: '$1,500/mo',
+        points: ['Up to 10 SQL Server instances', 'Up to 5 TB of data', 'Two-hour response SLA, 24/7', '10 service hours a month', 'Monthly health-check report'],
+        link: { label: 'Full inclusions', href: '/pricing-and-plans#database-plans' },
+      },
+      {
+        title: '24/7 DBA Plan B',
+        body: 'Adds MySQL and PostgreSQL to SQL Server.',
+        tag: '$3,000/mo',
+        points: ['10 SQL Server plus 4 MySQL/PostgreSQL instances', 'Up to 20 TB of data', 'One-hour response SLA, 24/7', '20 service hours a month', 'Automated alerting configured'],
+        link: { label: 'Full inclusions', href: '/pricing-and-plans#database-plans' },
+      },
+      {
+        title: '24/7 DBA Plan C',
+        body: 'Adds Oracle, for mission-critical estates.',
+        tag: '$7,500/mo',
+        points: ['20 SQL Server, 4 MySQL/PostgreSQL and 6 Oracle instances', 'Up to 50 TB of data', 'One-hour response SLA, 24/7', '50 service hours a month', 'Daily health-check reports'],
+        link: { label: 'Full inclusions', href: '/pricing-and-plans#database-plans' },
+      },
+    ],
+  },
+  {
+    // Every line here restates something the FAQ below already commits to.
+    type: 'checkList',
+    anchor: 'why-managed',
+    eyebrow: 'In-house or managed?',
+    heading: 'Why teams outsource instead of hiring',
+    body: 'True 24/7/365 database cover needs five to seven DBAs, because one person cannot cover nights, weekends, leave and resignation.',
+    items: [
+      'A senior DBA on the phone at 2am, not a first-line triage queue',
+      'First response guaranteed within one to two hours, depending on plan',
+      'Runbooks and access already in place, so no time is lost when something breaks',
+      'Named, logged and revocable access, never shared credentials',
+      'Database work done only by consultants based in Australia',
+      'Rolling monthly plans with no minimum term and no exit fee',
+    ],
+    sidebar: {
+      title: 'At a glance',
+      rows: [
+        { label: 'Plans from', value: '$1,500 / month' },
+        { label: 'Response', value: 'One to two hours, 24/7' },
+        { label: 'Onboarding', value: 'About two weeks' },
+        { label: 'Minimum term', value: 'None' },
+        { label: 'Prices shown', value: 'GST exclusive' },
+      ],
+    },
+  },
+  {
     type: 'steps',
     anchor: 'how-we-work',
     eyebrow: 'Onboarding',
@@ -6229,8 +6365,8 @@ export const pages: SeedPage[] = [
     lede: 'Australian-based consultants on standby 24/7 for your SQL Server estate. $100 per instance per month holds the cover, support calls are $150 per hour — so a quiet month costs you almost nothing.',
     heroImage: '/images/hero-dba-oncall.jpg',
     heroCtas: [
-      { label: 'Book a Free Consultation', href: org.bookingUrl },
-      { label: 'See DBA plans', href: '/pricing-and-plans#database-plans' },
+      { label: 'Choose your cover', href: '#on-call-pricing' },
+      { label: 'Book a free call', href: org.bookingUrl },
     ],
     seoTitle: 'Standby SQL Server DBA Cover | $100 Per Instance',
     seoDescription:

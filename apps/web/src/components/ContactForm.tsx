@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { leadInputSchema } from '@onsys/shared';
 import { siteConfig } from '@/lib/config';
@@ -19,6 +21,8 @@ const SERVICES = [
 ];
 
 type FieldErrors = Partial<Record<string, string>>;
+
+const EMERGENCY_PATH = '/emergency-database-support';
 
 export function ContactForm({ heading, body }: { heading?: string; body?: string }) {
   const [state, setState] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
@@ -97,6 +101,8 @@ export function ContactForm({ heading, body }: { heading?: string; body?: string
     }
   }
 
+  const pathname = usePathname();
+
   const err = (field: string) =>
     errors[field] ? (
       <span className="field-error" id={`${field}-error`} role="alert">
@@ -107,8 +113,8 @@ export function ContactForm({ heading, body }: { heading?: string; body?: string
   return (
     <div className="contact-grid">
       <div className="form-card">
-        {heading && <h2 style={{ marginBottom: 6, fontSize: 22 }}>{heading}</h2>}
-        {body && <p style={{ color: 'var(--gray)', fontSize: 13.5, marginBottom: 22 }}>{body}</p>}
+        {heading && <h2 className="form-card-title">{heading}</h2>}
+        {body && <p className="form-card-body">{body}</p>}
 
         {state === 'success' ? (
           <div className="form-status success" role="status">
@@ -204,70 +210,77 @@ export function ContactForm({ heading, body }: { heading?: string; body?: string
               <button className="btn btn-primary btn-block" type="submit" disabled={state === 'submitting'}>
                 {state === 'submitting' ? 'Sending…' : 'Send message'}
               </button>
+              <p className="form-note">
+                <svg aria-hidden="true">
+                  <use href="#i-clock" />
+                </svg>
+                A senior consultant reads every enquiry and replies within one business day.
+              </p>
             </form>
           </>
         )}
       </div>
 
-      <div>
-        <div className="contact-info-card">
-          <div className="ic">
-            <svg style={{ width: 20, height: 20, color: 'var(--navy)' }} aria-hidden="true">
-              <use href="#i-pin" />
-            </svg>
-          </div>
-          <div>
-            <h3 style={{ fontSize: 14.5, marginBottom: 4 }}>Melbourne office</h3>
-            <p>
-              {siteConfig.address.street}, {siteConfig.address.locality}, Australia
-            </p>
-          </div>
-        </div>
-
-        <div className="contact-info-card">
-          <div className="ic">
-            <svg style={{ width: 20, height: 20, color: 'var(--navy)' }} aria-hidden="true">
-              <use href="#i-mail" />
-            </svg>
-          </div>
-          <div>
-            <h3 style={{ fontSize: 14.5, marginBottom: 4 }}>Email</h3>
-            <p>
-              <a href={`mailto:${siteConfig.email}`}>{siteConfig.email}</a>
-            </p>
-          </div>
-        </div>
-
-        <div className="contact-info-card">
-          <div className="ic">
-            <svg style={{ width: 20, height: 20, color: 'var(--navy)' }} aria-hidden="true">
+      <aside className="contact-side">
+        <div className="contact-panel">
+          <p className="contact-panel-eyebrow">Prefer to talk?</p>
+          <a className="contact-panel-phone" href={`tel:${siteConfig.phoneE164}`}>
+            <svg aria-hidden="true">
               <use href="#i-phone" />
             </svg>
-          </div>
-          <div>
-            <h3 style={{ fontSize: 14.5, marginBottom: 4 }}>Phone</h3>
-            <p>
-              <a href={`tel:${siteConfig.phoneE164}`}>{siteConfig.phone}</a>
-            </p>
-          </div>
-        </div>
-
-        <div className="contact-info-card">
-          <div className="ic">
-            <svg style={{ width: 20, height: 20, color: 'var(--navy)' }} aria-hidden="true">
-              <use href="#i-clock" />
+            {siteConfig.phone}
+          </a>
+          <ul className="contact-panel-list">
+            <li>
+              <svg aria-hidden="true">
+                <use href="#i-mail" />
+              </svg>
+              <a href={`mailto:${siteConfig.email}`}>{siteConfig.email}</a>
+            </li>
+            <li>
+              <svg aria-hidden="true">
+                <use href="#i-pin" />
+              </svg>
+              <span>
+                {siteConfig.address.street}, {siteConfig.address.locality}
+              </span>
+            </li>
+            <li>
+              <svg aria-hidden="true">
+                <use href="#i-clock" />
+              </svg>
+              <span>Mon–Fri, 9am–5pm AEST · 24/7 for managed service clients</span>
+            </li>
+          </ul>
+          <a className="btn btn-primary btn-block" href={siteConfig.bookingUrl}>
+            <svg aria-hidden="true">
+              <use href="#i-calendar" />
             </svg>
-          </div>
-          <div>
-            <h3 style={{ fontSize: 14.5, marginBottom: 4 }}>Business hours</h3>
-            <p>Mon–Fri, 9am–5pm AEST (24/7 for managed service clients)</p>
-          </div>
+            Book a free 30-minute call
+          </a>
         </div>
 
-        <a className="btn btn-outline btn-block" href={siteConfig.bookingUrl}>
-          Book a Call Instead
-        </a>
-      </div>
+        {/* Someone whose production is down should not be filling in a form. */}
+        <div className="contact-urgent">
+          <span className="contact-urgent-ic" aria-hidden="true">
+            <svg>
+              <use href="#s-emergency" />
+            </svg>
+          </span>
+          <div>
+            <p className="contact-urgent-title">Production down?</p>
+            <p>
+              Don&rsquo;t wait on email. Call <a href={`tel:${siteConfig.phoneE164}`}>{siteConfig.phone}</a> and
+              triage starts on the phone.
+            </p>
+            {pathname !== EMERGENCY_PATH && (
+              <Link className="contact-urgent-link" href={EMERGENCY_PATH}>
+                Emergency support ›
+              </Link>
+            )}
+          </div>
+        </div>
+      </aside>
     </div>
   );
 }

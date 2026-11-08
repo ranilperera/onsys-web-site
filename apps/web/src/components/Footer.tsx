@@ -52,7 +52,7 @@ export async function Footer() {
         <div className="foot-grid">
           <div className="foot-logo">
             <Image src={siteConfig.logo} alt={siteConfig.name} width={220} height={64} />
-            <p style={{ maxWidth: 280, color: '#605E5C' }}>
+            <p style={{ maxWidth: 280, color: 'var(--gray)' }}>
               {siteConfig.address.street}, {siteConfig.address.locality} {siteConfig.address.region}{' '}
               {siteConfig.address.postalCode}
               <br />

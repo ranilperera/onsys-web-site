@@ -1,10 +1,9 @@
 import type { Metadata } from 'next';
 import { BookingWidget } from '@/components/BookingWidget';
-import { Breadcrumb } from '@/components/Breadcrumb';
-import { PageHeroImage } from '@/components/PageHeroImage';
 import { JsonLd } from '@/components/JsonLd';
 import { siteConfig } from '@/lib/config';
 import { breadcrumbSchema, buildMetadata } from '@/lib/seo';
+import { PageHero } from '@/components/PageHero';
 
 export const metadata: Metadata = buildMetadata({
   title: 'Book a Free 30-Minute Consultation',
@@ -46,22 +45,13 @@ export default function BookPage() {
         ]}
       />
 
-      <section className="page-hero page-hero-dark">
-        <PageHeroImage src="/images/hero-book.jpg" />
-        <div className="wrap">
-          <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: 'Book a consultation' }]} />
-          <span className="eyebrow-pill">
-            <span className="dot" aria-hidden="true" />
-            Free · 30 minutes · Microsoft Teams
-          </span>
-          <h1>Book time with a consultant</h1>
-          <p className="lede">
-            Pick a slot from our live calendar and we will send you a Microsoft Teams link straight
-            away. Bring your environment, your problem, or just a question you cannot get a straight
-            answer to elsewhere.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        image="/images/hero-book.jpg"
+        crumbs={[{ label: 'Home', href: '/' }, { label: 'Book a consultation' }]}
+        eyebrow="Free · 30 minutes · Microsoft Teams"
+        title="Book time with a consultant"
+        lede="Pick a slot from our live calendar and we will send you a Microsoft Teams link straight away. Bring your environment, your problem, or just a question you cannot get a straight answer to elsewhere."
+      />
 
       <section>
         <div className="wrap">
@@ -78,10 +68,8 @@ export default function BookPage() {
           <div className="card-grid cols-3">
             {REASSURANCE.map((item) => (
               <div className="mcard" key={item.title}>
-                <div className="body notag">
-                  <h3>{item.title}</h3>
-                  <p>{item.body}</p>
-                </div>
+                <h3>{item.title}</h3>
+                <p>{item.body}</p>
               </div>
             ))}
           </div>

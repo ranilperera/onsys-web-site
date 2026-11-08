@@ -77,28 +77,25 @@ export default async function CareersIndex() {
           ) : (
             <div className="card-grid">
               {jobs.map((job) => (
-                <article className="mcard" key={job.id}>
-                  <div className="body notag">
-                    <h2>
-                      <Link href={`/careers/${job.slug}`}>{job.title}</Link>
-                    </h2>
-                    <p className="lead-source">
-                      {JOB_TYPE_LABEL[job.type]} · {JOB_LOCATION_LABEL[job.location]} ·{' '}
-                      {WORK_ARRANGEMENT_LABEL[job.workArrangement]}
+                <article className="mcard mcard--link" key={job.id}>
+                  <h2>{job.title}</h2>
+                  <p className="lead-source">
+                    {JOB_TYPE_LABEL[job.type]} · {JOB_LOCATION_LABEL[job.location]} ·{' '}
+                    {WORK_ARRANGEMENT_LABEL[job.workArrangement]}
+                  </p>
+                  <p>{job.summary}</p>
+                  {job.salaryRange && (
+                    <p>
+                      <strong>{job.salaryRange}</strong>
                     </p>
-                    <p>{job.summary}</p>
-                    {job.salaryRange && (
-                      <p>
-                        <strong>{job.salaryRange}</strong>
-                      </p>
-                    )}
-                    <p className="lead-source">
-                      Applications close {dateFmt.format(new Date(job.closesAt))}
-                    </p>
-                    <Link className="lnk" href={`/careers/${job.slug}`}>
-                      Read the role ›
-                    </Link>
-                  </div>
+                  )}
+                  <p className="lead-source">
+                    Applications close {dateFmt.format(new Date(job.closesAt))}
+                  </p>
+                  {/* Stretches over the whole card. */}
+                  <Link className="lnk" href={`/careers/${job.slug}`}>
+                    Read the role ›
+                  </Link>
                 </article>
               ))}
             </div>

@@ -239,7 +239,7 @@ contentRouter.get(
       orderBy: [{ deliveredYear: 'desc' }, { title: 'asc' }],
       select: {
         id: true, slug: true, title: true, summary: true, sector: true,
-        region: true, deliveredYear: true, platforms: true, publishedAt: true,
+        region: true, deliveredYear: true, platforms: true, heroImage: true, publishedAt: true,
         updatedAt: true, contentUpdatedAt: true,
       },
     });

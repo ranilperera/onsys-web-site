@@ -44,7 +44,7 @@ export default function AdminDashboard() {
       <h1 style={{ fontSize: 26, marginBottom: 22 }}>Dashboard</h1>
       <div className="card-grid" style={{ gridTemplateColumns: 'repeat(3,1fr)' }}>
         {tiles.map((t) => (
-          <Link key={t.label} className="mcard" href={t.href} style={{ padding: 24 }}>
+          <Link key={t.label} className="mcard mcard--link" href={t.href}>
             <div style={{ fontSize: 32, fontWeight: 700, color: 'var(--navy)' }}>{t.value}</div>
             <div style={{ fontSize: 13, color: 'var(--gray)' }}>{t.label}</div>
           </Link>

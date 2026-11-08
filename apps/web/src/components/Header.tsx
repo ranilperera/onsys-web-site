@@ -6,6 +6,47 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { siteConfig, navigation } from '@/lib/config';
 
+/** Icon beside each mega-menu column heading, matched on the heading text. */
+function columnIcon(title?: string): string {
+  const t = (title ?? '').toLowerCase();
+  if (t.includes('sql server')) return 't-database';
+  if (t.includes('open source')) return 't-layers';
+  if (t.includes('zealand') || t.includes('pacific')) return 't-network';
+  if (t.includes('cloud')) return 't-cloud';
+  if (t.includes('software') || t.includes('ai')) return 't-code';
+  return 't-server';
+}
+
+/** The strip along the bottom of each panel: one next step, plus the phone. */
+const MENU_FOOTER: Record<string, { lead: string; label: string; href: string }> = {
+  database: {
+    lead: 'Not sure where to start?',
+    label: 'Get the free 20-point SQL Server health check',
+    href: '/free-20-point-sql-server-health-check',
+  },
+  technology: {
+    lead: 'Looking for something else?',
+    label: 'See every service we offer',
+    href: '/other-services',
+  },
+};
+
+function Chevron() {
+  return (
+    <svg className="caret" viewBox="0 0 12 12" aria-hidden="true">
+      <path d="M3 4.5l3 3 3-3" />
+    </svg>
+  );
+}
+
+function Arrow() {
+  return (
+    <svg className="mm-arrow" viewBox="0 0 16 16" aria-hidden="true">
+      <path d="M3 8h9m0 0L8.5 4.5M12 8l-3.5 3.5" />
+    </svg>
+  );
+}
+
 /**
  * Header ported from the approved mockup. The mega-menu is hover-driven on
  * desktop (CSS) and click/keyboard-driven below 1024px (this component), which
@@ -32,6 +73,15 @@ export function Header() {
    */
   const [suppressed, setSuppressed] = useState<string | null>(null);
   const pathname = usePathname();
+
+  /** Adds a shadow and tightens the bar once the page has scrolled. */
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 40);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   // Close everything on navigation.
   useEffect(() => {
@@ -119,6 +169,10 @@ export function Header() {
     <>
       <div className="topbar">
         <div className="wrap">
+          <p className="topbar-note">
+            <span className="topbar-live" aria-hidden="true" />
+            24/7 senior DBA support · Australia, New Zealand &amp; Pacific
+          </p>
           <div className="topbar-right">
             <a className="topbar-link" href={`mailto:${siteConfig.email}`}>
               <svg aria-hidden="true">
@@ -136,13 +190,13 @@ export function Header() {
               <svg aria-hidden="true">
                 <use href="#i-calendar" />
               </svg>
-              BOOK A CALL
+              Book a call
             </a>
           </div>
         </div>
       </div>
 
-      <header>
+      <header className={scrolled ? 'is-scrolled' : undefined}>
         <div className="wrap nav">
           <Link className="logo" href="/" aria-label={`${siteConfig.name} home`}>
             {/* Intrinsic dimensions, not display ones: CSS sizes this to
@@ -157,6 +211,12 @@ export function Header() {
               priority
             />
           </Link>
+
+          <a className="nav-call" href={`tel:${siteConfig.phoneE164}`} aria-label={`Call ${siteConfig.phone}`}>
+            <svg aria-hidden="true">
+              <use href="#i-phone" />
+            </svg>
+          </a>
 
           <button
             className="nav-toggle"
@@ -212,52 +272,117 @@ export function Header() {
                         aria-expanded={isOpen}
                         aria-haspopup="true"
                       >
-                        {item.label}{' '}
-                        <span className="caret" aria-hidden="true">
-                          ▾
-                        </span>
+                        {item.label}
+                        <Chevron />
                       </Link>
 
                       <div className="megamenu" style={{ '--mm-cols': columns.length } as React.CSSProperties}>
-                        {columns.map((col, ci) => {
-                          // Single-column menus omit the heading: it would only
-                          // repeat the trigger label sitting directly above it.
-                          const title = 'title' in col ? (col.title as string) : undefined;
-                          return (
-                          <div className="mm-col" key={title ?? ci}>
-                            {title && <h5>{title}</h5>}
-                            {col.links.map((link) => (
-                              <Link
-                                key={link.label}
-                                href={link.href}
-                                onClick={(e) => {
-                                  setSuppressed(item.menu!);
-                                  setOpenMenu(null);
-                                  // Focus would otherwise stay on a link inside
-                                  // a panel that is about to be hidden.
-                                  e.currentTarget.blur();
-                                }}
+                        <div className="mm-grid">
+                          {columns.map((col, ci) => {
+                            // Single-column menus omit the heading: it would only
+                            // repeat the trigger label sitting directly above it.
+                            const title = 'title' in col ? (col.title as string) : undefined;
+                            return (
+                              <div
+                                className={`mm-col${col.links.some((l) => l.label.length > 30) ? ' mm-col--wide' : ''}${col.links.length <= 2 ? ' mm-col--short' : ''}`}
+                                key={title ?? ci}
                               >
-                                {link.label}
-                                {link.sub ? <small>{link.sub}</small> : null}
-                              </Link>
-                            ))}
+                                {title && (
+                                  <h5>
+                                    <span className="mm-ic" aria-hidden="true">
+                                      <svg>
+                                        <use href={`#${columnIcon(title)}`} />
+                                      </svg>
+                                    </span>
+                                    {title}
+                                  </h5>
+                                )}
+                                {col.links.map((link) => (
+                                  <Link
+                                    key={link.label}
+                                    href={link.href}
+                                    className={pathname === link.href ? 'current' : undefined}
+                                    onClick={(e) => {
+                                      setSuppressed(item.menu!);
+                                      setOpenMenu(null);
+                                      // Focus would otherwise stay on a link inside
+                                      // a panel that is about to be hidden.
+                                      e.currentTarget.blur();
+                                    }}
+                                  >
+                                    <span className="mm-text">
+                                      {link.label}
+                                      {link.sub ? <small>{link.sub}</small> : null}
+                                    </span>
+                                    <Arrow />
+                                  </Link>
+                                ))}
+                              </div>
+                            );
+                          })}
+                        </div>
+                        {MENU_FOOTER[item.menu!] && (
+                          <div className="mm-foot">
+                            <span>{MENU_FOOTER[item.menu!].lead}</span>
+                            <Link
+                              href={MENU_FOOTER[item.menu!].href}
+                              className="mm-foot-link"
+                              onClick={(e) => {
+                                setSuppressed(item.menu!);
+                                setOpenMenu(null);
+                                e.currentTarget.blur();
+                              }}
+                            >
+                              {MENU_FOOTER[item.menu!].label}
+                              <Arrow />
+                            </Link>
+                            <a className="mm-foot-call" href={`tel:${siteConfig.phoneE164}`}>
+                              <svg aria-hidden="true">
+                                <use href="#i-phone" />
+                              </svg>
+                              {siteConfig.phone}
+                            </a>
                           </div>
-                          );
-                        })}
+                        )}
                       </div>
                     </li>
                   );
                 })}
               </ul>
             </nav>
-            {siteConfig.portalEnabled && (
-              <div className="navcta">
-                <a className="btn btn-outline" href="/client-portal">
+            <div className="navcta">
+              {siteConfig.portalEnabled && (
+                <a className="btn btn-outline btn-sm" href="/client-portal">
                   Client Login
                 </a>
-              </div>
-            )}
+              )}
+              <Link className="btn btn-primary btn-sm nav-cta-main" href="/free-20-point-sql-server-health-check">
+                Free health check
+              </Link>
+            </div>
+
+            {/* Phones and tablets: the topbar is hidden there, so its contact
+                routes move to the bottom of the menu. */}
+            <div className="nav-contact">
+              <a className="btn btn-outline" href={siteConfig.bookingUrl}>
+                <svg aria-hidden="true">
+                  <use href="#i-calendar" />
+                </svg>
+                Book a call
+              </a>
+              <a className="nav-contact-line" href={`tel:${siteConfig.phoneE164}`}>
+                <svg aria-hidden="true">
+                  <use href="#i-phone" />
+                </svg>
+                {siteConfig.phone}
+              </a>
+              <a className="nav-contact-line" href={`mailto:${siteConfig.email}`}>
+                <svg aria-hidden="true">
+                  <use href="#i-mail" />
+                </svg>
+                {siteConfig.email}
+              </a>
+            </div>
           </div>
         </div>
       </header>

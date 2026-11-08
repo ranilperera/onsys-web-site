@@ -4,10 +4,35 @@ import { getPage, getPages } from '@/lib/api';
 import { buildMetadata, faqSchema, breadcrumbSchema, serviceSchema, offerCatalogSchema, productListSchema, webPageSchema } from '@/lib/seo';
 import { BlockRenderer } from '@/components/blocks/BlockRenderer';
 import { FaqAccordion } from '@/components/blocks/FaqAccordion';
-import { Breadcrumb } from '@/components/Breadcrumb';
 import { JsonLd } from '@/components/JsonLd';
-import { PageHeroImage } from '@/components/PageHeroImage';
+import { PageHero } from '@/components/PageHero';
 import { PageDates } from '@/components/PageDates';
+import { siteConfig } from '@/lib/config';
+import type { Block } from '@onsys/shared';
+
+/**
+ * The hero's "At a glance" card reuses the page's own fact table (a checkList
+ * sidebar titled "At a glance"), so the figures are written once and cannot
+ * disagree. A "Prices shown" row becomes the small print under the card.
+ */
+function heroFacts(blocks: Block[]) {
+  const rows =
+    blocks.find(
+      (b): b is Extract<Block, { type: 'checkList' }> =>
+        b.type === 'checkList' && !!b.sidebar && /^at a glance$/i.test(b.sidebar.title.trim()),
+    )?.sidebar?.rows ??
+    blocks.find(
+      (b): b is Extract<Block, { type: 'onCallSubscribe' }> =>
+        b.type === 'onCallSubscribe' && !!b.glance?.length,
+    )?.glance;
+  if (!rows) return { facts: undefined, note: undefined };
+  const isNote = (label: string) => /prices shown/i.test(label);
+  const noteRow = rows.find((r) => isNote(r.label));
+  return {
+    facts: rows.filter((r) => !isNote(r.label)).slice(0, 4),
+    note: noteRow ? `All prices ${noteRow.value}` : undefined,
+  };
+}
 
 export const revalidate = 300;
 export const dynamicParams = true;
@@ -104,33 +129,22 @@ export default async function DynamicPage({ params }: Props) {
   if (productsLd) schemas.push(productsLd);
   if (page.structuredData) schemas.push(page.structuredData);
 
+  const glance = heroFacts(page.blocks);
+
   return (
     <>
       <JsonLd data={schemas} />
 
-      <section className={`page-hero${page.heroImage ? ' page-hero-dark' : ''}`}>
-        {page.heroImage && <PageHeroImage src={page.heroImage} />}
-        <div className="wrap">
-          <Breadcrumb items={crumbs} />
-          {page.eyebrow && (
-            <span className="eyebrow-pill">
-              <span className="dot" aria-hidden="true" />
-              {page.eyebrow}
-            </span>
-          )}
-          <h1>{page.heading}</h1>
-          {page.lede && <p className="lede">{page.lede}</p>}
-          {page.heroCtas && page.heroCtas.length > 0 && (
-            <div className="page-hero-cta">
-              {page.heroCtas.map((cta, i) => (
-                <a key={cta.href} href={cta.href} className={`btn ${i === 0 ? 'btn-primary' : 'btn-outline'}`}>
-                  {cta.label}
-                </a>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
+      <PageHero
+        image={page.heroImage}
+        crumbs={crumbs}
+        eyebrow={page.eyebrow}
+        title={page.heading}
+        lede={page.lede}
+        ctas={page.heroCtas ?? undefined}
+        facts={glance.facts}
+        factsNote={glance.note}
+      />
 
       <BlockRenderer blocks={page.blocks} />
 
@@ -140,10 +154,31 @@ export default async function DynamicPage({ params }: Props) {
 
       {page.faqs.length > 0 && (
         <section className={page.blocks.length % 2 === 0 ? 'alt-bg' : undefined}>
-          <div className="wrap">
-            <div className="section-head">
-              <div className="eyebrow">FAQ</div>
-              <h2>Common questions</h2>
+          <div className="wrap faq-layout">
+            <div className="faq-side">
+              <div className="section-head">
+                <div className="eyebrow">FAQ</div>
+                <h2>Common questions</h2>
+              </div>
+              <div className="faq-help">
+                <p className="faq-help-title">Still have a question?</p>
+                <p>Call, email or book a time that suits you.</p>
+                <a className="faq-help-line" href={`tel:${siteConfig.phoneE164}`}>
+                  <svg aria-hidden="true">
+                    <use href="#i-phone" />
+                  </svg>
+                  {siteConfig.phone}
+                </a>
+                <a className="faq-help-line" href={`mailto:${siteConfig.email}`}>
+                  <svg aria-hidden="true">
+                    <use href="#i-mail" />
+                  </svg>
+                  {siteConfig.email}
+                </a>
+                <a className="btn btn-primary btn-sm" href={siteConfig.bookingUrl}>
+                  Book a call
+                </a>
+              </div>
             </div>
             <FaqAccordion items={page.faqs} />
           </div>

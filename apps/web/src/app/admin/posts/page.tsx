@@ -22,7 +22,7 @@ const STATUSES = ['DRAFT', 'PUBLISHED', 'ARCHIVED'] as const;
 const STATUS_STYLE: Record<string, { bg: string; fg: string }> = {
   PUBLISHED: { bg: '#E7F5EC', fg: '#0B5B36' },
   DRAFT: { bg: '#FFF4CE', fg: '#6B5900' },
-  ARCHIVED: { bg: '#F3F2F1', fg: '#605E5C' },
+  ARCHIVED: { bg: 'var(--surface-gray)', fg: 'var(--gray)' },
 };
 
 export default function PostsPage() {

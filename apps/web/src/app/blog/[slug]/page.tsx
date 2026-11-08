@@ -1,5 +1,5 @@
-import type { Metadata } from 'next';
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getPost, getPosts } from '@/lib/api';
 import {
@@ -10,10 +10,9 @@ import {
   howToSchema,
   extractSteps,
 } from '@/lib/seo';
-import { Breadcrumb } from '@/components/Breadcrumb';
-import { PageHeroImage } from '@/components/PageHeroImage';
 import { FaqAccordion } from '@/components/blocks/FaqAccordion';
 import { JsonLd } from '@/components/JsonLd';
+import { PageHero } from '@/components/PageHero';
 
 export const revalidate = 300;
 export const dynamicParams = true;
@@ -85,12 +84,14 @@ export default async function BlogPost({ params }: Props) {
             50 posts have one, and both point at remote WordPress URLs that the
             CSP blocks. The picture is abstract so it does not fight 50
             different subjects. */}
-        <section className="page-hero page-hero-dark">
-          <PageHeroImage src="/images/hero-article.jpg" />
-          <div className="wrap article-wrap">
-            <Breadcrumb
-              items={[{ label: 'Home', href: '/' }, { label: 'Blog', href: '/blog' }, { label: post.title }]}
-            />
+        <PageHero
+          image="/images/hero-article.jpg"
+          size="long"
+          articleWidth
+          crumbs={[{ label: 'Home', href: '/' }, { label: 'Blog', href: '/blog' }, { label: post.title }]}
+          title={post.title}
+          lede={post.excerpt}
+          meta={
             <div className="article-meta">
               {post.category && <span className="cat-pill">{post.category.name}</span>}
               {post.author ? (
@@ -113,14 +114,8 @@ export default async function BlogPost({ params }: Props) {
               <span aria-hidden="true">·</span>
               <span>{post.readMinutes} min read</span>
             </div>
-            <h1 style={{ maxWidth: '100%' }}>{post.title}</h1>
-            {post.excerpt && (
-              <p className="lede" style={{ maxWidth: '100%' }}>
-                {post.excerpt}
-              </p>
-            )}
-          </div>
-        </section>
+          }
+        />
 
         <section>
           <div className="wrap article-wrap">
@@ -129,7 +124,7 @@ export default async function BlogPost({ params }: Props) {
 
             {post.faqs.length > 0 && (
               <div style={{ marginTop: 44 }}>
-                <h2 style={{ fontSize: 24, marginBottom: 18 }}>Frequently asked questions</h2>
+                <h2 style={{ fontSize: 'var(--text-xl)', marginBottom: 18 }}>Frequently asked questions</h2>
                 <FaqAccordion items={post.faqs} />
               </div>
             )}
@@ -183,16 +178,14 @@ export default async function BlogPost({ params }: Props) {
             </div>
             <div className="card-grid">
               {related.map((r) => (
-                <article className="mcard" key={r.slug}>
-                  <div className="body notag">
-                    <h3>
-                      <Link href={`/blog/${r.slug}`}>{r.title}</Link>
-                    </h3>
-                    <p>{r.excerpt}</p>
-                    <Link className="lnk" href={`/blog/${r.slug}`}>
-                      Read article ›
-                    </Link>
-                  </div>
+                <article className="mcard mcard--link" key={r.slug}>
+                  <h3>
+                    <Link href={`/blog/${r.slug}`}>{r.title}</Link>
+                  </h3>
+                  <p>{r.excerpt}</p>
+                  <Link className="lnk" href={`/blog/${r.slug}`}>
+                    Read article ›
+                  </Link>
                 </article>
               ))}
             </div>
