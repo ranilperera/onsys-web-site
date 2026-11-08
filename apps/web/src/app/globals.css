@@ -2103,14 +2103,14 @@ header.is-scrolled{box-shadow:0 10px 30px -18px rgba(14,51,106,.45); border-bott
   .faq-help{order:2;}
 }
 
-/* Phones: the card keeps the headline figure and two facts; the rest are in
-   the "At a glance" table further down the page. */
+/* Phones: every fact stays, set tighter. */
 @media (max-width:700px){
   .hero--facts{padding:32px 0 60px;}
   .hero-facts{padding:14px 16px 12px; border-radius:16px;}
   .hero-facts-title{margin-bottom:6px;}
-  .hero-facts dl > div{padding:8px 0;}
-  .hero-facts dl > div:nth-child(n+4){display:none;}
+  .hero-facts dl > div{padding:8px 0; justify-content:flex-start;}
+  /* The first fact spans the row, so a lone fact at the end spans it too. */
+  .hero-facts dl > div:nth-child(even):last-child{grid-column:1 / -1;}
   .hero-facts dt{font-size:var(--text-xs);}
   .hero-facts dd{font-size:var(--text-sm);}
   .hero-facts dl > div:first-child dd{font-size:24px;}
@@ -2221,7 +2221,7 @@ header.is-scrolled{box-shadow:0 10px 30px -18px rgba(14,51,106,.45); border-bott
 @media (max-width:1180px){
   .hc-list{grid-template-columns:minmax(0,1fr);}
 }
-/* Tablet and phone: figures in a row on top, groups fold (first one open). */
+/* Tablet and phone: figures in a row on top, groups can fold (all start open). */
 @media (max-width:1024px){
   .hc-layout{grid-template-columns:minmax(0,1fr); gap:16px;}
   .hc-rail{position:static;}

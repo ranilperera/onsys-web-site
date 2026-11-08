@@ -29,7 +29,8 @@ const slug = (s: string) =>
  * and the script bundle refer to the points by number.
  *
  * Desktop: a sticky rail with the key figures and a link per group, which
- * follows the reader down the list. Phones: each group folds, first one open.
+ * follows the reader down the list. Tablets and phones: each group can fold;
+ * all start open.
  * Folded groups are hidden with CSS only, so every point stays in the page.
  */
 export function HealthChecks({ anchor, items, highlights, head }: Props) {
@@ -48,8 +49,10 @@ export function HealthChecks({ anchor, items, highlights, head }: Props) {
   }, [items, anchor]);
 
   const [active, setActive] = useState(groups[0]?.id);
+  // Every group starts open so no point is hidden on a phone; readers can
+  // fold the ones they have finished with.
   const [open, setOpen] = useState<Record<string, boolean>>(() =>
-    groups[0] ? { [groups[0].id]: true } : {},
+    Object.fromEntries(groups.map((g) => [g.id, true])),
   );
 
   // Highlight the group currently being read: the last one whose top has
