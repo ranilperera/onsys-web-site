@@ -109,19 +109,27 @@ export function HealthCheckBooking({ eyebrow, heading, body, note }: HealthCheck
   if (done) {
     return (
       <section className="section" id="request-health-check">
-        <div className="wrap emergency-result paid">
+        {/*
+          hc-result left-aligns this panel. .emergency-result centres its text,
+          which suits the payment confirmation it was written for — two short
+          lines and a receipt number. This one is a four-step instruction with a
+          command line in it, and centred steps are read a line at a time with
+          no common left edge to return to.
+        */}
+        <div className="wrap emergency-result hc-result paid">
           <span className="eyebrow">Request received</span>
           <h2>Thanks {done.name} — here is the collector</h2>
           <p>
-            Download the script, run it against one SQL Server instance, and send us the zip it
-            produces. It is read-only: it queries dynamic management views and catalog views
-            only, and writes nothing to your instance.
+            One PowerShell file, nothing to install. Run it against a single SQL Server instance
+            and it writes a zip beside itself — that zip is what you send back. Everything it
+            runs is read-only: dynamic management views and catalog views only, no configuration
+            touched, and the contents of your tables are never read.
           </p>
 
           <ol className="hc-next">
             <li>
-              <strong>Download</strong> the collector and, if you would rather read before you
-              run, the{' '}
+              <strong>Download</strong> the collector. If you would rather read before you
+              run — or need change approval first — here is the{' '}
               {/*
                 New tab, here and on the button below. This panel holds the
                 one-off download token; a same-tab navigation to the queries
@@ -133,15 +141,17 @@ export function HealthCheckBooking({ eyebrow, heading, body, note }: HealthCheck
                 rel="noopener noreferrer"
               >
                 full text of all 20 queries
-              </a>.
+              </a>
+              .
             </li>
             <li>
-              <strong>Run</strong> it on the database server:{' '}
-              <code>
+              <strong>Run</strong> it on the database server, as an account with{' '}
+              <code className="hc-cmd-inline">VIEW SERVER STATE</code>:
+              <code className="hc-cmd">
                 powershell.exe -ExecutionPolicy Bypass -File .\Invoke-OnsysHealthCheck.ps1
                 -ServerInstance YOURINSTANCE
               </code>
-              . It takes about 20 minutes and needs Windows PowerShell, which is already there.{' '}
+              About 20 minutes, on Windows PowerShell, which is already on the server.{' '}
               {/*
                 -ExecutionPolicy Bypass is not an optional nicety. A server set to
                 AllSigned refuses any unsigned script outright ("is not digitally
@@ -149,17 +159,28 @@ export function HealthCheckBooking({ eyebrow, heading, body, note }: HealthCheck
                 downloaded from the internet. Bypass applies to this one process
                 only and changes nothing on the machine.
               */}
-              <span style={{ color: 'var(--gray)' }}>
-                The policy switch applies to that one command only and changes nothing on the
-                server. Without it, Windows refuses to run any unsigned script.
+              <span className="hc-aside">
+                The policy switch lets an unsigned script run for that one command — it changes
+                no setting on the server. Without it Windows refuses the file outright.
               </span>
             </li>
             <li>
               <strong>Send</strong> the zip to{' '}
-              <a href={`mailto:${done.submitTo}`}>{done.submitTo}</a>, quoting your company name.
+              <a href={`mailto:${done.submitTo}`}>{done.submitTo}</a>, quoting your company name.{' '}
+              {/*
+                Said here because it is the moment it matters. A collector that
+                hit a permissions or version difference on three checks still
+                carries the other seventeen, and someone who thinks a partial run
+                is a failed run simply never sends it.
+              */}
+              <span className="hc-aside">
+                If some checks failed, send it anyway — the log inside tells us what did not
+                collect, and the rest is still worth reading.
+              </span>
             </li>
             <li>
-              <strong>We analyse it</strong> and book a free call to present the report.
+              <strong>We analyse it</strong> — a DBA reads every file, rates all twenty points
+              and writes the report, then books a free call to take you through it.
             </li>
           </ol>
 

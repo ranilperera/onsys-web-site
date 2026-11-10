@@ -1430,10 +1430,30 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   .admin-nav-group{border-right:0; padding-right:0; width:100%;}
 }
 
-/* Health check: what happens next, on the request confirmation. */
-.hc-next{margin:18px 0 22px; padding-left:22px; display:grid; gap:10px; max-width:62ch;}
+/* Health check: what happens next, on the request confirmation.
+
+   The panel is .emergency-result, which centres its text for the payment
+   receipt it was built for. These steps are instructions with a command line
+   in them, so hc-result turns that off and gives everything one left edge.
+   The block stays centred in the page; only its contents are ranged left. */
+.hc-result{text-align:left;}
+/* The banner keeps its centre. display:block is needed on the eyebrow because
+   it is a span, and text-align does nothing to an inline box. */
+.hc-result h2, .hc-result .eyebrow{display:block; text-align:center;}
+
+.hc-next{margin:18px 0 22px; padding-left:22px; display:grid; gap:14px; max-width:62ch;}
 .hc-next li{font-size:var(--text-base); line-height:1.6; color:var(--ink);}
-.hc-next code{font-size:var(--text-xs); background:var(--surface-gray); border:1px solid var(--gray-light); border-radius:var(--radius-sm); padding:2px 6px; word-break:break-all;}
+.hc-next li::marker{color:var(--gray); font-weight:600;}
+.hc-next code{font-size:var(--text-xs); background:var(--surface-gray); border:1px solid var(--gray-light); border-radius:var(--radius-sm); padding:2px 6px;}
+/* A command on its own line, wrapping only at the spaces between arguments.
+   The old rule was word-break:break-all, which split the path mid-token
+   (".\I / nvoke-OnsysHealthCheck.ps1") and made the one thing on this page
+   that has to be typed exactly the hardest thing on it to read. pre-wrap keeps
+   it one line when it is copied. */
+.hc-cmd{display:block; margin:8px 0 10px; padding:10px 12px; line-height:1.55; white-space:pre-wrap; word-break:normal; overflow-wrap:break-word;}
+.hc-cmd-inline{white-space:nowrap;}
+/* The qualifier after a step: present, but not competing with it. */
+.hc-aside{display:block; margin-top:6px; font-size:var(--text-sm); color:var(--gray);}
 
 /* ===== Case study detail page =====
    The index sells the portfolio; a study has to carry one engagement on its
