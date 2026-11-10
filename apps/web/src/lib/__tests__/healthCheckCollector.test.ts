@@ -125,6 +125,33 @@ describe('the collector script', () => {
     }
   });
 
+  it('says how to run when the execution policy refuses an unsigned script', () => {
+    /*
+     * The first thing a DBA saw on a hardened server was
+     * "cannot be loaded ... is not digitally signed" — refused by the host
+     * before line one of the collector runs, so nothing inside it can catch
+     * that. The only fix is telling people the invocation that works, and the
+     * script's own help is where someone who downloaded it will look.
+     */
+    expect(script).toContain('-ExecutionPolicy Bypass');
+    expect(script).toContain('Unblock-File');
+    expect(script).toMatch(/not digitally signed/);
+  });
+
+  it('keeps every result set of a check, not just the first', () => {
+    // Nine of the twenty checks run several queries. Filling a DataTable keeps
+    // only the first result set, so 1.0.0 silently dropped the rest: the NUMA
+    // layout, the tempdb space summary, the blocking and deadlock sections.
+    expect(script).toContain('System.Data.DataSet');
+    expect(script).not.toContain('New-Object System.Data.DataTable');
+    expect(script).toContain("'_part'");
+  });
+
+  it('writes NULL and bit values the way the analysis expects to read them', () => {
+    expect(script).toContain('function Format-Value');
+    expect(script).toMatch(/\$text = 'NULL'/);
+  });
+
   it('is a complete PowerShell file, not a truncated one', () => {
     expect(script).toContain('[CmdletBinding()]');
     expect(script).toContain('Compress-Archive');

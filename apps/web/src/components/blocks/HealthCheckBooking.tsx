@@ -121,12 +121,38 @@ export function HealthCheckBooking({ eyebrow, heading, body, note }: HealthCheck
           <ol className="hc-next">
             <li>
               <strong>Download</strong> the collector and, if you would rather read before you
-              run, the <a href="/onsys-sql-server-health-check.html">full text of all 20 queries</a>.
+              run, the{' '}
+              {/*
+                New tab, here and on the button below. This panel holds the
+                one-off download token; a same-tab navigation to the queries
+                sends people back through the form to get it again.
+              */}
+              <a
+                href="/onsys-sql-server-health-check.html"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                full text of all 20 queries
+              </a>.
             </li>
             <li>
               <strong>Run</strong> it on the database server:{' '}
-              <code>.\Invoke-OnsysHealthCheck.ps1 -ServerInstance YOURINSTANCE</code>. It takes
-              about 20 minutes and needs Windows PowerShell, which is already there.
+              <code>
+                powershell.exe -ExecutionPolicy Bypass -File .\Invoke-OnsysHealthCheck.ps1
+                -ServerInstance YOURINSTANCE
+              </code>
+              . It takes about 20 minutes and needs Windows PowerShell, which is already there.{' '}
+              {/*
+                -ExecutionPolicy Bypass is not an optional nicety. A server set to
+                AllSigned refuses any unsigned script outright ("is not digitally
+                signed"), and RemoteSigned refuses one Windows has marked as
+                downloaded from the internet. Bypass applies to this one process
+                only and changes nothing on the machine.
+              */}
+              <span style={{ color: 'var(--gray)' }}>
+                The policy switch applies to that one command only and changes nothing on the
+                server. Without it, Windows refuses to run any unsigned script.
+              </span>
             </li>
             <li>
               <strong>Send</strong> the zip to{' '}
@@ -140,7 +166,12 @@ export function HealthCheckBooking({ eyebrow, heading, body, note }: HealthCheck
           <a className="btn btn-primary btn-lg" href={done.collectorUrl} download>
             Download the collector
           </a>{' '}
-          <a className="btn btn-outline btn-lg" href="/onsys-sql-server-health-check.html">
+          <a
+            className="btn btn-outline btn-lg"
+            href="/onsys-sql-server-health-check.html"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             Read the queries first
           </a>
           <p style={{ fontSize: 'var(--text-sm)', color: 'var(--gray)', marginTop: 12 }}>

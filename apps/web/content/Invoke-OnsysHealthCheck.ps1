@@ -56,7 +56,41 @@
 
     Run from a workstation against a remote instance using a SQL login.
 
+.EXAMPLE
+    powershell.exe -ExecutionPolicy Bypass -File .\Invoke-OnsysHealthCheck.ps1 -ServerInstance SQLPROD01
+
+    The same run, on a server whose execution policy refuses unsigned scripts.
+    Use this form if you see "cannot be loaded ... is not digitally signed" or
+    "running scripts is disabled on this system". The switch applies to that one
+    command only: it changes no policy, and nothing on the server is altered.
+
 .NOTES
+    EXECUTION POLICY
+
+    This script is not code-signed, so a server set to AllSigned will refuse it
+    outright, and one set to RemoteSigned will refuse it if Windows has marked
+    the file as downloaded from the internet. Both refusals happen before a
+    single line of this script runs, so neither can be handled from inside it.
+
+    Either run it as the example above shows, which is the simplest answer, or
+    clear the download mark once and run it normally:
+
+        Unblock-File .\Invoke-OnsysHealthCheck.ps1
+        .\Invoke-OnsysHealthCheck.ps1 -ServerInstance SQLPROD01
+
+    Unblock-File only removes the "came from the internet" flag from this one
+    file. Neither route needs a change to the machine's execution policy, and we
+    would rather you did not make one on our account.
+
+    Version 1.0.1: collection and file-writing only, the twenty queries are
+    unchanged.
+      - Every result set of a check is saved (NN_Name_part1.csv, _part2 ...);
+        1.0.0 kept only the first one (checks 4, 5, 8, 11, 13, 15, 18, 19, 20).
+      - Values written as SSMS shows them: NULL, 1/0 for bit, dates as
+        yyyy-MM-dd HH:mm:ss.fff (datetime2: 7 decimals), no locale formatting,
+        line breaks replaced by a space.
+      - Empty result sets keep their header line.
+
     Requires Windows PowerShell 5.1 or later, which ships with Windows Server.
     No modules to install: it talks to SQL Server through .NET, so it does not
     need SqlServer, SQLPS or sqlcmd.
@@ -118,7 +152,7 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version 2.0
 
-$CollectorVersion = '1.0.0'
+$CollectorVersion = '1.0.1'
 
 # ---------------------------------------------------------------------------
 # Plumbing
@@ -162,9 +196,10 @@ function New-ConnectionString {
 
 function Invoke-Query {
     <#
-        Runs one query and returns a DataTable. Kept deliberately small: the
-        connection is opened and closed per call so a check that fails cannot
-        leave a session open against a production instance.
+        Runs one query and returns a DataSet. v1.0.0 filled a single DataTable,
+        which keeps only the FIRST result set; a DataSet gets one table per
+        result set. The connection is opened and closed per call so a check that
+        fails cannot leave a session open against a production instance.
     #>
     param(
         [Parameter(Mandatory = $true)][string] $Sql,
@@ -178,34 +213,151 @@ function Invoke-Query {
         $command.CommandText = $Sql
         $command.CommandTimeout = $QueryTimeoutSeconds
 
-        $table = New-Object System.Data.DataTable
+        $dataSet = New-Object System.Data.DataSet
         $adapter = New-Object System.Data.SqlClient.SqlDataAdapter $command
-        [void] $adapter.Fill($table)
-        return , $table
+        [void] $adapter.Fill($dataSet)
+        return , $dataSet
     }
     finally {
         $connection.Dispose()
     }
 }
 
+function Get-SqlTypeNames {
+    <#
+        Returns the SQL type name of every column in every result set
+        (e.g. 'datetime', 'datetime2', 'bit') so dates can be written exactly as
+        SSMS shows them. Schema only: no rows are read. If it fails for any
+        reason the values are still written, with the default date format.
+    #>
+    param(
+        [Parameter(Mandatory = $true)][string] $Sql,
+        [string] $Database = 'master'
+    )
+    $result = New-Object System.Collections.ArrayList
+    try {
+        $connection = New-Object System.Data.SqlClient.SqlConnection (New-ConnectionString -Database $Database)
+        try {
+            $connection.Open()
+            $command = $connection.CreateCommand()
+            $command.CommandText = $Sql
+            $command.CommandTimeout = $QueryTimeoutSeconds
+            $reader = $command.ExecuteReader([System.Data.CommandBehavior]::SchemaOnly)
+            try {
+                do {
+                    if ($reader.FieldCount -gt 0) {
+                        $names = New-Object System.Collections.ArrayList
+                        for ($i = 0; $i -lt $reader.FieldCount; $i++) {
+                            [void] $names.Add([string] $reader.GetDataTypeName($i))
+                        }
+                        [void] $result.Add($names)
+                    }
+                } while ($reader.NextResult())
+            }
+            finally {
+                $reader.Dispose()
+            }
+        }
+        finally {
+            $connection.Dispose()
+        }
+    }
+    catch {
+        $result = New-Object System.Collections.ArrayList
+    }
+    return , $result
+}
+
+function Format-Value {
+    <#
+        Writes one value the way SSMS shows it in a results grid.
+    #>
+    param($Value, $SqlType)
+    $inv = [System.Globalization.CultureInfo]::InvariantCulture
+    $text = ''
+    if ($null -eq $Value -or $Value -is [System.DBNull]) {
+        $text = 'NULL'
+    }
+    elseif ($Value -is [System.Boolean]) {
+        if ($Value) { $text = '1' } else { $text = '0' }
+    }
+    elseif ($Value -is [System.DateTime]) {
+        $fmt = 'yyyy-MM-dd HH:mm:ss.fff'
+        if ("$SqlType" -eq 'datetime2')     { $fmt = 'yyyy-MM-dd HH:mm:ss.fffffff' }
+        if ("$SqlType" -eq 'date')          { $fmt = 'yyyy-MM-dd' }
+        if ("$SqlType" -eq 'smalldatetime') { $fmt = 'yyyy-MM-dd HH:mm:ss' }
+        $text = $Value.ToString($fmt, $inv)
+    }
+    elseif ($Value -is [System.DateTimeOffset]) {
+        $text = $Value.ToString('yyyy-MM-dd HH:mm:ss.fffffff zzz', $inv)
+    }
+    elseif ($Value -is [System.Byte[]]) {
+        $text = '0x' + [System.BitConverter]::ToString($Value).Replace('-', '')
+    }
+    else {
+        $text = [System.Convert]::ToString($Value, $inv)
+        # SSMS grids do not keep line breaks; replace them with a space.
+        $text = $text.Replace("`r`n", ' ').Replace("`r", ' ').Replace("`n", ' ')
+    }
+    return $text
+}
+
+function ConvertTo-CsvField {
+    param($Text)
+    $field = [string] $Text
+    if ($field.Contains(',') -or $field.Contains('"') -or $field.Contains("`t")) {
+        $field = '"' + $field.Replace('"', '""') + '"'
+    }
+    return $field
+}
+
 function Save-Result {
     <#
-        One CSV per check. CSV rather than a formatted table because the point
-        of the file is to be read by our analysis, not by eye.
+        One CSV per result set. A check with one result set writes NN_Name.csv;
+        a check with several writes NN_Name_part1.csv, NN_Name_part2.csv ...
+        in the same order as the queries in the published check. An empty result
+        set still keeps its header line: an empty result is a finding in itself
+        — "no full backups recorded" is exactly what check 7 exists to surface.
     #>
     param(
         [Parameter(Mandatory = $true)] $Data,
-        [Parameter(Mandatory = $true)][string] $Path
+        [Parameter(Mandatory = $true)][string] $Path,
+        $TypeNames
     )
-    $rows = @($Data)
-    if ($rows.Count -eq 0) {
-        # An empty result is a finding in itself — "no full backups recorded" is
-        # exactly what check 7 exists to surface — so write the file anyway.
-        Set-Content -LiteralPath $Path -Value '# no rows returned' -Encoding UTF8
+    $tableCount = $Data.Tables.Count
+    if ($tableCount -eq 0) {
+        Set-Content -LiteralPath $Path -Value '# no result set returned' -Encoding UTF8
         return 0
     }
-    $rows | Export-Csv -LiteralPath $Path -NoTypeInformation -Encoding UTF8
-    return $rows.Count
+    $total = 0
+    $utf8Bom = New-Object System.Text.UTF8Encoding($true)
+    for ($t = 0; $t -lt $tableCount; $t++) {
+        $table = $Data.Tables[$t]
+        $types = $null
+        if ($null -ne $TypeNames -and $t -lt $TypeNames.Count) { $types = $TypeNames[$t] }
+
+        $outFile = $Path
+        if ($tableCount -gt 1) { $outFile = $Path -replace '\.csv$', ('_part' + ($t + 1) + '.csv') }
+
+        $sb = New-Object System.Text.StringBuilder
+        $header = New-Object System.Collections.ArrayList
+        foreach ($col in $table.Columns) { [void] $header.Add((ConvertTo-CsvField $col.ColumnName)) }
+        [void] $sb.AppendLine(($header -join ','))
+
+        foreach ($row in $table.Rows) {
+            $cells = New-Object System.Collections.ArrayList
+            for ($c = 0; $c -lt $table.Columns.Count; $c++) {
+                $typeName = ''
+                if ($null -ne $types -and $c -lt $types.Count) { $typeName = [string] $types[$c] }
+                $cellText = Format-Value $row[$c] $typeName
+                [void] $cells.Add((ConvertTo-CsvField $cellText))
+            }
+            [void] $sb.AppendLine(($cells -join ','))
+        }
+        [System.IO.File]::WriteAllText($outFile, $sb.ToString(), $utf8Bom)
+        $total += $table.Rows.Count
+    }
+    return $total
 }
 
 # ---------------------------------------------------------------------------
@@ -815,7 +967,7 @@ if (-not $IncludeQueryText) {
 # after eighteen identical errors, and without leaving an empty folder behind.
 try {
     $probe = Invoke-Query -Sql 'SELECT @@SERVERNAME AS server_name, @@VERSION AS version;'
-    Write-Step ("Connected to {0}" -f $probe.Rows[0]['server_name'])
+    Write-Step ("Connected to {0}" -f $probe.Tables[0].Rows[0]['server_name'])
 }
 catch {
     Write-Host ''
@@ -880,7 +1032,8 @@ foreach ($check in $InstanceChecks) {
             $sql = $sql -replace '(?s)SUBSTRING\(st\.text.*?AS statement_text', "'(excluded - rerun with -IncludeQueryText)' AS statement_text"
         }
         $data = Invoke-Query -Sql $sql
-        $rows = Save-Result -Data $data -Path $file
+        $typeNames = Get-SqlTypeNames -Sql $sql
+        $rows = Save-Result -Data $data -Path $file -TypeNames $typeNames
         Add-Result $check.Num $check.Name 'ok' $rows
     }
     catch {
@@ -901,7 +1054,7 @@ WHERE  database_id > 4                 -- user databases only
   AND  HAS_DBACCESS(name) = 1          -- skip anything this login cannot read
 ORDER BY name;
 '@
-    $databases = @($dbTable | ForEach-Object { $_.name })
+    $databases = @($dbTable.Tables[0].Rows | ForEach-Object { $_.name })
     Write-Step ("Databases in scope: {0}" -f $(if ($databases.Count) { $databases -join ', ' } else { 'none' }))
 }
 catch {
@@ -916,7 +1069,8 @@ foreach ($check in $DatabaseChecks) {
         $file = Join-Path $runFolder ('{0:d2}_{1}__{2}.csv' -f $check.Num, ($check.Name -replace '[^A-Za-z0-9]+', '_'), $safeDb)
         try {
             $data = Invoke-Query -Sql $check.Sql -Database $db
-            $total += Save-Result -Data $data -Path $file
+            $typeNames = Get-SqlTypeNames -Sql $check.Sql -Database $db
+            $total += Save-Result -Data $data -Path $file -TypeNames $typeNames
         }
         catch {
             $failed++

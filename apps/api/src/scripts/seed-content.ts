@@ -5243,7 +5243,9 @@ const healthCheckBlocks: Block[] = [
         tag: 'Open bundle',
         icon: '#s-code',
         coverColor: '#EAF1FB',
-        link: { label: 'Open the script bundle', href: '/onsys-sql-server-health-check.html' },
+        // No link here. The card describes what the bundle is; the page's own
+        // calls to action are where people go to read or request it, and a
+        // third route into the same HTML only split the journey.
       },
       {
         title: 'Run it yourself, or with us',
