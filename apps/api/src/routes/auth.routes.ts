@@ -112,6 +112,18 @@ authRouter.post(
       return;
     }
 
+    /*
+     * A suspended account stops here, after the password check rather than
+     * before it. Refusing on the address alone would answer "does this person
+     * still work there?" for anyone who asked, which is not a question a login
+     * form should take.
+     */
+    if (user.disabledAt) {
+      logger.warn({ userId: user.id }, 'Sign-in attempt on a suspended account');
+      res.status(403).json({ error: 'This account has been suspended. Speak to an administrator.' });
+      return;
+    }
+
     const challenge = await prisma.mfaChallenge.create({
       data: { userId: user.id, expiresAt: new Date(Date.now() + CHALLENGE_TTL_MS) },
     });
@@ -281,6 +293,12 @@ authRouter.get(
         lastLoginAt: true,
         totpEnabledAt: true,
         recoveryCodes: true,
+        // The console builds its navigation from these three: which sections
+        // to show, whether the byline dropdown is a choice or a label, and
+        // whether to send the person straight to the password form.
+        authorId: true,
+        mustChangePassword: true,
+        author: { select: { id: true, name: true, slug: true } },
       },
     });
     if (!user) {
@@ -439,7 +457,12 @@ authRouter.post(
     const currentSessionId = req.cookies?.[ADMIN_COOKIE];
 
     await prisma.$transaction([
-      prisma.user.update({ where: { id: user.id }, data: { passwordHash } }),
+      prisma.user.update({
+        where: { id: user.id },
+        // Replacing the password is what lifts the lock an administrator's
+        // temporary one put on the account. Nothing else clears it.
+        data: { passwordHash, mustChangePassword: false },
+      }),
       // Sign out everywhere else. A password change is how someone responds to
       // a suspected compromise, and it is worth little if the other session
       // stays live.

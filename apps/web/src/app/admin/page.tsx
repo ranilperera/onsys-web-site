@@ -4,10 +4,20 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { siteConfig } from '@/lib/config';
 
+/**
+ * Two shapes, because an author's dashboard is not a smaller version of the
+ * full one — it is a different set of facts.
+ *
+ * The lead and chat figures are how much work is coming in and how much of it
+ * the bot could not handle. Neither is a contributor's business, and the API
+ * leaves them out rather than sending zeroes: a zero is a statement, and that
+ * one would be false.
+ */
 interface Stats {
-  leads: { total: number; last30Days: number; new: number };
-  content: { publishedPosts: number; draftPosts: number };
-  chat: { last30Days: number; escalations: number };
+  scope?: 'full' | 'author';
+  leads?: { total: number; last30Days: number; new: number };
+  content: { publishedPosts: number; draftPosts: number; inReview?: number };
+  chat?: { last30Days: number; escalations: number };
 }
 
 export default function AdminDashboard() {
@@ -30,14 +40,26 @@ export default function AdminDashboard() {
   if (error) return <div className="form-status error">{error}</div>;
   if (!stats) return <p>Loading…</p>;
 
-  const tiles = [
-    { label: 'Leads (30 days)', value: stats.leads.last30Days, href: '/admin/leads' },
-    { label: 'New / unactioned', value: stats.leads.new, href: '/admin/leads' },
-    { label: 'Published posts', value: stats.content.publishedPosts, href: '/admin/posts' },
-    { label: 'Drafts', value: stats.content.draftPosts, href: '/admin/posts' },
-    { label: 'Chats (30 days)', value: stats.chat.last30Days, href: '/admin/chat' },
-    { label: 'Escalated to Teams', value: stats.chat.escalations, href: '/admin/chat' },
-  ];
+  const authorView = stats.scope === 'author' || !stats.leads;
+
+  const tiles = authorView
+    ? [
+        { label: 'Your published articles', value: stats.content.publishedPosts, href: '/admin/posts' },
+        { label: 'Your drafts', value: stats.content.draftPosts, href: '/admin/posts' },
+        { label: 'With an editor', value: stats.content.inReview ?? 0, href: '/admin/posts' },
+      ]
+    : [
+        { label: 'Leads (30 days)', value: stats.leads?.last30Days ?? 0, href: '/admin/leads' },
+        { label: 'New / unactioned', value: stats.leads?.new ?? 0, href: '/admin/leads' },
+        { label: 'Published posts', value: stats.content.publishedPosts, href: '/admin/posts' },
+        { label: 'Drafts', value: stats.content.draftPosts, href: '/admin/posts' },
+        // What is waiting on an editor. Put beside the drafts count because
+        // the two are read together: of all the unfinished work, this is the
+        // part somebody else is now holding up.
+        { label: 'Ready for review', value: stats.content.inReview ?? 0, href: '/admin/posts' },
+        { label: 'Chats (30 days)', value: stats.chat?.last30Days ?? 0, href: '/admin/chat' },
+        { label: 'Escalated to Teams', value: stats.chat?.escalations ?? 0, href: '/admin/chat' },
+      ];
 
   return (
     <>

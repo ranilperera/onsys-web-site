@@ -1,7 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { canPublish } from '@onsys/shared';
 import { siteConfig } from '@/lib/config';
+import { useAdminUser } from '@/lib/adminUser';
 import { RichTextEditor } from './RichTextEditor';
 
 interface Category {
@@ -74,6 +76,16 @@ function estimateReadMinutes(html: string): number {
 export function PostEditor({ postId }: { postId?: string }) {
   const [form, setForm] = useState<PostForm>(EMPTY);
   const [categories, setCategories] = useState<Category[]>([]);
+  const { user } = useAdminUser();
+  const role = user?.role ?? 'EDITOR';
+  /*
+   * An author writes drafts under one byline, and neither field is theirs to
+   * set. The API forces both regardless of what this form sends; showing them
+   * a Publish option it would quietly ignore is the kind of control that
+   * teaches people not to trust the console.
+   */
+  const mayPublish = canPublish(role);
+
   const [authors, setAuthors] = useState<Author[]>([]);
   const [loading, setLoading] = useState(Boolean(postId));
   const [saving, setSaving] = useState(false);
@@ -230,6 +242,7 @@ export function PostEditor({ postId }: { postId?: string }) {
           <h1 style={{ fontSize: 26, marginBottom: 6 }}>{postId ? 'Edit post' : 'New post'}</h1>
           <p style={{ color: 'var(--gray)', fontSize: 14, margin: 0 }}>
             Paste from ChatGPT and it will be cleaned to match the blog&rsquo;s own styling.
+            {!mayPublish && ' Saving never puts anything on the public site.'}
           </p>
         </div>
         <div className="purge-control">
@@ -295,9 +308,12 @@ export function PostEditor({ postId }: { postId?: string }) {
             <select
               id="p-author"
               value={form.authorId}
+              disabled={!mayPublish}
               onChange={(e) => set('authorId', e.target.value)}
             >
-              <option value="">Onsys Technologies (no named author)</option>
+              {mayPublish ? (
+                <option value="">Onsys Technologies (no named author)</option>
+              ) : null}
               {authors.map((a) => (
                 <option key={a.id} value={a.id}>
                   {a.name}
@@ -306,8 +322,14 @@ export function PostEditor({ postId }: { postId?: string }) {
               ))}
             </select>
             <small style={{ color: 'var(--gray)', fontSize: 12 }}>
-              Drives the byline and the Person schema. A named author is what search engines can
-              attribute expertise to.
+              {mayPublish ? (
+                <>
+                  Drives the byline and the Person schema. A named author is what search engines
+                  can attribute expertise to.
+                </>
+              ) : (
+                <>Your byline. Every article you write carries it.</>
+              )}
             </small>
           </div>
           <div className="form-field">
@@ -359,15 +381,28 @@ export function PostEditor({ postId }: { postId?: string }) {
         <div className="form-row">
           <div className="form-field">
             <label htmlFor="p-status">Status</label>
-            <select
-              id="p-status"
-              value={form.status}
-              onChange={(e) => set('status', e.target.value as PostForm['status'])}
-            >
-              <option value="DRAFT">Draft</option>
-              <option value="PUBLISHED">Published</option>
-              <option value="ARCHIVED">Archived</option>
-            </select>
+            {mayPublish ? (
+              <select
+                id="p-status"
+                value={form.status}
+                onChange={(e) => set('status', e.target.value as PostForm['status'])}
+              >
+                <option value="DRAFT">Draft</option>
+                <option value="PUBLISHED">Published</option>
+                <option value="ARCHIVED">Archived</option>
+              </select>
+            ) : (
+              <>
+                {/* Not a disabled dropdown. There is nothing to choose: an
+                    author saves drafts, and sends one for review from the post
+                    list when it is finished. */}
+                <p style={{ margin: '6px 0 0', fontWeight: 600 }}>Draft</p>
+                <small style={{ color: 'var(--gray)', fontSize: 12 }}>
+                  Save as often as you like. When it is finished, send it for review from{' '}
+                  <a href="/admin/posts">Posts</a> — an editor reads it and publishes it.
+                </small>
+              </>
+            )}
           </div>
           <div className="form-field">
             <label htmlFor="p-cover">Cover image path</label>

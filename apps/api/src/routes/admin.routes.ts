@@ -15,9 +15,17 @@ import {
   applicationNotesSchema,
 } from '@onsys/shared';
 import { prisma } from '../lib/prisma';
-import { asyncHandler } from '../middleware/error';
+import { asyncHandler, HttpError } from '../middleware/error';
 import { logger } from '../lib/logger';
-import { requireAuth, requireAdmin, verifyCsrf, type AuthedRequest } from '../middleware/auth';
+import {
+  requireAuth,
+  requireAdmin,
+  requirePasswordChanged,
+  restrictAuthors,
+  verifyCsrf,
+  type AuthedRequest,
+} from '../middleware/auth';
+import { adminUserRouter } from './adminUser.routes';
 import { sendEmail, renderChatTranscript } from '../services/email.service';
 import { revalidateInBackground, tags } from '../services/revalidate.service';
 import { pageFingerprint, postFingerprint, nextContentUpdatedAt } from '../lib/content-changed';
@@ -26,10 +34,69 @@ import { openCv, deleteCv } from '../services/cvStorage.service';
 /**
  * Admin CMS API. Every route requires an authenticated session and a valid
  * CSRF token on mutations.
+ *
+ * The chain, in the order it runs and for the reason it runs there:
+ *
+ *   requireAuth            a session, belonging to an account that still exists
+ *                          and has not been suspended
+ *   verifyCsrf             the double-submit check, on mutations
+ *   requirePasswordChanged nothing at all while a temporary password is in use
+ *   restrictAuthors        an AUTHOR reaches the blog routes and no others
+ *
+ * restrictAuthors is default-deny: a route added to this file is closed to
+ * authors until it is named in the allowlist in @onsys/shared. That is the
+ * whole safety argument for the role, because this router also serves leads,
+ * candidate CVs and chat transcripts.
  */
 export const adminRouter = Router();
 
-adminRouter.use(requireAuth, verifyCsrf);
+adminRouter.use(requireAuth, verifyCsrf, requirePasswordChanged, restrictAuthors);
+
+/** Console accounts. Administrator-only, in its own file. */
+adminRouter.use('/users', requireAdmin, adminUserRouter);
+
+/**
+ * The posts an account may work on.
+ *
+ * An author sees their own byline's articles and nothing else; everybody else
+ * sees the lot. An author with no byline linked sees nothing — `authorId: null`
+ * would read as "posts with no author", which is the company byline and not
+ * theirs, so it is spelled out as an id that cannot match.
+ */
+function postScope(user: AuthedRequest['user']) {
+  if (user?.role !== 'AUTHOR') return {};
+  // An id no cuid can equal. `authorId: null` would mean "posts with no
+  // byline", which is the company byline and emphatically not theirs.
+  return { authorId: user.authorId ?? 'no-byline-linked' };
+}
+
+/** Is this post one the signed-in account may open? */
+function ownsPost(user: AuthedRequest['user'], post: { authorId: string | null }): boolean {
+  if (user?.role !== 'AUTHOR') return true;
+  return Boolean(user.authorId) && post.authorId === user.authorId;
+}
+
+/**
+ * Force the two fields an author does not control: the byline and the status.
+ *
+ * Forced rather than rejected. The console gives an author neither control, so
+ * a request carrying them did not come from the console, and an error message
+ * would be advice to whoever is poking at the API. Everyone else passes
+ * through untouched.
+ */
+async function applyAuthorLimits<T extends { authorId?: string | null; status?: string }>(
+  user: AuthedRequest['user'],
+  data: T,
+): Promise<T> {
+  if (user?.role !== 'AUTHOR') return data;
+  if (!user.authorId) {
+    // Refused rather than silently filed under the company byline. An author
+    // account with no byline is a half-finished account, not a licence to
+    // publish anonymously.
+    throw new HttpError('Your account has no byline linked. Ask an administrator.', 400);
+  }
+  return { ...data, authorId: user.authorId, status: 'DRAFT' };
+}
 
 const contentStatus = z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']);
 
@@ -422,10 +489,20 @@ const authorSchema = z.object({
   website: blankToNull(z.string().url('Enter a full URL').max(500).nullable().optional()),
 });
 
+/**
+ * The byline list behind the post editor's Author dropdown.
+ *
+ * Filtered to their own row for an AUTHOR. Not a secret — every byline is
+ * published on the site — but a dropdown offering names they cannot post
+ * under would be a control that fails on save, and the API forces the value
+ * anyway. One option, already chosen, tells the truth about what they can do.
+ */
 adminRouter.get(
   '/authors',
-  asyncHandler(async (_req, res) => {
+  asyncHandler(async (req: AuthedRequest, res) => {
     const authors = await prisma.author.findMany({
+      where:
+        req.user?.role === 'AUTHOR' ? { id: req.user.authorId ?? 'no-byline-linked' } : {},
       orderBy: { name: 'asc' },
       select: {
         id: true,
@@ -562,12 +639,18 @@ adminRouter.delete(
 
 adminRouter.get(
   '/posts',
-  asyncHandler(async (_req, res) => {
+  asyncHandler(async (req: AuthedRequest, res) => {
     const posts = await prisma.post.findMany({
+      where: postScope(req.user),
       orderBy: { updatedAt: 'desc' },
       select: {
         id: true, slug: true, title: true, status: true, updatedAt: true,
         publishedAt: true, category: { select: { name: true } },
+        // Who wrote it and whether it is waiting on an editor. Both are what
+        // the list is read for once more than one person writes for the site.
+        authorName: true,
+        authorId: true,
+        submittedForReviewAt: true,
       },
     });
     res.json({ posts });
@@ -576,12 +659,14 @@ adminRouter.get(
 
 adminRouter.get(
   '/posts/:id',
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req: AuthedRequest, res) => {
     const post = await prisma.post.findUnique({
       where: { id: req.params.id },
       include: { faqs: { orderBy: { order: 'asc' } }, category: true },
     });
-    if (!post) {
+    // 404 rather than 403 for an author reading somebody else's article: a 403
+    // confirms the id exists, and there is no reason to tell them that.
+    if (!post || !ownsPost(req.user, post)) {
       res.status(404).json({ error: 'Post not found' });
       return;
     }
@@ -591,9 +676,18 @@ adminRouter.get(
 
 adminRouter.post(
   '/posts',
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req: AuthedRequest, res) => {
     const input = postSchema.parse(req.body);
-    const { faqs, bodyHtml: _ignored, ...data } = input;
+    const { faqs, bodyHtml: _ignored, ...rest } = input;
+
+    /*
+     * An author writes drafts, under their own byline.
+     *
+     * Both are forced here rather than validated: the console does not offer
+     * either control to an author, so anything arriving in those fields came
+     * from somewhere other than the console and is not worth an error message.
+     */
+    const data = await applyAuthorLimits(req.user, rest);
 
     const post = await prisma.post.create({
       data: {
@@ -616,18 +710,20 @@ adminRouter.post(
 
 adminRouter.put(
   '/posts/:id',
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req: AuthedRequest, res) => {
     const input = postSchema.parse(req.body);
-    const { faqs, bodyHtml: _ignored, ...data } = input;
+    const { faqs, bodyHtml: _ignored, ...rest } = input;
 
     const existing = await prisma.post.findUnique({
       where: { id: req.params.id },
       include: { faqs: { orderBy: { order: 'asc' } } },
     });
-    if (!existing) {
+    if (!existing || !ownsPost(req.user, existing)) {
       res.status(404).json({ error: 'Post not found' });
       return;
     }
+
+    const data = await applyAuthorLimits(req.user, rest);
 
     const contentUpdatedAt = nextContentUpdatedAt(
       postFingerprint(existing),
@@ -644,6 +740,12 @@ adminRouter.put(
           bodyHtml: resolveBody(input),
           publishedAt:
             data.status === 'PUBLISHED' ? existing.publishedAt ?? new Date() : existing.publishedAt,
+          // An article that is no longer a draft is no longer in the queue.
+          // An author saving a correction to something already submitted keeps
+          // its place, which is what they expect from fixing a typo.
+          ...(data.status === 'DRAFT'
+            ? {}
+            : { submittedForReviewAt: null, submittedById: null }),
           contentUpdatedAt,
           faqs: { create: faqs.map((f, i) => ({ ...f, order: i })) },
         },
@@ -696,6 +798,9 @@ adminRouter.patch(
         status,
         publishedAt:
           status === 'PUBLISHED' ? existing.publishedAt ?? new Date() : existing.publishedAt,
+        // Acting on a submission takes it out of the queue, whichever way the
+        // decision went. Only a draft can be waiting for one.
+        ...(status === 'DRAFT' ? {} : { submittedForReviewAt: null, submittedById: null }),
       },
       select: { id: true, slug: true, status: true, publishedAt: true, updatedAt: true },
     });
@@ -705,6 +810,58 @@ adminRouter.patch(
       tags: [tags.post(post.slug), tags.postList, tags.sitemap],
       paths: [`/blog/${post.slug}`, '/blog'],
     });
+    res.json({ post });
+  }),
+);
+
+/**
+ * Hand a draft over for review, or take it back.
+ *
+ * The one state change an author can make beyond saving. It does not touch
+ * `status`: the post stays DRAFT, so nothing that reads status has to learn a
+ * new value and no unreviewed article can reach the public site through a
+ * query that forgot about it. Publishing is somebody else's decision, which is
+ * the whole point of the role.
+ */
+adminRouter.patch(
+  '/posts/:id/review',
+  asyncHandler(async (req: AuthedRequest, res) => {
+    const { submitted } = z.object({ submitted: z.boolean() }).parse(req.body);
+
+    const existing = await prisma.post.findUnique({
+      where: { id: req.params.id },
+      select: { id: true, slug: true, status: true, authorId: true, title: true },
+    });
+    if (!existing || !ownsPost(req.user, existing)) {
+      res.status(404).json({ error: 'Post not found' });
+      return;
+    }
+
+    if (existing.status !== 'DRAFT') {
+      res.status(400).json({
+        error:
+          existing.status === 'PUBLISHED'
+            ? 'That article is already published.'
+            : 'Only a draft can be sent for review.',
+      });
+      return;
+    }
+
+    const post = await prisma.post.update({
+      where: { id: req.params.id },
+      data: {
+        submittedForReviewAt: submitted ? new Date() : null,
+        submittedById: submitted ? req.user?.id ?? null : null,
+      },
+      select: { id: true, slug: true, status: true, submittedForReviewAt: true, updatedAt: true },
+    });
+
+    logger.info(
+      { postId: post.id, submitted, by: req.user?.id },
+      submitted ? 'Article submitted for review' : 'Article withdrawn from review',
+    );
+    // Nothing public changed — a draft is a draft either way — so there is no
+    // cache to purge here.
     res.json({ post });
   }),
 );
@@ -1646,23 +1803,52 @@ adminRouter.delete(
 
 adminRouter.get(
   '/stats',
-  asyncHandler(async (_req, res) => {
+  asyncHandler(async (req: AuthedRequest, res) => {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
-    const [totalLeads, recentLeads, newLeads, publishedPosts, draftPosts, chatSessions, escalations] =
-      await Promise.all([
-        prisma.lead.count(),
-        prisma.lead.count({ where: { createdAt: { gte: thirtyDaysAgo } } }),
-        prisma.lead.count({ where: { status: 'NEW' } }),
-        prisma.post.count({ where: { status: 'PUBLISHED' } }),
-        prisma.post.count({ where: { status: 'DRAFT' } }),
-        prisma.chatSession.count({ where: { createdAt: { gte: thirtyDaysAgo } } }),
-        prisma.chatSession.count({ where: { escalatedAt: { not: null }, createdAt: { gte: thirtyDaysAgo } } }),
+    /*
+     * An author's dashboard counts their own work and stops there.
+     *
+     * The lead and chat figures are commercially sensitive — how many
+     * enquiries the business gets, and how many the bot could not handle — and
+     * none of it is any of a contributor's business. Returning zeroes would be
+     * worse than returning nothing: a zero is a statement, and a wrong one.
+     */
+    if (req.user?.role === 'AUTHOR') {
+      const mine = { authorId: req.user.authorId ?? 'no-byline-linked' };
+      const [publishedPosts, draftPosts, inReview] = await Promise.all([
+        prisma.post.count({ where: { ...mine, status: 'PUBLISHED' } }),
+        prisma.post.count({ where: { ...mine, status: 'DRAFT' } }),
+        prisma.post.count({ where: { ...mine, status: 'DRAFT', submittedForReviewAt: { not: null } } }),
       ]);
+      res.json({ scope: 'author', content: { publishedPosts, draftPosts, inReview } });
+      return;
+    }
+
+    const [
+      totalLeads,
+      recentLeads,
+      newLeads,
+      publishedPosts,
+      draftPosts,
+      inReview,
+      chatSessions,
+      escalations,
+    ] = await Promise.all([
+      prisma.lead.count(),
+      prisma.lead.count({ where: { createdAt: { gte: thirtyDaysAgo } } }),
+      prisma.lead.count({ where: { status: 'NEW' } }),
+      prisma.post.count({ where: { status: 'PUBLISHED' } }),
+      prisma.post.count({ where: { status: 'DRAFT' } }),
+      prisma.post.count({ where: { status: 'DRAFT', submittedForReviewAt: { not: null } } }),
+      prisma.chatSession.count({ where: { createdAt: { gte: thirtyDaysAgo } } }),
+      prisma.chatSession.count({ where: { escalatedAt: { not: null }, createdAt: { gte: thirtyDaysAgo } } }),
+    ]);
 
     res.json({
+      scope: 'full',
       leads: { total: totalLeads, last30Days: recentLeads, new: newLeads },
-      content: { publishedPosts, draftPosts },
+      content: { publishedPosts, draftPosts, inReview },
       chat: { last30Days: chatSessions, escalations: escalations },
     });
   }),

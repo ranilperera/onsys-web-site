@@ -7,3 +7,4 @@ export * from './jobs';
 export * from './applications';
 export * from './onCall';
 export * from './caseStudies';
+export * from './users';

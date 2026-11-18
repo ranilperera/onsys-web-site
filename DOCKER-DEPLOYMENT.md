@@ -234,6 +234,28 @@ To bring across the WordPress blog archive as well:
 $C exec api npm run import:wp -w @onsys/api -- --posts-only
 ```
 
+### Accounts for writers
+
+After the first administrator exists, accounts are made from the console at
+**/admin/users** rather than here — including author accounts, which is the
+point of that screen. It generates a temporary password, shows it once, and
+the holder must replace it before the console will do anything else.
+
+An **Author** writes blog articles under one byline and reaches nothing else:
+no leads, no candidate CVs, no chat transcripts, no pages, no site settings.
+They save drafts and send them for review; an editor or administrator decides
+what goes live. The restriction is enforced in the API as a default-deny
+allowlist, so a section added later is closed to them until somebody says
+otherwise.
+
+The CLI still covers the two cases the console cannot — the first account on a
+fresh database, and getting back in when nobody can sign in:
+
+```bash
+# The byline must exist first (create it under /admin/authors).
+$C exec api npx tsx src/scripts/create-admin.ts     --email=writer@onsys.com.au --name="A Writer" --role=AUTHOR --author=<byline-slug>
+```
+
 ---
 
 ## 6. Verify before pointing HAProxy at it

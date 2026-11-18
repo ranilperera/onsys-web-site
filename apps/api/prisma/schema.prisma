@@ -155,10 +155,10 @@ model JobApplication {
   cvBytes        Int
   cvMimeType     String
 
-  status          ApplicationStatus @default(NEW)
-  statusChangedAt DateTime?
+  status            ApplicationStatus @default(NEW)
+  statusChangedAt   DateTime?
   statusChangedById String?
-  statusChangedBy   User?           @relation(fields: [statusChangedById], references: [id], onDelete: SetNull)
+  statusChangedBy   User?             @relation(fields: [statusChangedById], references: [id], onDelete: SetNull)
 
   /// Shared internal commentary. Never shown to the candidate.
   notes String? @db.Text
@@ -203,9 +203,9 @@ model CaseStudy {
   summary String
 
   /// "Healthcare", "Manufacturing", "Telecommunications", "Payments".
-  sector String
+  sector        String
   /// "Australia", "Sri Lanka", "Pacific Islands". Never a city.
-  region String
+  region        String
   /// Calendar year the work was delivered. A year, not a date: a precise date
   /// plus a sector plus a region starts to identify the engagement.
   deliveredYear Int
@@ -225,8 +225,8 @@ model CaseStudy {
   seoTitle       String?
   seoDescription String?
 
-  status      ContentStatus @default(DRAFT)
-  publishedAt DateTime?
+  status           ContentStatus @default(DRAFT)
+  publishedAt      DateTime?
   /// Moves only when the content differs — same rule as pages and posts, so
   /// the sitemap's lastmod means something.
   contentUpdatedAt DateTime?
@@ -248,42 +248,42 @@ enum ContentStatus {
 /// Body is stored as structured JSON blocks so the admin can reorder sections
 /// without touching code.
 model Page {
-  id          String        @id @default(cuid())
-  slug        String        @unique
-  title       String
-  status      ContentStatus @default(DRAFT)
+  id     String        @id @default(cuid())
+  slug   String        @unique
+  title  String
+  status ContentStatus @default(DRAFT)
 
   // Hero
-  eyebrow     String?
-  heading     String
-  lede        String?       @db.Text
+  eyebrow String?
+  heading String
+  lede    String? @db.Text
 
   /// Ordered array of section blocks. See packages/shared/src/blocks.ts
-  blocks      Json          @default("[]")
+  blocks Json @default("[]")
 
   /// Optional full-bleed hero photograph for the page header. When set the
   /// header switches to its dark treatment (navy scrim + white type).
-  heroImage   String?
+  heroImage String?
 
   /// Optional call-to-action buttons rendered in the page header, shaped as
   /// [{ label, href }]. The first is styled as the primary action.
-  heroCtas    Json?
+  heroCtas Json?
 
   // SEO / AEO
   seoTitle       String?
-  seoDescription String?  @db.Text
+  seoDescription String? @db.Text
   ogImage        String?
   canonicalUrl   String?
-  noindex        Boolean  @default(false)
+  noindex        Boolean @default(false)
   /// Extra JSON-LD injected verbatim (e.g. Service or FAQPage schema)
   structuredData Json?
   /// Q&A pairs surfaced as FAQPage schema + answer-engine friendly markup
   faqs           Faq[]
 
-  navOrder    Int?
-  publishedAt DateTime?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  navOrder         Int?
+  publishedAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
   /// When the visible content last actually changed.
   ///
   /// `updatedAt` moves on every write, and the seed rewrites every row on
@@ -294,7 +294,7 @@ model Page {
   /// value the sitemap reports.
   contentUpdatedAt DateTime?
 
-  chunks      ContentChunk[]
+  chunks ContentChunk[]
 
   @@index([status, slug])
   @@map("pages")
@@ -313,51 +313,67 @@ model Category {
 }
 
 model Post {
-  id         String        @id @default(cuid())
-  slug       String        @unique
-  title      String
-  excerpt    String?       @db.Text
+  id           String        @id @default(cuid())
+  slug         String        @unique
+  title        String
+  excerpt      String?       @db.Text
   /// Rendered HTML (sanitised on write). Markdown source kept in `bodyMarkdown`.
-  bodyHtml   String        @db.Text
-  bodyMarkdown String?     @db.Text
-  status     ContentStatus @default(DRAFT)
+  bodyHtml     String        @db.Text
+  bodyMarkdown String?       @db.Text
+  status       ContentStatus @default(DRAFT)
 
   categoryId String?
-  category   Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
   /// Denormalised byline, kept so a post always renders one even if its
   /// Author row is removed. The relation is what drives the Person schema.
-  authorName String        @default("Onsys Technologies")
+  authorName String  @default("Onsys Technologies")
   authorId   String?
-  author     Author?       @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  author     Author? @relation(fields: [authorId], references: [id], onDelete: SetNull)
 
-  readMinutes Int          @default(5)
-  coverImage String?
+  readMinutes Int     @default(5)
+  coverImage  String?
 
   // SEO / AEO
   seoTitle       String?
-  seoDescription String?  @db.Text
+  seoDescription String? @db.Text
   ogImage        String?
   canonicalUrl   String?
-  noindex        Boolean  @default(false)
+  noindex        Boolean @default(false)
   structuredData Json?
   faqs           Faq[]
 
   /// Original WordPress URL/ID, used to build 301s and avoid duplicate imports
-  legacyUrl  String?       @unique
-  legacyId   Int?
+  legacyUrl String? @unique
+  legacyId  Int?
 
-  publishedAt DateTime?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  /// When the writer said it was finished, and who said so.
+  ///
+  /// Not a ContentStatus value. That enum is shared with pages, jobs and case
+  /// studies, and none of them has a review step; adding IN_REVIEW there would
+  /// put a meaningless option in four status dropdowns and a fourth branch in
+  /// every query that reads status. A draft with this set is "ready for
+  /// review" — the status stays DRAFT, so nothing that reads status needs to
+  /// learn a new value, and a post in review cannot leak onto the public site.
+  ///
+  /// Cleared when an editor publishes it or the author takes it back.
+  submittedForReviewAt DateTime?
+  submittedById        String?
+  submittedBy          User?     @relation("PostSubmittedBy", fields: [submittedById], references: [id], onDelete: SetNull)
+
+  publishedAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
   /// See Page.contentUpdatedAt — same rule, same reason.
   contentUpdatedAt DateTime?
 
-  chunks     ContentChunk[]
+  chunks ContentChunk[]
 
   @@index([status, publishedAt])
   @@index([categoryId])
   @@index([authorId])
+  /// The editor's queue: drafts waiting on somebody, oldest first.
+  @@index([submittedForReviewAt])
   @@map("posts")
 }
 
@@ -387,25 +403,29 @@ model Author {
   linkedIn    String?
   website     String?
 
-  posts       Post[]
+  posts Post[]
+  /// Console accounts that write under this byline. Normally none or one; the
+  /// list rather than a single field because nothing in the data model should
+  /// forbid two logins sharing a house byline.
+  users User[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("authors")
 }
 
 /// FAQ entries power both on-page accordions and FAQPage JSON-LD (AEO).
 model Faq {
-  id       String  @id @default(cuid())
-  question String  @db.Text
-  answer   String  @db.Text
-  order    Int     @default(0)
+  id       String @id @default(cuid())
+  question String @db.Text
+  answer   String @db.Text
+  order    Int    @default(0)
 
-  pageId   String?
-  page     Page?   @relation(fields: [pageId], references: [id], onDelete: Cascade)
-  postId   String?
-  post     Post?   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  pageId String?
+  page   Page?   @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  postId String?
+  post   Post?   @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@index([pageId])
   @@index([postId])
@@ -414,12 +434,12 @@ model Faq {
 
 /// 301 map so WordPress URLs keep their link equity after cutover.
 model Redirect {
-  id        String   @id @default(cuid())
-  fromPath  String   @unique
-  toPath    String
-  statusCode Int     @default(301)
-  hits      Int      @default(0)
-  createdAt DateTime @default(now())
+  id         String   @id @default(cuid())
+  fromPath   String   @unique
+  toPath     String
+  statusCode Int      @default(301)
+  hits       Int      @default(0)
+  createdAt  DateTime @default(now())
 
   @@map("redirects")
 }
@@ -432,17 +452,17 @@ model Redirect {
 /// The `embedding` column is added by migration as vector(1536) — Prisma has no
 /// native vector type, so it is declared Unsupported and queried via $queryRaw.
 model ContentChunk {
-  id        String  @id @default(cuid())
-  content   String  @db.Text
-  tokens    Int     @default(0)
+  id          String @id @default(cuid())
+  content     String @db.Text
+  tokens      Int    @default(0)
   /// Human-readable source label shown as a citation in the chat widget
-  sourceUrl String
+  sourceUrl   String
   sourceTitle String
 
-  pageId    String?
-  page      Page?   @relation(fields: [pageId], references: [id], onDelete: Cascade)
-  postId    String?
-  post      Post?   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  pageId String?
+  page   Page?   @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  postId String?
+  post   Post?   @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   embedding Unsupported("vector(1536)")?
 
@@ -464,20 +484,20 @@ enum ChatStatus {
 }
 
 model ChatSession {
-  id            String     @id @default(cuid())
-  status        ChatStatus @default(BOT)
+  id     String     @id @default(cuid())
+  status ChatStatus @default(BOT)
 
-  visitorName   String?
-  visitorEmail  String?
+  visitorName  String?
+  visitorEmail String?
   /// Page the widget was opened on — useful context for the human agent
-  entryUrl      String?
-  userAgent     String?
+  entryUrl     String?
+  userAgent    String?
   /// Kept for rate limiting and abuse correlation without exposing the address.
-  ipHash        String?
+  ipHash       String?
   /// The address itself, for the audit trail on who chatted from where.
   /// Personal information under the Privacy Act — covered by the privacy
   /// policy, and subject to the same retention limits as the transcript.
-  ipAddress     String?
+  ipAddress    String?
 
   /// Email verification gate. The chat stays locked until the visitor enters
   /// the code we email them, which is what makes visitorEmail worth treating
@@ -488,21 +508,21 @@ model ChatSession {
   otpHash       String?
   otpExpiresAt  DateTime?
   otpSentAt     DateTime?
-  otpAttempts   Int        @default(0)
+  otpAttempts   Int       @default(0)
 
   /// Teams conversation/message id used to thread replies back to this session
-  teamsThreadId String?
-  escalatedAt   DateTime?
+  teamsThreadId      String?
+  escalatedAt        DateTime?
   /// When the visitor was told to phone a live incident through. Set once, so
   /// a conversation about an outage does not fire a card on every message.
   incidentNotifiedAt DateTime?
-  closedAt      DateTime?
+  closedAt           DateTime?
 
-  messages      ChatMessage[]
-  lead          Lead?
+  messages ChatMessage[]
+  lead     Lead?
 
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([status, updatedAt])
   @@index([teamsThreadId])
@@ -522,14 +542,14 @@ model ChatMessage {
   sessionId String
   session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
-  role      ChatRole
-  content   String      @db.Text
+  role       ChatRole
+  content    String   @db.Text
   /// Agent display name when role = AGENT
   authorName String?
   /// Retrieval citations backing an ASSISTANT answer
-  citations Json?
+  citations  Json?
 
-  createdAt DateTime    @default(now())
+  createdAt DateTime @default(now())
 
   @@index([sessionId, createdAt])
   @@map("chat_messages")
@@ -556,16 +576,16 @@ enum LeadStatus {
 }
 
 model Lead {
-  id        String     @id @default(cuid())
-  name      String
-  email     String
-  company   String?
-  phone     String?
-  service   String?
-  message   String?    @db.Text
+  id      String  @id @default(cuid())
+  name    String
+  email   String
+  company String?
+  phone   String?
+  service String?
+  message String? @db.Text
 
-  status    LeadStatus @default(NEW)
-  channel   LeadSource @default(CONTACT_FORM)
+  status  LeadStatus @default(NEW)
+  channel LeadSource @default(CONTACT_FORM)
 
   /// Set when the lead came out of a chat conversation
   sessionId String?      @unique
@@ -583,7 +603,7 @@ model Lead {
   /// match nothing known, because an unknown country is more useful in a report
   /// than a guessed one. Only 10% of site clicks are Australian, so counting
   /// leads by market is the measurement the growth plan turns on.
-  country     String?   @db.VarChar(2)
+  country String? @db.VarChar(2)
 
   /// The page the visit landed on, captured on arrival rather than at submit.
   /// "Which page produced this lead" is the question the traffic analysis could
@@ -601,11 +621,11 @@ model Lead {
   /// is set to TRUST_PROXY_HOPS — 2 in production, for HAProxy then nginx.
   /// Null on leads created before October 2026 and on any channel with no
   /// HTTP request behind it.
-  ip          String?    @db.VarChar(45)
+  ip String? @db.VarChar(45)
 
   emailSentAt DateTime?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   healthCheckTokens HealthCheckToken[]
 
@@ -614,38 +634,72 @@ model Lead {
   @@map("leads")
 }
 
+/// What a console account may do. See ROLE_DESCRIPTIONS in @onsys/shared,
+/// which carries the same three roles in the words the console shows.
 enum Role {
   ADMIN
   EDITOR
+  /// Writes blog articles under one byline and nothing else. Deliberately
+  /// unable to reach leads, candidate CVs, chat transcripts, pages or site
+  /// settings — enforced in the API as a default-deny allowlist, not by
+  /// hiding links. Added so writers do not need an account that can read
+  /// every enquiry in the business.
+  AUTHOR
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
+  id           String    @id @default(cuid())
+  email        String    @unique
   name         String
   passwordHash String
-  role         Role     @default(EDITOR)
+  role         Role      @default(EDITOR)
   lastLoginAt  DateTime?
+
+  /// The byline this account writes under, and for an AUTHOR the whole
+  /// definition of what they can see: their posts are the posts carrying this
+  /// Author. Nullable because an administrator does not need one.
+  ///
+  /// SetNull rather than Cascade — deleting a byline must not delete the
+  /// person's login, and the posts keep their denormalised authorName either
+  /// way. An AUTHOR left without one can sign in and change their password,
+  /// and nothing else, which is the safe end to fail at.
+  authorId String?
+  author   Author? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  /// Set when an administrator creates the account or resets the password, so
+  /// the temporary one that was read out over the phone cannot stay in use.
+  /// While true the API refuses every admin route except reading your own
+  /// account and changing your password.
+  mustChangePassword Boolean @default(false)
+
+  /// Suspended rather than deleted. Deleting a user is the wrong tool for
+  /// someone who has left: their sessions must die immediately, but the
+  /// account is also the audit trail on applications they moved and jobs they
+  /// posted. Checked on every request, not only at login.
+  disabledAt DateTime?
 
   /// Authenticator-app secret, base32. Present once setup has been started;
   /// totpEnabledAt is what marks it confirmed and in use, so an abandoned
   /// enrolment never becomes a factor nobody can satisfy.
-  totpSecret     String?
-  totpEnabledAt  DateTime?
+  totpSecret    String?
+  totpEnabledAt DateTime?
   /// SHA-256 of each single-use recovery code. Hashed for the same reason the
   /// password is: these are long-lived admin credentials, and a leaked table
   /// of plaintext codes is a leaked table of logins. Removed as they are used.
-  recoveryCodes  String[]  @default([])
+  recoveryCodes String[]  @default([])
 
-  challenges   MfaChallenge[]
-  jobs         Job[]
+  challenges               MfaChallenge[]
+  jobs                     Job[]
+  /// Articles this account sent for review. See Post.submittedForReviewAt.
+  postsSubmitted           Post[]           @relation("PostSubmittedBy")
   /// Who moved an application along the pipeline. SetNull, like jobs: removing
   /// an admin account must never delete a candidate's application.
   applicationStatusChanges JobApplication[]
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
+  @@index([authorId])
   @@map("users")
 }
 
@@ -739,27 +793,27 @@ enum EmergencyStatus {
 /// leaves the enquiry visible to the team — someone with a production outage
 /// who gave up at the payment screen is exactly who should be called back.
 model EmergencyRequest {
-  id          String          @id @default(cuid())
-  name        String
-  company     String?
-  phone       String
-  email       String
-  summary     String?         @db.Text
+  id      String  @id @default(cuid())
+  name    String
+  company String?
+  phone   String
+  email   String
+  summary String? @db.Text
 
-  hours       Int             @default(4)
+  hours       Int    @default(4)
   /// Charged amount in the smallest currency unit, recorded as Stripe reported
   /// it. Never recomputed from the page: the receipt has to match the charge.
   amountCents Int?
-  currency    String          @default("aud")
+  currency    String @default("aud")
 
-  status      EmergencyStatus @default(PENDING)
-  stripeSessionId       String? @unique
+  status                EmergencyStatus @default(PENDING)
+  stripeSessionId       String?         @unique
   stripePaymentIntentId String?
-  paidAt      DateTime?
+  paidAt                DateTime?
 
-  ipHash      String?
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  ipHash    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([status, createdAt])
   @@index([email])
@@ -771,20 +825,20 @@ model EmergencyRequest {
 /// Deliberately not an AdminSession: until the second factor lands there is no
 /// session, so a stolen password alone yields a row that can open nothing.
 model MfaChallenge {
-  id             String    @id @default(cuid())
-  userId         String
-  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   /// Wrong attempts across every method. Burns the challenge, not the account,
   /// so an attacker cannot lock a real admin out by guessing at them.
-  attempts       Int       @default(0)
+  attempts Int @default(0)
 
   /// Emailed fallback code, for a lost or not-yet-enrolled authenticator.
   emailOtpHash   String?
   emailOtpSentAt DateTime?
 
-  expiresAt      DateTime
-  createdAt      DateTime  @default(now())
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 
   @@index([userId])
   @@index([expiresAt])
@@ -804,33 +858,33 @@ model AdminSession {
 
 /// A consultation slot a visitor reserved on the public site.
 model Booking {
-  id        String        @id @default(cuid())
+  id        String @id @default(cuid())
   /// Short human-quotable code, e.g. ONS-7QK2M4. What support asks for.
-  reference String        @unique
+  reference String @unique
 
-  name      String
-  email     String
-  company   String?
-  phone     String?
-  topic     String?
-  message   String?       @db.Text
+  name    String
+  email   String
+  company String?
+  phone   String?
+  topic   String?
+  message String? @db.Text
 
   /// Always stored UTC. `timezone` records the zone the visitor booked in so a
   /// later reschedule can be shown back to them in their own wall-clock time.
-  startsAt  DateTime
-  endsAt    DateTime
-  timezone  String
+  startsAt DateTime
+  endsAt   DateTime
+  timezone String
 
-  status    BookingStatus @default(PENDING)
+  status BookingStatus @default(PENDING)
 
   /// Graph identifiers for the calendar event we created on the consultant's
   /// mailbox. Null while PENDING, and after the event has been deleted.
   graphEventId String?
   /// Teams meeting the visitor joins. Never exposed to anyone but them.
-  joinUrl      String?    @db.Text
+  joinUrl      String? @db.Text
 
   /// Unguessable token backing the self-service cancellation link.
-  cancelToken String     @unique
+  cancelToken String    @unique
   cancelledAt DateTime?
 
   utmSource   String?
@@ -864,20 +918,20 @@ enum BookingStatus {
 /// unreachable, so a failed request degrades to the old footer rather than to
 /// no footer at all.
 model NavLink {
-  id      String  @id @default(cuid())
+  id         String  @id @default(cuid())
   /// Column heading it appears under, e.g. "Services". Free text so a new
   /// column can be created without a migration.
   group      String
   /// Position of the whole column in the footer. Held on every link rather
   /// than in a second table: ordering by the group name alone would put
   /// Company before Services, which is not the order the footer reads in.
-  groupOrder Int    @default(0)
-  label   String
-  href    String
+  groupOrder Int     @default(0)
+  label      String
+  href       String
   /// Position within the group. Gaps are fine — only the ordering matters.
-  order   Int     @default(0)
+  order      Int     @default(0)
   /// Lets a link be retired without losing its wording and position.
-  visible Boolean @default(true)
+  visible    Boolean @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -897,18 +951,18 @@ model NavLink {
 /// person legitimately comes back for it after their change window, and a
 /// single-use link would turn that into a support call. Expiry is the control.
 model HealthCheckToken {
-  id      String @id @default(cuid())
+  id    String @id @default(cuid())
   /// Random, URL-safe, and the only thing standing between a request and the
   /// file — so it is generated from a CSPRNG, never from the lead id.
-  token   String @unique
+  token String @unique
 
   /// Who it was issued to. Kept denormalised so a deleted lead does not
   /// invalidate a link someone is still holding.
   email   String
   company String
 
-  leadId  String?
-  lead    Lead?   @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  leadId String?
+  lead   Lead?   @relation(fields: [leadId], references: [id], onDelete: SetNull)
 
   downloads  Int       @default(0)
   lastUsedAt DateTime?
