@@ -11,8 +11,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div className="wrap" style={{ paddingTop: 32, paddingBottom: 64 }}>
       <AdminNav />
-      <FirstRunGate />
-      {children}
+      <FirstRunGate>{children}</FirstRunGate>
     </div>
   );
 }

@@ -26,9 +26,21 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetch(`${siteConfig.apiUrl}/api/admin/stats`, { credentials: 'include' })
-      .then((r) => {
+      .then(async (r) => {
         if (r.status === 401) {
           window.location.href = '/admin/login';
+          return null;
+        }
+        /*
+         * An error body is not a smaller set of statistics. Reading on without
+         * this check put { error, code } into state, and the first tile then
+         * crashed the whole console on content.publishedPosts — which is what
+         * a writer met on their very first sign-in, while still holding the
+         * temporary password the API was refusing them over.
+         */
+        if (!r.ok) {
+          const body = await r.json().catch(() => ({}));
+          setError(body.error ?? 'Could not load dashboard stats.');
           return null;
         }
         return r.json();
