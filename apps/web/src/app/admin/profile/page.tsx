@@ -12,6 +12,7 @@ interface Me {
   lastLoginAt: string | null;
   totpEnabled: boolean;
   recoveryCodesLeft: number;
+  mustChangePassword: boolean;
 }
 
 interface Setup {
@@ -89,6 +90,20 @@ export default function ProfilePage() {
       // Reset here rather than before the await: clearing a form that then
       // failed leaves someone retyping a long password for no reason.
       form.reset();
+
+      /*
+       * The first change opens the console, so go there.
+       *
+       * A full page load, not a router push: the gate in the layout holds its
+       * own answer from /api/auth/me and has no reason to ask again. Without
+       * this the writer changes their password successfully and is still
+       * looking at a banner telling them the console is closed.
+       */
+      if (me?.mustChangePassword) {
+        window.location.href = '/admin';
+        return;
+      }
+
       setPwStatus({
         ok: true,
         text: 'Password changed. Any other sessions you had open have been signed out.',
@@ -177,180 +192,189 @@ export default function ProfilePage() {
         {me.lastLoginAt && ` · last signed in ${new Date(me.lastLoginAt).toLocaleString('en-AU')}`}
       </p>
 
-      <section className="admin-card">
-        <h2>Two-factor authentication</h2>
+      {/*
+        * On the first sign-in the password card comes first. Someone who has
+        * just been told to replace their password should not have to scroll
+        * past an authenticator QR code to find the form that does it.
+        */}
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <section className="admin-card" style={{ order: me.mustChangePassword ? 2 : 1 }}>
+          <h2>Two-factor authentication</h2>
 
-        {mfaStatus && (
-          <div className={`form-status ${mfaStatus.ok ? 'success' : 'error'}`} role="alert">
-            {mfaStatus.text}
-          </div>
-        )}
+          {mfaStatus && (
+            <div className={`form-status ${mfaStatus.ok ? 'success' : 'error'}`} role="alert">
+              {mfaStatus.text}
+            </div>
+          )}
 
-        {recoveryCodes && (
-          <div className="recovery-panel">
-            <h3>Save your recovery codes</h3>
-            <p>
-              Each one signs you in once if you lose your phone. <strong>This is the only time
-              they are shown</strong> — they are stored hashed, so we cannot show them again.
-            </p>
-            <ul className="recovery-codes">
-              {recoveryCodes.map((c) => (
-                <li key={c}>{c}</li>
-              ))}
-            </ul>
-            <button
-              className="btn btn-outline"
-              onClick={() => {
-                void navigator.clipboard?.writeText(recoveryCodes.join('\n'));
-              }}
-            >
-              Copy to clipboard
-            </button>
-            <button className="btn btn-primary" onClick={() => setRecoveryCodes(null)}>
-              I&rsquo;ve saved them
-            </button>
-          </div>
-        )}
-
-        {me.totpEnabled ? (
-          <>
-            <p className="mfa-state on">
-              <span className="dot" aria-hidden="true" /> Authenticator app is on.
-              {' '}
-              {me.recoveryCodesLeft} recovery {me.recoveryCodesLeft === 1 ? 'code' : 'codes'} left.
-            </p>
-            {me.recoveryCodesLeft <= 2 && (
-              <p className="mfa-warn">
-                You are nearly out of recovery codes. Turn the authenticator off and set it up again
-                to get a fresh set.
+          {recoveryCodes && (
+            <div className="recovery-panel">
+              <h3>Save your recovery codes</h3>
+              <p>
+                Each one signs you in once if you lose your phone. <strong>This is the only time
+                they are shown</strong> — they are stored hashed, so we cannot show them again.
               </p>
-            )}
-            <button className="btn btn-outline" onClick={() => void disableMfa()} disabled={mfaBusy}>
-              Turn off authenticator
-            </button>
-          </>
-        ) : setup ? (
-          <form onSubmit={confirmSetup}>
-            <p>
-              Scan this with Microsoft Authenticator, Google Authenticator or 1Password, then enter
-              the code it shows.
-            </p>
-            <Image
-              src={setup.qrDataUrl}
-              alt="QR code for authenticator app enrolment"
-              width={240}
-              height={240}
-              unoptimized
-              style={{ display: 'block', margin: '14px 0', background: '#fff' }}
-            />
-            <p style={{ fontSize: 13, color: 'var(--gray)' }}>
-              No camera? Enter this key by hand:
-              <br />
-              <code className="mfa-secret">{setup.secret}</code>
-            </p>
+              <ul className="recovery-codes">
+                {recoveryCodes.map((c) => (
+                  <li key={c}>{c}</li>
+                ))}
+              </ul>
+              <button
+                className="btn btn-outline"
+                onClick={() => {
+                  void navigator.clipboard?.writeText(recoveryCodes.join('\n'));
+                }}
+              >
+                Copy to clipboard
+              </button>
+              <button className="btn btn-primary" onClick={() => setRecoveryCodes(null)}>
+                I&rsquo;ve saved them
+              </button>
+            </div>
+          )}
 
+          {me.totpEnabled ? (
+            <>
+              <p className="mfa-state on">
+                <span className="dot" aria-hidden="true" /> Authenticator app is on.
+                {' '}
+                {me.recoveryCodesLeft} recovery {me.recoveryCodesLeft === 1 ? 'code' : 'codes'} left.
+              </p>
+              {me.recoveryCodesLeft <= 2 && (
+                <p className="mfa-warn">
+                  You are nearly out of recovery codes. Turn the authenticator off and set it up again
+                  to get a fresh set.
+                </p>
+              )}
+              <button className="btn btn-outline" onClick={() => void disableMfa()} disabled={mfaBusy}>
+                Turn off authenticator
+              </button>
+            </>
+          ) : setup ? (
+            <form onSubmit={confirmSetup}>
+              <p>
+                Scan this with Microsoft Authenticator, Google Authenticator or 1Password, then enter
+                the code it shows.
+              </p>
+              <Image
+                src={setup.qrDataUrl}
+                alt="QR code for authenticator app enrolment"
+                width={240}
+                height={240}
+                unoptimized
+                style={{ display: 'block', margin: '14px 0', background: '#fff' }}
+              />
+              <p style={{ fontSize: 13, color: 'var(--gray)' }}>
+                No camera? Enter this key by hand:
+                <br />
+                <code className="mfa-secret">{setup.secret}</code>
+              </p>
+
+              <div className="form-row">
+                <div className="form-field full">
+                  <label htmlFor="enrol-code">Code from the app</label>
+                  <input
+                    id="enrol-code"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    required
+                    value={enrolCode}
+                    onChange={(e) => setEnrolCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    placeholder="000000"
+                    style={{ fontSize: 18, letterSpacing: '.2em', textAlign: 'center' }}
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={mfaBusy || enrolCode.length !== 6}
+              >
+                {mfaBusy ? 'Checking…' : 'Turn on'}
+              </button>
+              <button type="button" className="btn btn-outline" onClick={() => setSetup(null)}>
+                Cancel
+              </button>
+            </form>
+          ) : (
+            <>
+              <p className="mfa-state off">
+                <span className="dot" aria-hidden="true" /> No authenticator app. You currently get a
+                code by email at each sign-in.
+              </p>
+              <p style={{ fontSize: 13.5, color: 'var(--gray)' }}>
+                An authenticator app is stronger — the code never travels through a mailbox, so it
+                still protects the console if your email is compromised.
+              </p>
+              <button className="btn btn-primary" onClick={() => void startSetup()} disabled={mfaBusy}>
+                {mfaBusy ? 'Preparing…' : 'Set up authenticator app'}
+              </button>
+            </>
+          )}
+        </section>
+
+        <section className="admin-card" style={{ order: me.mustChangePassword ? 1 : 2 }}>
+          <h2>Change password</h2>
+
+          {pwStatus && (
+            <div className={`form-status ${pwStatus.ok ? 'success' : 'error'}`} role="alert">
+              {pwStatus.text}
+            </div>
+          )}
+
+          <form onSubmit={changePassword}>
             <div className="form-row">
               <div className="form-field full">
-                <label htmlFor="enrol-code">Code from the app</label>
+                <label htmlFor="currentPassword">
+                  {me.mustChangePassword ? 'The password you were given' : 'Current password'}
+                </label>
                 <input
-                  id="enrol-code"
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  maxLength={6}
+                  id="currentPassword"
+                  name="currentPassword"
+                  type="password"
                   required
-                  value={enrolCode}
-                  onChange={(e) => setEnrolCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  placeholder="000000"
-                  style={{ fontSize: 18, letterSpacing: '.2em', textAlign: 'center' }}
+                  autoComplete="current-password"
                 />
               </div>
             </div>
-
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={mfaBusy || enrolCode.length !== 6}
-            >
-              {mfaBusy ? 'Checking…' : 'Turn on'}
-            </button>
-            <button type="button" className="btn btn-outline" onClick={() => setSetup(null)}>
-              Cancel
+            <div className="form-row">
+              <div className="form-field full">
+                <label htmlFor="newPassword">New password</label>
+                <input
+                  id="newPassword"
+                  name="newPassword"
+                  type="password"
+                  required
+                  minLength={12}
+                  autoComplete="new-password"
+                />
+              </div>
+            </div>
+            <div className="form-row">
+              <div className="form-field full">
+                <label htmlFor="confirmPassword">Confirm new password</label>
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  required
+                  minLength={12}
+                  autoComplete="new-password"
+                />
+              </div>
+            </div>
+            <p style={{ fontSize: 12.5, color: 'var(--gray)', marginBottom: 14 }}>
+              At least 12 characters. Changing it signs out every other session.
+            </p>
+            <button type="submit" className="btn btn-primary" disabled={pwBusy}>
+              {pwBusy ? 'Saving…' : 'Change password'}
             </button>
           </form>
-        ) : (
-          <>
-            <p className="mfa-state off">
-              <span className="dot" aria-hidden="true" /> No authenticator app. You currently get a
-              code by email at each sign-in.
-            </p>
-            <p style={{ fontSize: 13.5, color: 'var(--gray)' }}>
-              An authenticator app is stronger — the code never travels through a mailbox, so it
-              still protects the console if your email is compromised.
-            </p>
-            <button className="btn btn-primary" onClick={() => void startSetup()} disabled={mfaBusy}>
-              {mfaBusy ? 'Preparing…' : 'Set up authenticator app'}
-            </button>
-          </>
-        )}
-      </section>
-
-      <section className="admin-card">
-        <h2>Change password</h2>
-
-        {pwStatus && (
-          <div className={`form-status ${pwStatus.ok ? 'success' : 'error'}`} role="alert">
-            {pwStatus.text}
-          </div>
-        )}
-
-        <form onSubmit={changePassword}>
-          <div className="form-row">
-            <div className="form-field full">
-              <label htmlFor="currentPassword">Current password</label>
-              <input
-                id="currentPassword"
-                name="currentPassword"
-                type="password"
-                required
-                autoComplete="current-password"
-              />
-            </div>
-          </div>
-          <div className="form-row">
-            <div className="form-field full">
-              <label htmlFor="newPassword">New password</label>
-              <input
-                id="newPassword"
-                name="newPassword"
-                type="password"
-                required
-                minLength={12}
-                autoComplete="new-password"
-              />
-            </div>
-          </div>
-          <div className="form-row">
-            <div className="form-field full">
-              <label htmlFor="confirmPassword">Confirm new password</label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                required
-                minLength={12}
-                autoComplete="new-password"
-              />
-            </div>
-          </div>
-          <p style={{ fontSize: 12.5, color: 'var(--gray)', marginBottom: 14 }}>
-            At least 12 characters. Changing it signs out every other session.
-          </p>
-          <button type="submit" className="btn btn-primary" disabled={pwBusy}>
-            {pwBusy ? 'Saving…' : 'Change password'}
-          </button>
-        </form>
-      </section>
+        </section>
+      </div>
     </>
   );
 }
