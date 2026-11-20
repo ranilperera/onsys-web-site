@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { Prisma } from '@prisma/client';
 import DOMPurify from 'isomorphic-dompurify';
 import { z } from 'zod';
 import { marked } from 'marked';
@@ -11,9 +12,11 @@ import {
   caseStudyInputSchema,
   findForbiddenIdentifiers,
   APPLICATION_STATUSES,
+  APPLICATION_SORTS,
   applicationStatusSchema,
   applicationNotesSchema,
 } from '@onsys/shared';
+import type { CvInsight, CvSummary } from '@onsys/shared';
 import { prisma } from '../lib/prisma';
 import { asyncHandler, HttpError } from '../middleware/error';
 import { logger } from '../lib/logger';
@@ -30,6 +33,11 @@ import { sendEmail, renderChatTranscript } from '../services/email.service';
 import { revalidateInBackground, tags } from '../services/revalidate.service';
 import { pageFingerprint, postFingerprint, nextContentUpdatedAt } from '../lib/content-changed';
 import { openCv, deleteCv } from '../services/cvStorage.service';
+import {
+  buildCvInsight,
+  requirementTerms,
+  matchRequirements,
+} from '../services/cvInsight.service';
 
 /**
  * Admin CMS API. Every route requires an authenticated session and a valid
@@ -1335,7 +1343,26 @@ const applicationListQuery = z.object({
   status: z.enum(APPLICATION_STATUSES).optional(),
   /** Name or email search, for "has this person applied before?". */
   q: z.string().trim().max(200).optional(),
+  sort: z.enum(APPLICATION_SORTS).default('newest'),
 });
+
+/**
+ * Turn a sort choice into an ordering.
+ *
+ * Every one of them ends on submittedAt, because a sort with ties has no
+ * defined order and two people loading the same queue would see the rows
+ * differently — which quietly breaks "you are on number 34 of 112" and makes
+ * next and previous skip candidates.
+ */
+const APPLICATION_ORDER_BY: Record<
+  (typeof APPLICATION_SORTS)[number],
+  Prisma.JobApplicationOrderByWithRelationInput[]
+> = {
+  newest: [{ submittedAt: 'desc' }],
+  oldest: [{ submittedAt: 'asc' }],
+  name: [{ fullName: 'asc' }, { submittedAt: 'desc' }],
+  role: [{ job: { title: 'asc' } }, { submittedAt: 'desc' }],
+};
 
 /**
  * Columns the queue shows. The CV storage key is deliberately not among them.
@@ -1386,10 +1413,9 @@ adminRouter.get(
             }
           : {}),
       },
-      // Newest first within the queue. Status is not sorted on: an application
-      // moved to "not proceeding" should not jump position in a list someone
-      // is working down.
-      orderBy: { submittedAt: 'desc' },
+      // Status is never sorted on: an application moved to "not proceeding"
+      // should not jump position in a list someone is working down.
+      orderBy: APPLICATION_ORDER_BY[query.sort],
       take: 500,
       select: applicationSummarySelect,
     });
@@ -1423,6 +1449,119 @@ adminRouter.get(
       return;
     }
     res.json({ application });
+  }),
+);
+
+/**
+ * What the CV says, without anybody having to download it.
+ *
+ * Computed once and cached on the row. The first reviewer to open a candidate
+ * pays the two seconds of parsing; everybody after them gets it immediately,
+ * and the summary is paid for once rather than once per curious colleague.
+ *
+ * A `refresh=1` query forces it again, for the case where a CV needs re-reading
+ * after the prompt or the parser changed.
+ *
+ * A failure here is never fatal to the screen. The point of this endpoint is
+ * to save a reviewer a round trip; if it cannot, they download the file as
+ * they always did, and the response says why in a sentence they can act on.
+ */
+adminRouter.get(
+  '/applications/:id/insight',
+  asyncHandler(async (req: AuthedRequest, res) => {
+    const application = await prisma.jobApplication.findUnique({
+      where: { id: req.params.id },
+      select: {
+        id: true,
+        cvStorageKey: true,
+        cvOriginalName: true,
+        cvMimeType: true,
+        cvText: true,
+        cvSummary: true,
+        cvPages: true,
+        cvReadAt: true,
+        cvReadError: true,
+        job: { select: { title: true, summary: true, descriptionHtml: true } },
+      },
+    });
+    if (!application) {
+      res.status(404).json({ error: 'Application not found' });
+      return;
+    }
+
+    const refresh = req.query.refresh === '1';
+
+    // Served from the cache. cvReadAt is the marker rather than cvText,
+    // because an unreadable CV is a real and final answer — a scan does not
+    // become readable by being asked again, and re-parsing it on every view
+    // would be two seconds spent to reach the same sentence.
+    if (!refresh && application.cvReadAt) {
+      const terms = requirementTerms(
+        application.job.descriptionHtml,
+        application.job.title,
+      );
+      const cached: CvInsight = application.cvText
+        ? {
+            state: 'ready',
+            problem: null,
+            chars: application.cvText.length,
+            pages: application.cvPages,
+            text: application.cvText,
+            summary: (application.cvSummary as CvSummary | null) ?? null,
+            requirements: matchRequirements(application.cvText, terms),
+            generatedAt: application.cvReadAt.toISOString(),
+          }
+        : {
+            state: 'unreadable',
+            problem: application.cvReadError,
+            chars: 0,
+            pages: application.cvPages,
+            text: null,
+            summary: null,
+            requirements: [],
+            generatedAt: application.cvReadAt.toISOString(),
+          };
+      res.json({ insight: cached });
+      return;
+    }
+
+    const insight = await buildCvInsight({
+      storageKey: application.cvStorageKey,
+      mimeType: application.cvMimeType,
+      originalName: application.cvOriginalName,
+      job: application.job,
+    });
+
+    await prisma.jobApplication.update({
+      where: { id: application.id },
+      data: {
+        cvText: insight.text,
+        // DbNull, not null: the column is Json, where a JSON null and an
+        // absent value are different things, and only one of them means
+        // "there is no summary".
+        cvSummary: insight.summary
+          ? (insight.summary as unknown as Prisma.InputJsonObject)
+          : Prisma.DbNull,
+        cvPages: insight.pages,
+        cvReadAt: new Date(),
+        cvReadError: insight.problem,
+      },
+    });
+
+    // Reading a CV is reading a CV, whether it happens in a PDF viewer or on
+    // this screen. The download handler logs; so does this.
+    logger.info(
+      {
+        applicationId: application.id,
+        adminId: req.user?.id,
+        adminEmail: req.user?.email,
+        state: insight.state,
+        summarySource: insight.summary?.source ?? null,
+      },
+      'CV read in the console',
+    );
+
+    res.json({ insight });
   }),
 );
 

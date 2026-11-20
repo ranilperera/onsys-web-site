@@ -1,15 +1,25 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import {
   APPLICATION_STATUSES,
   APPLICATION_STATUS_LABEL,
+  isApplicationOpen,
   type ApplicationRecord,
   type ApplicationStatusValue,
+  type ApplicationSummary,
 } from '@onsys/shared';
 import { siteConfig } from '@/lib/config';
+import { CvInsightPanel } from '@/components/admin/CvInsightPanel';
+import {
+  DEFAULT_QUEUE,
+  queueApiQuery,
+  queueHref,
+  readQueue,
+  type QueueParams,
+} from '@/lib/applicationQueue';
 
 /**
  * One application.
@@ -79,6 +89,81 @@ export default function ApplicationPage() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
+
+  /*
+   * The queue this candidate was opened from, carried in the URL by the list.
+   *
+   * It is what makes a hundred applications workable: Back returns to the
+   * same filtered, sorted list rather than the default view, and Previous and
+   * Next walk that list without going through it at all.
+   */
+  const router = useRouter();
+  const [queue, setQueue] = useState<QueueParams>(DEFAULT_QUEUE);
+  const [neighbours, setNeighbours] = useState<ApplicationSummary[] | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    setQueue(readQueue(new URLSearchParams(window.location.search)));
+  }, []);
+
+  // The same list the queue screen shows, asked for the same way, so the
+  // position and the neighbours match what the reviewer just came from.
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`${siteConfig.apiUrl}/api/admin/applications?${queueApiQuery(queue)}`, {
+      credentials: 'include',
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (cancelled || !d?.applications) return;
+        const rows: ApplicationSummary[] = queue.openOnly
+          ? d.applications.filter((a: ApplicationSummary) => isApplicationOpen(a.status))
+          : d.applications;
+        setNeighbours(rows);
+      })
+      // Silent: queue navigation is a convenience on top of a screen that
+      // works without it, and an error banner about it would be noise over
+      // the candidate's actual details.
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [queue]);
+
+  const position = neighbours?.findIndex((a) => a.id === id) ?? -1;
+  const previous = position > 0 ? neighbours?.[position - 1] : undefined;
+  const next =
+    position >= 0 && neighbours && position < neighbours.length - 1
+      ? neighbours[position + 1]
+      : undefined;
+
+  const go = useCallback(
+    (target: ApplicationSummary | undefined) => {
+      if (target) router.push(queueHref(queue, target.id));
+    },
+    [router, queue],
+  );
+
+  /*
+   * Keyboard, for the reviewer working straight down a backlog.
+   *
+   * Guarded on the focused element: these are plain letters, and firing them
+   * while somebody is halfway through typing an internal note would navigate
+   * away and lose it.
+   */
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const el = document.activeElement;
+      const tag = el?.tagName.toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+      if ((el as HTMLElement | null)?.isContentEditable) return;
+      if (e.key === 'j') go(next);
+      if (e.key === 'k') go(previous);
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [go, next, previous]);
 
   useEffect(() => {
     let cancelled = false;
@@ -189,7 +274,7 @@ export default function ApplicationPage() {
         setError(body.error ?? 'Could not delete that application.');
         return;
       }
-      window.location.href = '/admin/applications';
+      window.location.href = queueHref(queue);
     } catch {
       setError('Could not reach the server.');
     } finally {
@@ -202,7 +287,7 @@ export default function ApplicationPage() {
     return (
       <section className="admin-card">
         <p>That application could not be found. It may have been deleted.</p>
-        <Link className="btn btn-outline btn-sm" href="/admin/applications">
+        <Link className="btn btn-outline btn-sm" href={queueHref(queue)}>
           Back to applications
         </Link>
       </section>
@@ -220,10 +305,41 @@ export default function ApplicationPage() {
             {dateTimeFmt.format(new Date(application.submittedAt))}
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <Link className="btn btn-outline btn-sm" href="/admin/applications">
-            Back
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          <Link className="btn btn-outline btn-sm" href={queueHref(queue)}>
+            Back to the queue
           </Link>
+
+          {/*
+            Walking the queue without returning to it. The position is shown
+            because "next" with no sense of how many are left is a treadmill —
+            somebody working a backlog needs to see it shrinking.
+          */}
+          {position >= 0 && neighbours && neighbours.length > 1 && (
+            <>
+              <button
+                type="button"
+                className="btn btn-outline btn-sm"
+                disabled={!previous}
+                onClick={() => go(previous)}
+                title={previous ? `Previous: ${previous.fullName} (k)` : 'This is the first one'}
+              >
+                ‹ Previous
+              </button>
+              <span style={{ fontSize: 13, color: 'var(--gray)', whiteSpace: 'nowrap' }}>
+                {position + 1} of {neighbours.length}
+              </span>
+              <button
+                type="button"
+                className="btn btn-outline btn-sm"
+                disabled={!next}
+                onClick={() => go(next)}
+                title={next ? `Next: ${next.fullName} (j)` : 'This is the last one'}
+              >
+                Next ›
+              </button>
+            </>
+          )}
           <a
             className="btn btn-primary btn-sm"
             href={`${siteConfig.apiUrl}/api/admin/applications/${application.id}/cv`}
@@ -245,6 +361,15 @@ export default function ApplicationPage() {
           {notice}
         </div>
       )}
+
+      {/*
+        Above the form fields on purpose. The first question anybody has about
+        an application is whether the person can do the job, and until now the
+        only way to find out was to download a file. Everything below this —
+        notice period, salary, provenance — matters after that question, not
+        before it.
+      */}
+      <CvInsightPanel applicationId={application.id} jobTitle={application.job.title} />
 
       <section className="admin-card">
         <h2>Where this is up to</h2>
@@ -276,8 +401,8 @@ export default function ApplicationPage() {
       <section className="admin-card">
         <h2>Everything they submitted</h2>
         <p style={{ fontSize: 13, color: 'var(--gray)', margin: '0 0 14px' }}>
-          Every field from the application form. The CV is the one thing not shown here — download
-          it above; opening it is recorded against your account.
+          Every field from the application form. The CV is read above as text; download it for the
+          document itself. Either way, reading it is recorded against your account.
         </p>
         <div className="form-row">
           <div className="form-field">

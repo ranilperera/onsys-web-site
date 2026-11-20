@@ -326,3 +326,83 @@ export interface ApplicationRecord extends ApplicationSummary {
   acknowledgedAt: string | null;
   statusChangedBy: { name: string } | null;
 }
+
+// ---------------------------------------------------------------
+// Working through a queue
+// ---------------------------------------------------------------
+
+/**
+ * How the queue is ordered.
+ *
+ * `oldest` is not a mirror of `newest` — it is the one that answers "who has
+ * been waiting longest?", which is the question a backlog is actually worked
+ * from. Nobody wants to scroll to the bottom of a hundred rows to find the
+ * person who applied in August.
+ */
+export const APPLICATION_SORTS = ['newest', 'oldest', 'name', 'role'] as const;
+
+export type ApplicationSort = (typeof APPLICATION_SORTS)[number];
+
+export const APPLICATION_SORT_LABEL: Record<ApplicationSort, string> = {
+  newest: 'Newest first',
+  oldest: 'Longest waiting first',
+  name: 'Name, A–Z',
+  role: 'Grouped by role',
+};
+
+// ---------------------------------------------------------------
+// Reading the CV without opening it
+// ---------------------------------------------------------------
+
+/**
+ * What we could work out about a CV without a person opening it.
+ *
+ * The queue's real cost is not clicking — it is that deciding anything about a
+ * candidate meant downloading a file, waiting for a PDF reader, reading it,
+ * closing it, and coming back. A hundred applications is a hundred of those.
+ * This is the part that can be answered on the screen already in front of you.
+ *
+ * `source` is on the record rather than implied, because a keyword scan and a
+ * read are worth very different amounts and nobody should have to guess which
+ * one they are looking at.
+ */
+export interface CvSummary {
+  /** One line: who this person appears to be, professionally. */
+  headline: string;
+  yearsExperience: number | null;
+  currentRole: string | null;
+  /** Capabilities found in the CV. Ordered by how prominent they were. */
+  skills: string[];
+  recentRoles: Array<{ title: string; employer: string; period: string }>;
+  education: string[];
+  certifications: string[];
+  /** Read against this particular advert, not in the abstract. */
+  strengths: string[];
+  concerns: string[];
+  source: 'ai' | 'keywords';
+}
+
+/** Terms the advert asks for, and whether this CV mentions them. */
+export interface CvRequirementMatch {
+  term: string;
+  present: boolean;
+}
+
+export interface CvInsight {
+  /**
+   * `unreadable` is its own state and not an error, because the commonest
+   * cause is a scanned or photographed CV — a real document that a person can
+   * read perfectly well and a text extractor cannot. Treating that as a
+   * failure would be telling the reviewer the application is broken.
+   */
+  state: 'ready' | 'unreadable';
+  problem: string | null;
+  chars: number;
+  pages: number | null;
+  /** The CV as text, so it can be read here instead of downloaded. */
+  text: string | null;
+  summary: CvSummary | null;
+  /** How this CV lines up with the words of the advert it answers. */
+  requirements: CvRequirementMatch[];
+  generatedAt: string | null;
+}

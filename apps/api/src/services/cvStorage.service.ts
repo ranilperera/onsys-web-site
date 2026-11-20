@@ -139,3 +139,15 @@ export async function ensureCvStorage(): Promise<boolean> {
 
 /** Exposed for the health endpoint and for tests. */
 export const cvStorageRoot = ROOT;
+
+/**
+ * The absolute path of a stored CV, for callers that read the file whole.
+ *
+ * Text extraction wants the bytes in memory, not a stream, and routing that
+ * through openCv would mean reassembling a buffer from chunks for no reason.
+ * This is the same traversal check and the same root; what differs is only
+ * that the caller does its own reading.
+ */
+export function cvPath(key: string): string {
+  return resolveWithinRoot(key);
+}

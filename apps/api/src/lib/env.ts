@@ -148,6 +148,20 @@ const envSchema = z.object({
   OPENAI_EMBEDDING_MODEL: z.string().default('text-embedding-3-small'),
   /// Below this cosine similarity we treat retrieval as "no good answer".
   RAG_MIN_SCORE: z.coerce.number().default(0.28),
+  /// May a candidate's CV text be sent to OpenAI to be summarised?
+  ///
+  /// Separate from OPENAI_API_KEY on purpose. A key being present means
+  /// somebody wanted a chatbot over our own published pages; it is not a
+  /// decision that applicants' CVs may leave the organisation, and the two
+  /// should not be made by the same line in a file. Defaults on where a key
+  /// exists, because the summary is the point of the feature, and the console
+  /// always states which path produced what it is showing. Set to false and
+  /// the queue falls back to a keyword scan — the extracted CV text, which is
+  /// what removes the download, is unaffected either way.
+  CV_AI_SUMMARY: z
+    .string()
+    .default('true')
+    .transform((v) => v.trim().toLowerCase() === 'true'),
 
   // --- Organisation details ---
   // Authored once in .env and consumed by emails, seeded page copy and schema.

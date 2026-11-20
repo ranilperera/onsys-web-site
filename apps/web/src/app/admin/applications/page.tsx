@@ -2,14 +2,26 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
+  APPLICATION_SORTS,
+  APPLICATION_SORT_LABEL,
   APPLICATION_STATUSES,
   APPLICATION_STATUS_LABEL,
   isApplicationOpen,
+  type ApplicationSort,
   type ApplicationStatusValue,
   type ApplicationSummary,
 } from '@onsys/shared';
 import { siteConfig } from '@/lib/config';
+import {
+  DEFAULT_QUEUE,
+  queueApiQuery,
+  queueHref,
+  queueSearch,
+  readQueue,
+  type QueueParams,
+} from '@/lib/applicationQueue';
 
 /**
  * The application queue.
@@ -83,29 +95,42 @@ export default function ApplicationsPage() {
   const [saving, setSaving] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Pre-filtered when arrived at from a row in the jobs console.
-  const [jobId, setJobId] = useState(() =>
+  const router = useRouter();
+
+  /*
+   * The filters live in the URL. Everything on this screen reads from here,
+   * and `set` is the only way they change — which is what makes coming back
+   * from a candidate land on the same queue you left.
+   */
+  const [queue, setQueue] = useState<QueueParams>(() =>
     typeof window === 'undefined'
-      ? ''
-      : new URLSearchParams(window.location.search).get('jobId') ?? '',
+      ? DEFAULT_QUEUE
+      : readQueue(new URLSearchParams(window.location.search)),
   );
-  const [status, setStatus] = useState('');
-  const [query, setQuery] = useState('');
-  /** Only live applications, which is what somebody signing in wants to see. */
-  const [openOnly, setOpenOnly] = useState(true);
+
+  const set = useCallback(
+    (patch: Partial<QueueParams>) => {
+      setQueue((current) => {
+        const next = { ...current, ...patch };
+        const search = queueSearch(next);
+        // replace, not push: typing in the search box should not bury the
+        // console under fifteen history entries the Back button has to climb.
+        router.replace(search ? `/admin/applications?${search}` : '/admin/applications', {
+          scroll: false,
+        });
+        return next;
+      });
+    },
+    [router],
+  );
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
 
-    const params = new URLSearchParams();
-    if (jobId) params.set('jobId', jobId);
-    if (status) params.set('status', status);
-    if (query.trim()) params.set('q', query.trim());
-
     try {
       const res = await fetch(
-        `${siteConfig.apiUrl}/api/admin/applications?${params.toString()}`,
+        `${siteConfig.apiUrl}/api/admin/applications?${queueApiQuery(queue)}`,
         { credentials: 'include' },
       );
       if (res.status === 401) {
@@ -119,7 +144,7 @@ export default function ApplicationsPage() {
     } finally {
       setLoading(false);
     }
-  }, [jobId, status, query]);
+  }, [queue]);
 
   useEffect(() => {
     void load();
@@ -174,7 +199,9 @@ export default function ApplicationsPage() {
     }
   }
 
-  const visible = openOnly ? applications.filter((a) => isApplicationOpen(a.status)) : applications;
+  const visible = queue.openOnly
+    ? applications.filter((a) => isApplicationOpen(a.status))
+    : applications;
   const newCount = applications.filter((a) => a.status === 'NEW').length;
 
   return (
@@ -185,6 +212,10 @@ export default function ApplicationsPage() {
           {newCount > 0
             ? `${newCount} nobody has opened yet`
             : 'Everything here has been looked at'}
+          {/* The count the reviewer is actually working through, so the size of
+              the job is visible before they start rather than discovered at
+              the bottom of the page. */}
+          {visible.length > 0 && ` · showing ${visible.length}`}
         </p>
       </div>
 
@@ -198,7 +229,7 @@ export default function ApplicationsPage() {
         <div className="form-row">
           <div className="form-field">
             <label htmlFor="job">Role</label>
-            <select id="job" value={jobId} onChange={(e) => setJobId(e.target.value)}>
+            <select id="job" value={queue.jobId} onChange={(e) => set({ jobId: e.target.value })}>
               <option value="">All roles</option>
               {jobs.map((j) => (
                 <option key={j.id} value={j.id}>
@@ -213,12 +244,12 @@ export default function ApplicationsPage() {
             <label htmlFor="status">Status</label>
             <select
               id="status"
-              value={status}
+              value={queue.status}
               onChange={(e) => {
-                setStatus(e.target.value);
+                const next = e.target.value as '' | ApplicationStatusValue;
                 // Asking for a closed status and then filtering it out again
                 // would show an empty table and look like a bug.
-                if (e.target.value) setOpenOnly(false);
+                set(next ? { status: next, openOnly: false } : { status: next });
               }}
             >
               <option value="">Any status</option>
@@ -231,12 +262,27 @@ export default function ApplicationsPage() {
           </div>
 
           <div className="form-field">
+            <label htmlFor="sort">Order</label>
+            <select
+              id="sort"
+              value={queue.sort}
+              onChange={(e) => set({ sort: e.target.value as ApplicationSort })}
+            >
+              {APPLICATION_SORTS.map((sortOption) => (
+                <option key={sortOption} value={sortOption}>
+                  {APPLICATION_SORT_LABEL[sortOption]}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-field">
             <label htmlFor="q">Name or email</label>
             <input
               id="q"
               type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              value={queue.q}
+              onChange={(e) => set({ q: e.target.value })}
               placeholder="Has this person applied before?"
             />
           </div>
@@ -246,12 +292,37 @@ export default function ApplicationsPage() {
               <input
                 id="openOnly"
                 type="checkbox"
-                checked={openOnly}
-                onChange={(e) => setOpenOnly(e.target.checked)}
+                checked={queue.openOnly}
+                onChange={(e) => set({ openOnly: e.target.checked })}
               />
               <span>Still open only</span>
             </label>
           </div>
+        </div>
+
+        {/*
+          One click to the thing the queue is nearly always opened for, and one
+          to undo it. A reviewer sitting down to a backlog wants the people who
+          have waited longest and nobody has answered; reaching that through
+          three separate dropdowns every morning is the complaint this screen
+          earned.
+        */}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
+          <button
+            type="button"
+            className="btn btn-outline btn-sm"
+            onClick={() => set({ status: 'NEW', openOnly: false, sort: 'oldest' })}
+          >
+            Unopened, longest waiting
+          </button>
+          <button
+            type="button"
+            className="btn btn-outline btn-sm"
+            onClick={() => set(DEFAULT_QUEUE)}
+            disabled={queueSearch(queue) === ''}
+          >
+            Clear filters
+          </button>
         </div>
       </section>
 
@@ -292,7 +363,7 @@ export default function ApplicationsPage() {
                   <tr key={application.id}>
                     <td>
                       <Link
-                        href={`/admin/applications/${application.id}`}
+                        href={queueHref(queue, application.id)}
                         style={{ fontWeight: 700, textDecoration: 'underline' }}
                       >
                         {application.fullName}
@@ -383,7 +454,10 @@ export default function ApplicationsPage() {
                       </div>
                     </td>
                     <td style={{ whiteSpace: 'nowrap' }}>
-                      <Link className="btn btn-outline btn-sm" href={`/admin/applications/${application.id}`}>
+                      {/* Carries the queue with it, so the candidate screen
+                          can offer the next one and Back returns to this exact
+                          list rather than to the default view. */}
+                      <Link className="btn btn-outline btn-sm" href={queueHref(queue, application.id)}>
                         Open
                       </Link>
                     </td>

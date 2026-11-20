@@ -163,6 +163,21 @@ model JobApplication {
   /// Shared internal commentary. Never shown to the candidate.
   notes String? @db.Text
 
+  /// The CV as text, extracted once and kept.
+  ///
+  /// Cached rather than re-derived per view because parsing a PDF is slow
+  /// enough to be felt, and because the summary below costs money to produce:
+  /// a reviewer opening the same candidate three times should pay for that
+  /// once. Null means nobody has opened this CV yet; empty means we tried and
+  /// the file had no text in it, which is what a scan looks like.
+  cvText      String?   @db.Text
+  /// Structured read of the CV. Shape is CvSummary in @onsys/shared.
+  cvSummary   Json?
+  cvPages     Int?
+  cvReadAt    DateTime?
+  /// Why extraction failed, in words a recruiter can act on.
+  cvReadError String?
+
   /// When the candidate ticked the consent box. See the privacy note above.
   consentAt DateTime
 
@@ -182,6 +197,8 @@ model JobApplication {
   @@index([jobId, status, submittedAt])
   /// "Has this person applied before?", across every role.
   @@index([email])
+  /// Working the backlog oldest-first, across every role.
+  @@index([submittedAt])
   @@map("job_applications")
 }
 
